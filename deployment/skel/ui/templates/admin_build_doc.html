@@ -1,0 +1,13 @@
+{% extends "admin_build_doc.html" %}
+{% block extra_section%}
+            {% if p_file_list|length > 0 %}
+			<div style="margin-top: 30px;">
+				<h4>Private documentation files:</h4>
+				<ul>
+				{% for f in p_file_list %}
+					<li><a class="text-large" href="/admin/build_doc.html?fname={{f.file_name}}&is_private=true">{{f.display_name}}</a></li>
+				{% endfor %}
+				</ul>
+			</div>
+			{% endif %}
+{%endblock%}

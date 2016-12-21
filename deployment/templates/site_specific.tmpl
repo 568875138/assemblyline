@@ -1,0 +1,110 @@
+import codecs
+import markdown
+import os
+
+from flask import request, Markup
+
+from assemblyline.al.common import forge
+from assemblyline.ui.site_specific import create_menu as original_create_menu, TEMPLATE_PREFIX
+from assemblyline.al.common.codec import encode_file as original_encode_file
+
+APP_NAME = "{app_name}"
+PRIVATE_PREFIX = "private/"
+TEMPLATE_PREFIX.update(
+    {{
+        'admin_build_doc': PRIVATE_PREFIX,
+        'base': PRIVATE_PREFIX,
+        'submit': PRIVATE_PREFIX
+    }}
+)
+
+Classification = forge.get_classification()
+
+
+#############################
+# Alternate menu items
+def create_menu(user, path):
+    menu = original_create_menu(user, path)
+
+    # You can add you own menus here..
+
+    return menu
+
+
+#############################
+# Alternate file decoding techniques
+# you can replace this function with a function that adds extra decoding functions
+def encode_file(data, file_format, name, password=None):
+    return original_encode_file(data, file_format, name, password=password)
+
+
+##########################
+# New Routes/Blueprints
+def register_site_specific_routes(app):
+    from assemblyline.ui.helper.views import protected_renderer, custom_render
+    # ###### You can load extra APIs here
+    # from private.ui.apiv3.myapi import myapi_api
+
+    ##################
+    # Site-Specific build doc page
+    @app.route("/admin/build_doc.html", endpoint="views.admin_build_doc")
+    @protected_renderer(require_admin=True, audit=False)
+    def admin_build_doc(*_, **kwargs):
+        def _list_files(u_file_list_p, p_file_list_p, root_p):
+            for fname in os.listdir(os.path.join(root_p.replace("private", "assemblyline"), "docs")):
+                if fname.endswith(".md") and fname != "markdown_documentation_example.md":
+                    u_file_list_p.append(
+                        {{"file_name": fname,
+                         "display_name": " ".join([x.capitalize() for x in fname[:-3].split("_")])}}
+                    )
+
+            for fname in os.listdir(root_p.replace("ui", "doc")):
+                if fname.endswith(".md") and fname != "markdown_documentation_example.md":
+                    p_file_list_p.append(
+                        {{"file_name": fname,
+                         "display_name": " ".join([x.capitalize() for x in fname[:-3].split("_")])}}
+                    )
+
+        root = os.path.dirname(os.path.abspath(__file__))
+        content = ""
+        u_file_list = []
+        p_file_list = []
+        raw = None
+
+        my_file = request.args.get("fname", None)
+        is_private = request.args.get("is_private", False)
+        if not my_file:
+            _list_files(u_file_list, p_file_list, root)
+        else:
+            my_file = my_file.replace("/", "").replace("\\", "").replace("..", "")
+            if is_private:
+                path = os.path.join(root.replace("ui", "doc"), my_file)
+            else:
+                path = os.path.join(root.replace("private", "assemblyline"), "docs", my_file)
+
+            if not os.path.exists(path):
+                my_file = None
+                _list_files(u_file_list, p_file_list, root)
+            else:
+                data = codecs.open(path, "rb", "utf-8").read()
+                content = Markup(markdown.markdown(data))
+                if my_file == "markdown_documentation_example.md":
+                    raw = data
+        return custom_render("admin_build_doc.html", content=content, raw=raw,
+                             file_list=sorted(u_file_list, key=lambda x: x['file_name']),
+                             p_file_list=sorted(p_file_list, key=lambda x: x['file_name']),
+                             fname=my_file, **kwargs)
+
+    # ###### You can register you newly load APIs here
+    # app.register_blueprint(myapi_api)
+
+    # End of register_site_specific_routes
+
+
+context = {{
+    'TEMPLATE_PREFIX': TEMPLATE_PREFIX,
+    'APP_NAME': APP_NAME,
+    'create_menu': create_menu,
+    'encode_file': encode_file,
+    'register_site_specific_routes': register_site_specific_routes,
+}}

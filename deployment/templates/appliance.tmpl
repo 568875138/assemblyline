@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+from urllib import quote
+from assemblyline.al.install.seeds.assemblyline_appliance import seed, appliance_ip
+
+seed['auth']['internal']['users'] = {{
+    'admin': {{
+        'uname': 'admin',
+        'name': 'Default admin user',
+        'password': '{password}',
+        'groups': ['ADMIN', 'USERS'],
+        'is_admin': True,
+        'classification': 'UNRESTRICTED'
+    }},
+    'internal': {{
+        'uname': 'internal',
+        'name': 'Internal re-submission user',
+        'password': '{internal_pass}',
+        'groups': ['INTERNAL'],
+        'is_admin': False,
+        'classification': 'UNRESTRICTED'
+    }}
+}}
+
+seed['core']['middleman']['user'] = 'internal'
+
+seed['datastore']['riak']['solr']['heap_max_gb'] = {solr_heap}
+seed['datastore']['riak']['solr']['heap_min_gb'] = {solr_heap}
+
+seed['filestore']['ftp_password'] = "{ftp_pass}"
+seed['filestore']['support_urls'] = [
+    'ftp://alftp:{{ftp_pass}}@{{appliance_ip}}/opt/al/var/support'.format(appliance_ip=appliance_ip,
+                                                                          ftp_pass=quote('{ftp_pass}'))
+]
+seed['filestore']['urls'] = [
+    'ftp://alftp:{{ftp_pass}}@{{appliance_ip}}/opt/al/var/storage'.format(appliance_ip=appliance_ip,
+                                                                          ftp_pass=quote('{ftp_pass}'))
+]
+
+seed['installation']['hooks']['ui_pre'] = ['private.common.hook_ui_pre'],
+
+seed['submissions']['password'] = "{internal_pass}"
+seed['submissions']['user'] = "internal"
+
+seed['system']['organisation'] = '{organisation}'
+seed['system']['password'] = None
+seed['system']['repositories']['private'] = {{
+    'branch': 'master',
+    'url': 'http://{{appliance_ip}}/git/private'.format(appliance_ip=appliance_ip)
+}}
+
+seed['ui']['audit'] = True
+seed['ui']['context'] = "private.ui.site_specific.context"
+seed['ui']['debug'] = False
+seed['ui']['fqdn'] = '{fqdn}'
+seed['ui']['secret_key'] = "{secret_key}"
+
+seed['workers']['install_kvm'] = {install_kvm}
+seed['workers']['virtualmachines']['master_list'] = {{}}
+
+if __name__ == '__main__':
+    import sys
+
+    if "json" in sys.argv:
+        import json
+        print json.dumps(seed)
+    else:
+        import pprint
+        pprint.pprint(seed)
