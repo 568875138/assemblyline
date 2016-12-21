@@ -5,7 +5,7 @@ import os
 from flask import request, Markup
 
 from assemblyline.al.common import forge
-from assemblyline.ui.site_specific import create_menu as original_create_menu, TEMPLATE_PREFIX
+from al_ui.site_specific import create_menu as original_create_menu, TEMPLATE_PREFIX
 from assemblyline.al.common.codec import encode_file as original_encode_file
 
 APP_NAME = "{app_name}"
@@ -41,7 +41,7 @@ def encode_file(data, file_format, name, password=None):
 ##########################
 # New Routes/Blueprints
 def register_site_specific_routes(app):
-    from assemblyline.ui.helper.views import protected_renderer, custom_render
+    from al_ui.helper.views import protected_renderer, custom_render
     # ###### You can load extra APIs here
     # from private.ui.apiv3.myapi import myapi_api
 

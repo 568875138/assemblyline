@@ -3,7 +3,7 @@
 The Submission service encapsulates the core functionality of accepting,
 triaging and forwarding a submission to the dispatcher.
 
-SubmissionServer is typically exposed via HTTP interface implemented by assemblyline.ui,
+SubmissionServer is typically exposed via HTTP interface implemented by al_ui,
 however the core logic is implemented in SubmissionService to provide 
 seperation between the network rpc interface and the actual submission logic.
 

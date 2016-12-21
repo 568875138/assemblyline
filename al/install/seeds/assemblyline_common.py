@@ -33,7 +33,7 @@ DEFAULT_SEED = {
                 },
             },
         },
-        'login_method': 'assemblyline.ui.site_specific.internal_authenticator',
+        'login_method': 'al_ui.site_specific.internal_authenticator',
     },
 
     'core': {
@@ -110,25 +110,25 @@ DEFAULT_SEED = {
     },
 
     'datasources': {
+        'AL': {
+            'classpath': 'assemblyline.al.datasource.al.AL',
+            'config': {}
+        },
         'Alert': {
             'classpath': 'assemblyline.al.datasource.alert.Alert',
             'config': {}
         },
         'Beaver': {
-            'classpath': 'assemblyline.al.datasource.beaver.Beaver',
+            'classpath': 'al_services.alsvc_beaver.datasource.beaver.Beaver',
             'config': 'services.master_list.Beaver.config'
         },
         'CFMD': {
-            'classpath': 'assemblyline.al.datasource.cfmd.CFMD',
+            'classpath': 'al_services.alsvc_cfmd.datasource.cfmd.CFMD',
             'config': 'services.master_list.CFMD.config'
         },
         'NSRL': {
-            'classpath': 'assemblyline.al.datasource.nsrl.NSRL',
+            'classpath': 'al_services.alsvc_nsrl.datasource.nsrl.NSRL',
             'config': 'services.master_list.NSRL.config'
-        },
-        'AL': {
-            'classpath': 'assemblyline.al.datasource.al.AL',
-            'config': {}
         }
     },
 
@@ -237,162 +237,162 @@ DEFAULT_SEED = {
         },
         'master_list': {
             'APKaye': {
-                'classpath': 'assemblyline.al.service.apkaye.APKaye',
+                'classpath': 'al_services.alsvc_apkaye.APKaye',
                 'config': {},
                 'install_by_default': True
             },
             'Avg': {
-                'classpath': 'assemblyline.al.service.avg.Avg',
+                'classpath': 'al_services.alsvc_avg.Avg',
                 'config': {},
                 'install_by_default': False
             },
             'Beaver': {
-                'classpath': 'assemblyline.al.service.beaver.Beaver',
+                'classpath': 'al_services.alsvc_beaver.Beaver',
                 'config': {},
                 'install_by_default': True
             },
             'BitDefender': {
-                'classpath': 'assemblyline.al.service.bitdefender.BitDefender',
+                'classpath': 'al_services.alsvc_bitdefender.BitDefender',
                 'config': {},
                 'install_by_default': False
             },
             'CFMD': {
-                'classpath': 'assemblyline.al.service.cfmd.CFMD',
+                'classpath': 'al_services.alsvc_cfmd.CFMD',
                 'config': {},
                 'install_by_default': True
             },
             'Characterize': {
-                'classpath': 'assemblyline.al.service.characterize.Characterize',
+                'classpath': 'al_services.alsvc_characterize.Characterize',
                 'config': {},
                 'install_by_default': True
             },
             'Cleaver': {
-                'classpath': 'assemblyline.al.service.cleaver.Cleaver',
+                'classpath': 'al_services.alsvc_cleaver.Cleaver',
                 'config': {},
                 'install_by_default': True
             },
             'ConfigDecoder': {
-                'classpath': 'assemblyline.al.service.configdecoder.ConfigDecoder',
+                'classpath': 'al_services.alsvc_configdecoder.ConfigDecoder',
                 'config': {},
                 'install_by_default': True
             },
             'Espresso': {
-                'classpath': 'assemblyline.al.service.espresso.Espresso',
+                'classpath': 'al_services.alsvc_espresso.Espresso',
                 'config': {},
                 'install_by_default': True
             },
             'Extract': {
-                'classpath': 'assemblyline.al.service.extract.Extract',
+                'classpath': 'al_services.alsvc_extract.Extract',
                 'config': {},
                 'install_by_default': True
             },
             'FrankenStrings': {
-                'classpath': 'assemblyline.al.service.frankenstrings.FrankenStrings',
+                'classpath': 'al_services.alsvc_frankenstrings.FrankenStrings',
                 'config': {},
                 'install_by_default': True
             },
             'FSecure': {
-                'classpath': 'assemblyline.al.service.fsecure.FSecure',
+                'classpath': 'al_services.alsvc_fsecure.FSecure',
                 'config': {},
                 'install_by_default': True
             },
             'KasperskyIcap': {
-                'classpath': 'assemblyline.al.service.kaspersky.KasperskyIcap',
+                'classpath': 'al_services.alsvc_kaspersky.KasperskyIcap',
                 'config': {},
                 'install_by_default': True
             },
             'McAfee': {
-                'classpath': 'assemblyline.al.service.mcafee.McAfee',
+                'classpath': 'al_services.alsvc_mcafee.McAfee',
                 'config': {},
                 'install_by_default': False
             },
             'MetaPeek': {
-                'classpath': 'assemblyline.al.service.metapeek.MetaPeek',
+                'classpath': 'al_services.alsvc_metapeek.MetaPeek',
                 'config': {},
                 'install_by_default': True
             },
             'MetaDefender': {
-                'classpath': 'assemblyline.al.service.metadefender.MetaDefender',
+                'classpath': 'al_services.alsvc_metadefender.MetaDefender',
                 'config': {},
                 'install_by_default': True
             },
             'NSRL': {
-                'classpath': 'assemblyline.al.service.nsrl.NSRL',
+                'classpath': 'al_services.alsvc_nsrl.NSRL',
                 'config': {},
                 'install_by_default': True
             },
             'Oletools': {
-                'classpath': 'assemblyline.al.service.oletools_al.Oletools',
+                'classpath': 'al_services.alsvc_oletools.Oletools',
                 'config': {},
                 'install_by_default': True
             },
             'PDFId': {
-                'classpath': 'assemblyline.al.service.pdfid.PDFId',
+                'classpath': 'al_services.alsvc_pdfid.PDFId',
                 'config': {},
                 'install_by_default': True
             },
             'PeePDF': {
-                'classpath': 'assemblyline.al.service.peepdf_al.PeePDF',
+                'classpath': 'al_services.alsvc_peepdf.PeePDF',
                 'config': {},
                 'install_by_default': True
             },
             'PEFile': {
-                'classpath': 'assemblyline.al.service.pefile.PEFile',
+                'classpath': 'al_services.alsvc_pefile.PEFile',
                 'config': {},
                 'install_by_default': True
             },
             'SigCheck': {
-                'classpath': 'assemblyline.al.service.sigcheck.SigCheck',
+                'classpath': 'al_services.alsvc_sigcheck.SigCheck',
                 'config': {},
                 'install_by_default': False
             },
             'Suricata': {
-                'classpath': 'assemblyline.al.service.suricata.Suricata',
+                'classpath': 'al_services.alsvc_suricata.Suricata',
                 'config': {},
                 'install_by_default': True
             },            
             'Swiffer': {
-                'classpath': 'assemblyline.al.service.swiffer.Swiffer',
+                'classpath': 'al_services.alsvc_swiffer.Swiffer',
                 'config': {},
                 'install_by_default': True
             },
             'Symantec': {
-                'classpath': 'assemblyline.al.service.symantec.Symantec',
+                'classpath': 'al_services.alsvc_symantec.Symantec',
                 'config': {},
                 'install_by_default': True
             },
             'Sync': {
-                'classpath': 'assemblyline.al.service.sync.Sync',
+                'classpath': 'al_services.alsvc_sync.Sync',
                 'config': {},
                 'install_by_default': True
             },
             'TagCheck': {
-                "classpath": "assemblyline.al.service.tagcheck.TagCheck",
+                "classpath": "al_services.alsvc_tagcheck.TagCheck",
                 "config": {},
                 'install_by_default': True
             },
             'TorrentSlicer': {
-                "classpath": "assemblyline.al.service.torrentslicer.TorrentSlicer",
+                "classpath": "al_services.alsvc_torrentslicer.TorrentSlicer",
                 "config": {},
                 'install_by_default': True
             },
             'Unpacker': {
-                'classpath': 'assemblyline.al.service.unpacker.Unpacker',
+                'classpath': 'al_services.alsvc_unpacker.Unpacker',
                 'config': {},
                 'install_by_default': True
             },
             'VirusTotalDynamic': {
-                "classpath": "assemblyline.al.service.virustotal_dynamic.VirusTotalDynamic",
+                "classpath": "al_services.alsvc_virustotal_dynamic.VirusTotalDynamic",
                 "config": {},
                 'install_by_default': True
             },
             'VirusTotalStatic': {
-                "classpath": "assemblyline.al.service.virustotal_static.VirusTotalStatic",
+                "classpath": "al_services.alsvc_virustotal_static.VirusTotalStatic",
                 "config": {},
                 'install_by_default': True
             },
             'Yara': {
-                'classpath': 'assemblyline.al.service.yara.Yara',
+                'classpath': 'al_services.alsvc_yara.Yara',
                 'config': {},
                 'install_by_default': True
             },
@@ -492,7 +492,7 @@ DEFAULT_SEED = {
         'allow_raw_downloads': True,
         'allowed_checkout_range': "0.0.0.0/0",
         'audit': True,
-        'context': 'assemblyline.ui.site_specific.context',
+        'context': 'al_ui.site_specific.context',
         'debug': False,
         'download_encoding': 'cart',
         'email': None,

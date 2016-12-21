@@ -11,7 +11,7 @@ server {
     ssl_verify_depth          3;{% endif %}
 
     location /static {
-        root /opt/al/pkg/assemblyline/ui;
+        root /opt/al/pkg/al_ui;
     }
     {% if seed['ui']['shell_redirect'] %}
     location /{{seed['ui']['shell_redirect']}}/ {
@@ -63,7 +63,7 @@ server {
         include               uwsgi_params;
         uwsgi_buffering       off;
         uwsgi_pass            unix:/opt/al/var/www/alui_uwsgi.sock;
-        uwsgi_param           UWSGI_CHDIR                  /opt/al/pkg/assemblyline/ui/;
+        uwsgi_param           UWSGI_CHDIR                  /opt/al/pkg/al_ui/;
         uwsgi_param           HTTP_X_REMOTE_CERT_VERIFIED  $ssl_client_verify;
         uwsgi_param           HTTP_X_REMOTE_DN             $ssl_client_s_dn;
 

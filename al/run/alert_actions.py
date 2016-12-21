@@ -5,7 +5,7 @@ from threading import Thread
 import time
 
 from assemblyline.al.common import forge, log as al_log, queue
-from assemblyline.ui.helper.user import add_access_control
+from al_ui.helper.user import add_access_control
 
 DATABASE_NUM = 4
 

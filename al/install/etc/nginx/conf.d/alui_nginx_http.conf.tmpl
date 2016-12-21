@@ -5,7 +5,7 @@ server {
     client_max_body_size  100M;
 
     location /static {
-        root /opt/al/pkg/assemblyline/ui;
+        root /opt/al/pkg/al_ui;
     }
     
     location /socket.io/ {
@@ -49,7 +49,7 @@ server {
         include               uwsgi_params;
         uwsgi_buffering       off;
         uwsgi_pass            unix:/opt/al/var/www/alui_uwsgi.sock;
-        uwsgi_param           UWSGI_CHDIR   /opt/al/pkg/assemblyline/ui/;
+        uwsgi_param           UWSGI_CHDIR   /opt/al/pkg/al_ui/;
 
         uwsgi_intercept_errors on;
         error_page 502 = @alweb_dbg;
