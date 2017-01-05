@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 
+from urllib import quote
 from urlparse import urlparse
 
 from assemblyline.al.common.transport import ftp, local, http
@@ -123,7 +124,7 @@ class PackageFetcher(object):
 
 class SiteInstaller(object):
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, simple=False):
         if not seed:
             seed = os.environ.get('AL_SEED', None)
 
@@ -145,11 +146,6 @@ class SiteInstaller(object):
         else:
             self.shell = "sh"
         self.alroot = self.config['system']['root']
-        self.install_temp = os.path.join(self.alroot, 'var/.installtmp')
-        if not os.path.exists(self.install_temp):
-            os.makedirs(self.install_temp)
-
-        self._pipper = PipInstaller(pypi_index_url=self.config['installation']['pip_index_url'])
 
         # cheap logging hooks for now
         self.info = self.log.info
@@ -157,7 +153,16 @@ class SiteInstaller(object):
         self.warn = self.log.warn
         self.exception = self.log.exception
 
-        self._package_fetcher = PackageFetcher(self.config['installation']['external_packages'], self)
+        if not simple:
+            self._pipper = PipInstaller(pypi_index_url=self.config['installation']['pip_index_url'])
+            self._package_fetcher = PackageFetcher(self.config['installation']['external_packages'], self)
+            self.install_temp = os.path.join(self.alroot, 'var/.installtmp')
+            if not os.path.exists(self.install_temp):
+                os.makedirs(self.install_temp)
+        else:
+            self.install_temp = "/tmp"
+            self._package_fetcher = None
+            self._pipper = None
 
     def fatal(self, s):
         def red(st):
@@ -166,18 +171,123 @@ class SiteInstaller(object):
             return prefix + st + suffix
         self.log.error(red(s))
 
-    def get_nodetypes_from_seed(self, ip):
+    def get_nodetypes_from_seed(self):
         types = []
-        if ip in self.config['core']['nodes']:
+        ip = self.get_ipaddress()
+        hostname = self.get_hostname()
+        if ip in self.config['core']['nodes'] or \
+                hostname in self.config['core']['nodes'] or \
+                'localhost' in self.config['core']['nodes'] or \
+                '127.0.0.1' in self.config['core']['nodes']:
             types.append(NODETYPE_CORE)
 
-        if ip in self.config['riak']['nodes']:
+        if ip in self.config['datastore']['riak']['nodes'] or \
+                hostname in self.config['datastore']['riak']['nodes'] or \
+                'localhost' in self.config['datastore']['riak']['nodes'] or \
+                '127.0.0.1' in self.config['datastore']['riak']['nodes']:
             types.append(NODETYPE_RIAK)
 
-        if ip in self.config['workers']['nodes']:
+        if ip in self.config['workers']['nodes'] or \
+                hostname in self.config['workers']['nodes'] or \
+                'localhost' in self.config['workers']['nodes'] or \
+                '127.0.0.1' in self.config['workers']['nodes']:
             types.append(NODETYPE_WORKER)
 
         return types
+
+    def setup_git_repos(self, root_git_list=None, site_specific_git_list=None, service_git_list=None):
+        install_dir = os.path.realpath(__file__).replace('assemblyline/al/install/__init__.py', '')
+        installation = self.config['installation']
+        site_spec = self.config['sitespecific']
+        services = self.config['services']['master_list']
+        internal_repo = None
+
+        if NODETYPE_CORE not in self.get_nodetypes_from_seed():
+            internal_repo = self.config['system']['internal_repository']
+
+        if root_git_list is None:
+            root_git_list = installation.get('repositories', {}).get('repos', {}).keys()
+        if site_specific_git_list is None:
+            site_specific_git_list = site_spec.get('repositories', {}).keys()
+        if service_git_list is None:
+            service_git_list = services.keys()
+            if not os.path.exists(os.path.join(install_dir, "al_services")):
+                os.makedirs(os.path.join(install_dir, "al_services"))
+
+        realm_urls = {}
+        realm_branchs = {}
+        for name, realm in installation.get('repositories', {}).get('realms', {}).iteritems():
+            if internal_repo:
+                realm_url = internal_repo['url']
+                if not realm_url.endswith("/"):
+                    realm_url += "/"
+
+                realm_urls[name] = realm_url + "{repo}.git"
+                realm_branchs[name] = internal_repo['branch']
+            else:
+                if realm['url'].lower().startswith("http"):
+                    if realm['user'] and realm['password']:
+                        scheme, url = realm['url'].split('://', 1)
+                        realm_url = "%s://%s:%s@%s" % (scheme, realm['user'], quote(realm['password']), url)
+                    else:
+                        realm_url = realm['url']
+                elif realm['url'].lower().startswith("git") and realm['key']:
+                    ssh_dir = os.path.expanduser("~/.ssh/")
+                    if not os.path.exists(os.path.join(ssh_dir, name)):
+                        with open(os.path.join(ssh_dir, name), 'wb') as realm_pub_file:
+                            realm_pub_file.write(realm['key'])
+
+                    ssh_config = os.path.join(ssh_dir, 'config')
+                    host, url = realm['url'][4:].split(":", 1)
+                    if not self.grep_quiet(ssh_config, "HostName %s" % host, sudo=False):
+                        config_block = "Host %s\n\tHostName %s\n\tUser git\n\tIdentityFile ~/.ssh/%s" % (name,
+                                                                                                         host,
+                                                                                                         name)
+                        self.runcmd('echo "' + config_block + '" >> ' + ssh_config)
+
+                    realm_url = realm['url']
+                else:
+                    self.fatal("Invalid realm %s:\n%s" % (name, str(realm)))
+                    exit(1)
+
+                if not realm_url.endswith("/"):
+                    realm_url += "/"
+
+                realm_urls[name] = realm_url + "{repo}.git"
+                realm_branchs[name] = realm['branch']
+
+        for repo in root_git_list:
+            repo_realm = installation.get('repositories', {}).get('repos', {}).get(repo, {}).get('realm', {})
+            if repo_realm:
+                self._clone_or_seturl(repo, realm_urls[repo_realm], realm_branchs[repo_realm], install_dir)
+
+        for svc in service_git_list:
+            repo = services.get(svc, {}).get('repo', {})
+            repo_realm = services.get(svc, {}).get('realm', {})
+            if repo_realm:
+                self._clone_or_seturl(repo,
+                                      realm_urls[repo_realm],
+                                      realm_branchs[repo_realm],
+                                      os.path.join(install_dir, "al_services"))
+
+        for repo in site_specific_git_list:
+            repo_realm = site_spec.get('repositories', {}).get(repo, {}).get('realm', {})
+            if repo_realm:
+                self._clone_or_seturl(repo, realm_urls[repo_realm], realm_branchs[repo_realm], install_dir)
+
+    def _clone_or_seturl(self, repo, realm_url, branch, location):
+        if os.path.exists(os.path.join(location, repo)):
+            cmd = "git remote set-url origin %s" % realm_url.format(repo=repo)
+            self.runcmd(cmd, shell=True, cwd=os.path.join(location, repo), raise_on_error=False)
+
+            cmd = "git checkout %s" % branch
+            self.runcmd(cmd, shell=True, cwd=os.path.join(location, repo), raise_on_error=False)
+
+            cmd = "git pull"
+            self.runcmd(cmd, shell=True, cwd=os.path.join(location, repo), raise_on_error=False)
+        else:
+            cmd = "git clone %s -b %s" % (realm_url.format(repo=repo), branch)
+            self.runcmd(cmd, shell=True, cwd=location, raise_on_error=False)
 
     def install_persistent_pip_conf(self):
         # only necessary if we have an explicit pip configuration 
@@ -234,8 +344,8 @@ class SiteInstaller(object):
                           '-'.join([dist, version, name]))
 
     @staticmethod
-    def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False):
-        return _runcmd(cmdline, shell, raise_on_error, piped_stdio, silent=silent)
+    def runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
+        return _runcmd(cmdline, shell, raise_on_error, piped_stdio, silent=silent, cwd=cwd)
 
     def assert_running_in_python_venv(self):
         import sys
@@ -273,8 +383,12 @@ class SiteInstaller(object):
         self._pipper.upgrade_all(packages)
 
     @staticmethod
-    def grep_quiet(filename, content):
-        cmdline = 'sudo grep -q \"' + content + '\" ' + filename
+    def grep_quiet(filename, content, sudo=True):
+        if sudo:
+            cmdline = "sudo "
+        else:
+            cmdline = ""
+        cmdline += 'grep -q \"' + content + '\" ' + filename
         rc, _, _ = _runcmd(cmdline, raise_on_error=False)
         return rc == 0
 
@@ -541,13 +655,17 @@ class SiteInstaller(object):
         self.runcmd('sudo pip install ' + local_path, piped_stdio=False)
 
 
-def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False):
+def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
     if not silent:
-        print "Running: %s" % cmdline
+        if not cwd:
+            print "Running: %s" % cmdline
+        else:
+            print "Running: %s (%s)" % (cmdline, cwd)
+
     if piped_stdio:
-        p = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
+        p = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
     else:
-        p = subprocess.Popen(cmdline, shell=shell)
+        p = subprocess.Popen(cmdline, shell=shell, cwd=cwd)
 
     stdout, stderr = p.communicate()
     rc = p.returncode

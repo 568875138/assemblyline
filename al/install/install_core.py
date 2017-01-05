@@ -11,6 +11,9 @@ cmd_service_all(alsi, 'stop')
 alsi.milestone("Installing pip configuration files")
 alsi.install_persistent_pip_conf()
 
+alsi.milestone("Setup and clone git repos")
+alsi.setup_git_repos()
+
 alsi.milestone("Creating AL user")
 from assemblyline.al.install.stages import install_00_init
 install_00_init.install(alsi)

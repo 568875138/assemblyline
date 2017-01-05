@@ -237,162 +237,226 @@ DEFAULT_SEED = {
         },
         'master_list': {
             'APKaye': {
-                'classpath': 'al_services.alsvc_apkaye.APKaye',
+                'class_name': 'APKaye',
+                'repo': 'alsvc_apkaye',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Avg': {
-                'classpath': 'al_services.alsvc_avg.Avg',
+                'class_name': 'Avg',
+                'repo': 'alsvc_avg',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': False
             },
             'Beaver': {
-                'classpath': 'al_services.alsvc_beaver.Beaver',
+                'class_name': 'Beaver',
+                'repo': 'alsvc_beaver',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'BitDefender': {
-                'classpath': 'al_services.alsvc_bitdefender.BitDefender',
+                'class_name': 'BitDefender',
+                'repo': 'alsvc_bitdefender',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': False
             },
             'CFMD': {
-                'classpath': 'al_services.alsvc_cfmd.CFMD',
+                'class_name': 'CFMD',
+                'repo': 'alsvc_cfmd',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Characterize': {
-                'classpath': 'al_services.alsvc_characterize.Characterize',
+                'class_name': 'Characterize',
+                'repo': 'alsvc_characterize',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Cleaver': {
-                'classpath': 'al_services.alsvc_cleaver.Cleaver',
+                'class_name': 'Cleaver',
+                'repo': 'alsvc_cleaver',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'ConfigDecoder': {
-                'classpath': 'al_services.alsvc_configdecoder.ConfigDecoder',
+                'class_name': 'ConfigDecoder',
+                'repo': 'alsvc_configdecoder',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Espresso': {
-                'classpath': 'al_services.alsvc_espresso.Espresso',
+                'class_name': 'Espresso',
+                'repo': 'alsvc_espresso',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Extract': {
-                'classpath': 'al_services.alsvc_extract.Extract',
+                'class_name': 'Extract',
+                'repo': 'alsvc_extract',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'FrankenStrings': {
-                'classpath': 'al_services.alsvc_frankenstrings.FrankenStrings',
+                'class_name': 'FrankenStrings',
+                'repo': 'alsvc_frankenstrings',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'FSecure': {
-                'classpath': 'al_services.alsvc_fsecure.FSecure',
+                'class_name': 'FSecure',
+                'repo': 'alsvc_fsecure',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'KasperskyIcap': {
-                'classpath': 'al_services.alsvc_kaspersky.KasperskyIcap',
+                'class_name': 'KasperskyIcap',
+                'repo': 'alsvc_kaspersky',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'McAfee': {
-                'classpath': 'al_services.alsvc_mcafee.McAfee',
+                'class_name': 'McAfee',
+                'repo': 'alsvc_mcafee',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': False
             },
             'MetaPeek': {
-                'classpath': 'al_services.alsvc_metapeek.MetaPeek',
+                'class_name': 'MetaPeek',
+                'repo': 'alsvc_metapeek',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'MetaDefender': {
-                'classpath': 'al_services.alsvc_metadefender.MetaDefender',
+                'class_name': 'MetaDefender',
+                'repo': 'alsvc_metadefender',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'NSRL': {
-                'classpath': 'al_services.alsvc_nsrl.NSRL',
+                'class_name': 'NSRL',
+                'repo': 'alsvc_nsrl',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Oletools': {
-                'classpath': 'al_services.alsvc_oletools.Oletools',
+                'class_name': 'Oletools',
+                'repo': 'alsvc_oletools',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'PDFId': {
-                'classpath': 'al_services.alsvc_pdfid.PDFId',
+                'class_name': 'PDFId',
+                'repo': 'alsvc_pdfid',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'PeePDF': {
-                'classpath': 'al_services.alsvc_peepdf.PeePDF',
+                'class_name': 'PeePDF',
+                'repo': 'alsvc_peepdf',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'PEFile': {
-                'classpath': 'al_services.alsvc_pefile.PEFile',
+                'class_name': 'PEFile',
+                'repo': 'alsvc_pefile',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'SigCheck': {
-                'classpath': 'al_services.alsvc_sigcheck.SigCheck',
+                'class_name': 'SigCheck',
+                'repo': 'alsvc_sigcheck',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': False
             },
             'Suricata': {
-                'classpath': 'al_services.alsvc_suricata.Suricata',
+                'class_name': 'Suricata',
+                'repo': 'alsvc_suricata',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },            
             'Swiffer': {
-                'classpath': 'al_services.alsvc_swiffer.Swiffer',
+                'class_name': 'Swiffer',
+                'repo': 'alsvc_swiffer',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Symantec': {
-                'classpath': 'al_services.alsvc_symantec.Symantec',
+                'class_name': 'Symantec',
+                'repo': 'alsvc_symantec',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'Sync': {
-                'classpath': 'al_services.alsvc_sync.Sync',
+                'class_name': 'Sync',
+                'repo': 'alsvc_sync',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'TagCheck': {
-                "classpath": "al_services.alsvc_tagcheck.TagCheck",
+                'class_name': 'TagCheck',
+                'repo': 'alsvc_tagcheck',
+                'realm': 'bitbucket',
                 "config": {},
                 'install_by_default': True
             },
             'TorrentSlicer': {
-                "classpath": "al_services.alsvc_torrentslicer.TorrentSlicer",
+                'class_name': 'TorrentSlicer',
+                'repo': 'alsvc_torrentslicer',
+                'realm': 'bitbucket',
                 "config": {},
                 'install_by_default': True
             },
             'Unpacker': {
-                'classpath': 'al_services.alsvc_unpacker.Unpacker',
+                'class_name': 'Unpacker',
+                'repo': 'alsvc_unpacker',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
             'VirusTotalDynamic': {
-                "classpath": "al_services.alsvc_virustotal_dynamic.VirusTotalDynamic",
+                'class_name': 'VirusTotalDynamic',
+                'repo': 'alsvc_virustotal_dynamic',
+                'realm': 'bitbucket',
                 "config": {},
                 'install_by_default': True
             },
             'VirusTotalStatic': {
-                "classpath": "al_services.alsvc_virustotal_static.VirusTotalStatic",
+                'class_name': 'VirusTotalStatic',
+                'repo': 'alsvc_virustotal_static',
+                'realm': 'bitbucket',
                 "config": {},
                 'install_by_default': True
             },
             'Yara': {
-                'classpath': 'al_services.alsvc_yara.Yara',
+                'class_name': 'Yara',
+                'repo': 'alsvc_yara',
+                'realm': 'bitbucket',
                 'config': {},
                 'install_by_default': True
             },
@@ -470,16 +534,14 @@ DEFAULT_SEED = {
         },
         'constants': 'assemblyline.common.constants',
         'country_code_map': 'assemblyline.common.null.CountryCodeMap',
+        'internal_repository': {
+            'url': 'http://localhost/git/',
+            'branch': 'master'
+        },
         'load_config_from_riak': True,
         'name': 'default',
         'organisation': 'ACME',
         'password': None,
-        'repositories': {
-            'assemblyline': {
-                'url': 'http://localhost/git/assemblyline',
-                'branch': 'master'
-            }
-        },
         'root': '/opt/al',
         'update_interval': 5,
         'use_proxy': True,
@@ -554,6 +616,34 @@ DEFAULT_SEED = {
                     'aws_region': 'us-east-1'
                 }
             }
+        },
+        'repositories': {
+            'realms': {
+                # This defines how the core server will connect to the different repos
+                #    Creds should be well defined in this section because updates will happen automatically
+                #    therefore we wont be able to ask for password for each repo.
+                #
+                #    When user/password is use, we will put that in directly inside the git remote
+                #    When public key is used, we will create an .ssh/config file for the
+                #        realm and write the key to a file
+                'bitbucket': {
+                    'url': 'https://bitbucket.org/cse-assemblyline/',
+                    'branch': 'master',
+                    'user': None,
+                    'password': None,
+                    'key': None
+                }
+            },
+            'repos': {
+                'al_ui': {
+                    'realm': 'bitbucket'
+                },
+                'assemblyline': {
+                    'realm': 'bitbucket'
+                }
+            }
+
+
         },
         # global apt or pip packages to install on every node that are not really
         # dependencies but are useful to have.
