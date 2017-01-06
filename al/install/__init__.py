@@ -196,7 +196,7 @@ class SiteInstaller(object):
         return types
 
     def setup_git_repos(self, root_git_list=None, site_specific_git_list=None, service_git_list=None):
-        install_dir = os.path.realpath(__file__).replace('assemblyline/al/install/__init__.py', '')
+        install_dir = os.path.realpath(__file__).split('assemblyline/al/install')[0]
         installation = self.config['installation']
         site_spec = self.config['sitespecific']
         services = self.config['services']['master_list']
