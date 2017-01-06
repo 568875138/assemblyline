@@ -42,11 +42,9 @@ seed['filestore']['urls'] = [
 seed['submissions']['url'] = "https://%s:443" % appliance_ip
 
 seed['system']['password'] = SYS_PASS
-seed['system']['repositories'] = {
-    'assemblyline': {
-        'url': 'http://{appliance_ip}/git/assemblyline'.format(appliance_ip=appliance_ip),
-        'branch': 'master'
-    }
+seed['system']['internal_repository'] = {
+    'url': 'http://{appliance_ip}/git/'.format(appliance_ip=appliance_ip),
+    'branch': 'master'
 }
 seed['system']['user'] = SYS_USER
 

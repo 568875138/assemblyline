@@ -279,10 +279,8 @@ def _install_master_datamodel(alsi, master_ip):
 
     branch_override = os.environ.get('AL_BRANCH', None)
     if branch_override:
-        alsi.info("A branch override was detected")
-        for name in alsi.config['system']['repositories']:
-            alsi.info("Patching repo '{name}' to use branch '{branch}'".format(name=name, branch=branch_override))
-            alsi.config['system']['repositories'][name]['branch'] = branch_override
+        alsi.info("Patching repo internal repo to use branch '{branch}'".format(branch=branch_override))
+        alsi.config['system']['internal_repository']['branch'] = branch_override
 
     config_riak.SEED_RIAK_NODE = master_ip
     config_riak.save_seed(alsi.config, 'original_seed')

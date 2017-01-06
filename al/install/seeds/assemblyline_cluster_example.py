@@ -62,11 +62,9 @@ seed['logging']['logserver']['node'] = IP_LOGGER
 seed['submissions']['url'] = "https://%s:443" % IP_CORE
 
 seed['system']['name'] = 'production'
-seed['system']['repositories'] = {
-    'assemblyline': {
-        'url': 'http://{core}/git/assemblyline/'.format(core=IP_CORE),
-        'branch': 'master'
-    },
+seed['system']['internal_repository'] = {
+    'url': 'http://{core}/git/'.format(core=IP_CORE),
+    'branch': 'master'
 }
 seed['system']['user'] = SYS_USER
 
