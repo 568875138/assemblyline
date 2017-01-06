@@ -44,20 +44,31 @@ def hostagent_bootstrap_stage0():
         logging.error("No bootstrap config found at %s::%s::%s", SEED_RIAK_NODE, SEED_BUCKET, SEED_KEY)
         exit(1)
 
-    repo_cfg = bstrap_cfg['system']['repositories']
+    repo_cfg = bstrap_cfg['system']['internal_repository']
     if len(repo_cfg) == 0:
         raise Exception('No git repositories specified in bootstrap configuration.')
 
-    if 'assemblyline' not in repo_cfg:
+    repo_list = bstrap_cfg['installation']['repositories']['repos'].keys()
+    try:
+        repo_list.remove('al_ui')
+    except:
+        pass
+
+    installed_services = os.listdir(os.path.join(AL_ROOT, 'pkg', 'al_services'))
+    for item in installed_services:
+        if os.path.isdir(os.path.join(AL_ROOT, 'pkg', 'al_services', item)):
+            repo_list.append("al_services/%s" % item)
+
+    if 'assemblyline' not in repo_list:
         raise Exception("No bootstrap information for assemblyline repo.")
 
     done = False
     while not done:
         repo_name = None
         try:
-            for repo_name, repo_cfg in bstrap_cfg['system']['repositories'].iteritems():
+            for repo_name in repo_list:
                 try:
-                    _git_clone(os.path.join(AL_ROOT, 'pkg', repo_name), repo_cfg['url'],
+                    _git_clone(os.path.join(AL_ROOT, 'pkg', repo_name), repo_cfg['url'] + repo_name,
                                os.environ.get("AL_BRANCH", repo_cfg.get('branch', 'master')))
                 except:
                     # If cloning fails and system user password is enabled, we will try to SSH copy the source instead.
