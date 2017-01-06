@@ -161,13 +161,13 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         seed = module_attribute_by_name(seed_path)
         services_to_register = seed['services']['master_list']
 
-        for service, service_detail in services_to_register.iteritems():
-            classpath = service_detail['classpath']
-            config_overrides = service_detail.get('config', {})
+        for service, svc_detail in services_to_register.iteritems():
+            classpath = svc_detail['classpath'] or "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name'])
+            config_overrides = svc_detail.get('config', {})
 
             new_srv_registration = register_service.register(classpath, config_overrides=config_overrides,
                                                              store_config=False,
-                                                             enabled=service_detail.get('enabled', True))
+                                                             enabled=svc_detail.get('enabled', True))
             seed['services']['master_list'][service].update(new_srv_registration)
 
         if target == "seed":

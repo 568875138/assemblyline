@@ -12,9 +12,9 @@ def install(alsi=None, register=False):
     alsi.info("Preparing to Install: %s", services_to_install)
 
     for service in services_to_install:
-        service_detail = alsi.config['services']['master_list'][service]
-        classpath = service_detail['classpath']
-        config_overrides = service_detail.get('config', {})
+        svc_detail = alsi.config['services']['master_list'][service]
+        classpath = svc_detail['classpath'] or "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name'])
+        config_overrides = svc_detail.get('config', {})
         service_directory = classpath.rpartition('.')[0]
         installer_path = '.'.join([service_directory, 'installer'])
         alsi.milestone("Installing %s using %s" % (service, installer_path))
@@ -25,7 +25,7 @@ def install(alsi=None, register=False):
 
             if register:
                 service_key = register_service.register(classpath, config_overrides=config_overrides,
-                                                        enabled=service_detail.get('enabled', True))['name']
+                                                        enabled=svc_detail.get('enabled', True))['name']
                 # If successful register service and add to default profile.
                 default_profile = alsi.config['workers']['default_profile'],
                 alsi.milestone("adding to profile %s" % default_profile)

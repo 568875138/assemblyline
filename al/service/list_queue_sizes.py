@@ -30,10 +30,10 @@ def get_service_queue_lengths():
         try:
             if not svc:
                 continue
-
-            queue_lengths[svc['name']] = get_service_queue_length(svc['classpath'])
+            classpath = svc['classpath'] or "al_services.%s.%s" % (svc['repo'], svc['class_name'])
+            queue_lengths[svc['name']] = get_service_queue_length(classpath)
         except Exception:  # pylint: disable=W0703
-            log.exception('while getting queue length for %s', svc['classpath'])
+            log.exception('while getting queue length for %s', svc['name'])
 
     return queue_lengths
 

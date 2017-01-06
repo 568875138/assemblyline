@@ -80,8 +80,9 @@ def reregister_services(store_config=True, config_overrides=None):
     failed = []
     passed = []
     services = forge.get_datastore().list_services()
-    for service_entry in services:
-        class_name = service_entry['classpath']
+    for svc in services:
+        class_name = svc['classpath'] or "al_services.%s.%s" % (svc['repo'], svc['class_name'])
+
         pprint(class_name)
         try:
             store_service_config(class_name, store_config, config_overrides)
