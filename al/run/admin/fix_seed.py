@@ -31,7 +31,7 @@ if __name__ == "__main__":
     services_to_register = seed['services']['master_list']
 
     for service, svc_detail in services_to_register.iteritems():
-        classpath = svc_detail['classpath'] or "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name'])
+        classpath = svc_detail.get('classpath', "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name']))
         config_overrides = svc_detail.get('config', {})
 
         seed['services']['master_list'][service].update(register_service.register(classpath,

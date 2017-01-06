@@ -6,5 +6,5 @@ store = forge.get_datastore()
 
 def service_by_name(n):
     service = store.get_service(n)
-    classpath = service['classpath'] or "al_services.%s.%s" % (service['repo'], service['class_name'])
+    classpath = service.get('classpath', "al_services.%s.%s" % (service['repo'], service['class_name']))
     return class_by_name(classpath)

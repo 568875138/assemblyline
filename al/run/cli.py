@@ -162,7 +162,8 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         services_to_register = seed['services']['master_list']
 
         for service, svc_detail in services_to_register.iteritems():
-            classpath = svc_detail['classpath'] or "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name'])
+            classpath = svc_detail.get('classpath', "al_services.%s.%s" % (svc_detail['repo'],
+                                                                           svc_detail['class_name']))
             config_overrides = svc_detail.get('config', {})
 
             new_srv_registration = register_service.register(classpath, config_overrides=config_overrides,

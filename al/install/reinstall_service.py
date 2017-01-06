@@ -26,9 +26,9 @@ alsi.milestone("Setting permissions on AL Root directory")
 from assemblyline.al.install.stages import install_00_init
 install_00_init.install(alsi)
 
-service_detail = alsi.config['services']['master_list'][service]
-classpath = service_detail['classpath'] or "al_services.%s.%s" % (service_detail['repo'], service_detail['class_name'])
-config_overrides = service_detail.get('config', {})
+svc_detail = alsi.config['services']['master_list'][service]
+classpath = svc_detail.get('classpath', "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name']))
+config_overrides = svc_detail.get('config', {})
 service_directory = classpath.rpartition('.')[0]
 installer_path = '.'.join([service_directory, 'installer'])
 alsi.milestone("Installing %s using %s" % (service, installer_path))
