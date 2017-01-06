@@ -292,6 +292,13 @@ DEFAULT_SEED = {
                 'config': {},
                 'install_by_default': True
             },
+            'Cuckoo': {
+                'class_name': 'Cuckoo',
+                'repo': 'alsvc_cuckoo',
+                'realm': 'bitbucket',
+                'config': {},
+                'install_by_default': True
+            },
             'Espresso': {
                 'class_name': 'Espresso',
                 'repo': 'alsvc_espresso',
