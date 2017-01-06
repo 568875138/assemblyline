@@ -231,19 +231,20 @@ class SiteInstaller(object):
                         realm_url = "%s://%s:%s@%s" % (scheme, realm['user'], quote(realm['password']), url)
                     else:
                         realm_url = realm['url']
-                elif realm['url'].lower().startswith("git") and realm['key']:
-                    ssh_dir = os.path.expanduser("~/.ssh/")
-                    if not os.path.exists(os.path.join(ssh_dir, name)):
-                        with open(os.path.join(ssh_dir, name), 'wb') as realm_pub_file:
-                            realm_pub_file.write(realm['key'])
+                elif realm['url'].lower().startswith("git"):
+                    if realm['key']:
+                        ssh_dir = os.path.expanduser("~/.ssh/")
+                        if not os.path.exists(os.path.join(ssh_dir, name)):
+                            with open(os.path.join(ssh_dir, name), 'wb') as realm_pub_file:
+                                realm_pub_file.write(realm['key'])
 
-                    ssh_config = os.path.join(ssh_dir, 'config')
-                    host, url = realm['url'][4:].split(":", 1)
-                    if not self.grep_quiet(ssh_config, "HostName %s" % host, sudo=False):
-                        config_block = "Host %s\n\tHostName %s\n\tUser git\n\tIdentityFile ~/.ssh/%s" % (name,
-                                                                                                         host,
-                                                                                                         name)
-                        self.runcmd('echo "' + config_block + '" >> ' + ssh_config)
+                        ssh_config = os.path.join(ssh_dir, 'config')
+                        host, url = realm['url'][4:].split(":", 1)
+                        if not self.grep_quiet(ssh_config, "HostName %s" % host, sudo=False):
+                            config_block = "Host %s\n\tHostName %s\n\tUser git\n\tIdentityFile ~/.ssh/%s" % (name,
+                                                                                                             host,
+                                                                                                             name)
+                            self.runcmd('echo "' + config_block + '" >> ' + ssh_config)
 
                     realm_url = realm['url']
                 else:
