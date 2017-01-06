@@ -213,6 +213,7 @@ class SiteInstaller(object):
             service_git_list = services.keys()
             if not os.path.exists(os.path.join(install_dir, "al_services")):
                 os.makedirs(os.path.join(install_dir, "al_services"))
+                open(os.path.join(install_dir, "al_services", "__init__.py"), 'a').close()
 
         realm_urls = {}
         realm_branchs = {}
