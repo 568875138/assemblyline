@@ -43,9 +43,9 @@ seed['submissions']['user'] = "internal"
 
 seed['system']['organisation'] = '{organisation}'
 seed['system']['password'] = None
-seed['system']['repositories']['private'] = {{
+seed['system']['internal_repository'] = {{
     'branch': 'master',
-    'url': 'http://{{appliance_ip}}/git/private'.format(appliance_ip=appliance_ip)
+    'url': 'http://{{appliance_ip}}/git/'.format(appliance_ip=appliance_ip)
 }}
 
 seed['ui']['audit'] = True

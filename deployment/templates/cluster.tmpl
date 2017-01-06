@@ -78,15 +78,9 @@ seed['submissions']['user'] = 'internal'
 seed['system']['name'] = '{sys_name}'
 seed['system']['organisation'] = '{organisation}'
 seed['system']['password'] = None
-seed['system']['repositories'] = {{
-    'assemblyline': {{
-        'branch': '{repo_branch}',
-        'url': 'http://{{core}}/git/assemblyline/'.format(core=IP_CORE)
-    }},
-    'private': {{
-        'branch': '{repo_branch}',
-        'url': 'http://{{core}}/git/private/'.format(core=IP_CORE)
-    }}
+seed['system']['internal_repository'] = {{
+    'branch': '{repo_branch}',
+    'url': 'http://{{core}}/git/'.format(core=IP_CORE)
 }}
 seed['system']['user'] = SYS_USER
 

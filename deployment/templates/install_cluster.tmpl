@@ -37,17 +37,22 @@ We recommend using clusterssh when performing operation on multiple computers so
 
 ### Clone main repo from Github
 
-    # From github HTTPS
+    # From bitbucket HTTPS
     cd $PYTHONPATH
-    GITHUB_USER=<your_github_username>
-    git clone https://${{GITHUB_USER}}@github.com/${{GITHUB_USER}}/al_private.git private
-    git clone https://${{GITHUB_USER}}@github.com/CommunicationsSecurityEstablishment/assemblyline.git
+    BB_USER=<your_bitbucket_username>
+    git clone https://${{BB_USER}}@bitbucket.org/${{BB_USER}}/al_private.git
+    git clone https://${{BB_USER}}@bitbucket.org/cse-assemblyline/assemblyline.git
+
+    ./assemblyline/al/run/setup_dev_environment.py private.seeds.deployment.seed
 
 ### Create temporary git server
 
-    mkdir ${{PYTHONPATH}}/../git && cd ${{PYTHONPATH}}/../git
+    mkdir ${PYTHONPATH}/../git && cd ${PYTHONPATH}/../git
     git clone --bare ../pkg/assemblyline/ assemblyline && (cd assemblyline && git update-server-info)
-    cd ${{PYTHONPATH}}/.. && sudo python -m SimpleHTTPServer 80
+    git clone --bare ../pkg/al_private/ al_private && (cd al_private && git update-server-info)
+    git clone --bare ../pkg/al_ui/ al_ui && (cd al_ui && git update-server-info)
+    for svc in ../pkg/al_services/*; do [ -d $svc ] && git clone --bare ../pkg/al_services/$svc $svc && (cd $svc && git update-server-info) done;
+    cd ${PYTHONPATH}/.. && sudo python -m SimpleHTTPServer 80
 
     # Note: Leave web server running in a window (you will return to this window later).
 
