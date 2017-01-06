@@ -544,7 +544,7 @@ class SiteInstaller(object):
             'libtool',
         ])
 
-        yara_sh_helper = os.path.join(self.alroot, 'pkg/assemblyline/al/service/yara/build_install_yara.sh')
+        yara_sh_helper = os.path.join(self.alroot, 'pkg/al_services/alsvc_yara/build_install_yara.sh')
         self.runcmd(' '.join([yara_sh_helper, local_path]))
 
     def install_oracle_java8(self):
