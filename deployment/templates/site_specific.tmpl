@@ -51,7 +51,7 @@ def register_site_specific_routes(app):
     @protected_renderer(require_admin=True, audit=False)
     def admin_build_doc(*_, **kwargs):
         def _list_files(u_file_list_p, p_file_list_p, root_p):
-            for fname in os.listdir(os.path.join(root_p.replace("private", "assemblyline"), "docs")):
+            for fname in os.listdir(os.path.join(root_p.replace("al_private/ui", "al_ui"), "docs")):
                 if fname.endswith(".md") and fname != "markdown_documentation_example.md":
                     u_file_list_p.append(
                         {{"file_name": fname,
@@ -80,7 +80,7 @@ def register_site_specific_routes(app):
             if is_private:
                 path = os.path.join(root.replace("ui", "doc"), my_file)
             else:
-                path = os.path.join(root.replace("private", "assemblyline"), "docs", my_file)
+                path = os.path.join(root.replace("al_private/ui", "al_ui"), "docs", my_file)
 
             if not os.path.exists(path):
                 my_file = None
