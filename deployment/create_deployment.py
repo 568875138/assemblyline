@@ -42,7 +42,12 @@ def get_figlet(text):
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     std_out, _ = fig_proc.communicate()
-    return std_out.replace("\\", "\\\\").replace(" ", "\\ ").replace("\n", "\\n")
+    std_out = std_out.replace("\\", "\\\\")
+    std_out = std_out.replace("\n", "\\n")
+    std_out = std_out.replace(" ", "\\ ")
+    std_out = std_out.replace("'", "'\"'\"'")  # Fun with shells...
+
+    return std_out
 
 
 def create_images(app_name, banner_file, fav_icon_file):
