@@ -459,7 +459,7 @@ class HostAgent(object):
         reg['machine_info'] = sysinfo.get_machine_info()
         reg['last_checkin'] = isotime.now_as_iso()
         reg['platform'] = sysinfo.get_platform()
-        reg['profile'] = 'al-worker-default'
+        reg['profile'] = config.workers.default_profile
         reg['created'] = time.asctime()
         if 'roles' not in reg:
             reg['roles'] = []

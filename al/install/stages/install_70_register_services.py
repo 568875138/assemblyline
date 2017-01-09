@@ -7,6 +7,7 @@ def install(alsi=None):
     # shortly we will allow node specific service list override. 
     # for now they always get default.
     services_to_register = alsi.config['services']['master_list']
+    default_profile = alsi.config['workers']['default_profile'],
     alsi.info("Preparing to Register: %s", services_to_register)
 
     for service, svc_detail in services_to_register.iteritems():
@@ -18,6 +19,9 @@ def install(alsi=None):
         try:
             register_service.register(classpath, config_overrides=config_overrides,
                                       enabled=svc_detail.get('enabled', True))
+            if svc_detail['enabled']:
+                alsi.milestone("Adding '%s' to profile '%s'" % (service, default_profile))
+                register_service.add_to_profile(alsi.config['workers']['default_profile'], service)
         except:
             alsi.fatal("Failed to register service %s." % service)
             alsi.log.exception('While registering service %s', service)

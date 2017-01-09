@@ -9,6 +9,7 @@ def install(alsi=None, register=False):
     # shortly we will allow node specific service list override. 
     # for now they always get default.
     services_to_install = [k for k, v in alsi.config['services']['master_list'].iteritems() if v['install_by_default']]
+    default_profile = alsi.config['workers']['default_profile']
     alsi.info("Preparing to Install: %s", services_to_install)
 
     for service in services_to_install:
@@ -27,12 +28,11 @@ def install(alsi=None, register=False):
                 service_key = register_service.register(classpath, config_overrides=config_overrides,
                                                         enabled=svc_detail.get('enabled', True))['name']
                 # If successful register service and add to default profile.
-                default_profile = alsi.config['workers']['default_profile'],
-                alsi.milestone("adding to profile %s" % default_profile)
-                register_service.add_to_profile(
-                    alsi.config['workers']['default_profile'],
-                    service_key)
- 
+                if svc_detail['enabled']:
+                    alsi.milestone("adding to profile %s" % default_profile)
+                    register_service.add_to_profile(
+                        alsi.config['workers']['default_profile'],
+                        service_key)
         except:
             alsi.error("Failed to install service %s." % service)
             alsi.log.exception('While installing service %s', service)

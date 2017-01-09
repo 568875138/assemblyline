@@ -254,231 +254,264 @@ DEFAULT_SEED = {
                 'repo': 'alsvc_apkaye',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Avg': {
                 'class_name': 'Avg',
                 'repo': 'alsvc_avg',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': False
+                'install_by_default': False,
+                'enabled': False
             },
             'Beaver': {
                 'class_name': 'Beaver',
                 'repo': 'alsvc_beaver',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'BitDefender': {
                 'class_name': 'BitDefender',
                 'repo': 'alsvc_bitdefender',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': False
+                'install_by_default': False,
+                'enabled': False
             },
             'CFMD': {
                 'class_name': 'CFMD',
                 'repo': 'alsvc_cfmd',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'Characterize': {
                 'class_name': 'Characterize',
                 'repo': 'alsvc_characterize',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Cleaver': {
                 'class_name': 'Cleaver',
                 'repo': 'alsvc_cleaver',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'ConfigDecoder': {
                 'class_name': 'ConfigDecoder',
                 'repo': 'alsvc_configdecoder',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Cuckoo': {
                 'class_name': 'Cuckoo',
                 'repo': 'alsvc_cuckoo',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'Espresso': {
                 'class_name': 'Espresso',
                 'repo': 'alsvc_espresso',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Extract': {
                 'class_name': 'Extract',
                 'repo': 'alsvc_extract',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'FrankenStrings': {
                 'class_name': 'FrankenStrings',
                 'repo': 'alsvc_frankenstrings',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'FSecure': {
                 'class_name': 'FSecure',
                 'repo': 'alsvc_fsecure',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'KasperskyIcap': {
                 'class_name': 'KasperskyIcap',
                 'repo': 'alsvc_kaspersky',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'McAfee': {
                 'class_name': 'McAfee',
                 'repo': 'alsvc_mcafee',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': False
+                'install_by_default': False,
+                'enabled': False
             },
             'MetaPeek': {
                 'class_name': 'MetaPeek',
                 'repo': 'alsvc_metapeek',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'MetaDefender': {
                 'class_name': 'MetaDefender',
                 'repo': 'alsvc_metadefender',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'NSRL': {
                 'class_name': 'NSRL',
                 'repo': 'alsvc_nsrl',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'Oletools': {
                 'class_name': 'Oletools',
                 'repo': 'alsvc_oletools',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'PDFId': {
                 'class_name': 'PDFId',
                 'repo': 'alsvc_pdfid',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'PeePDF': {
                 'class_name': 'PeePDF',
                 'repo': 'alsvc_peepdf',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'PEFile': {
                 'class_name': 'PEFile',
                 'repo': 'alsvc_pefile',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'SigCheck': {
                 'class_name': 'SigCheck',
                 'repo': 'alsvc_sigcheck',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': False
+                'install_by_default': False,
+                'enabled': False
             },
             'Suricata': {
                 'class_name': 'Suricata',
                 'repo': 'alsvc_suricata',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },            
             'Swiffer': {
                 'class_name': 'Swiffer',
                 'repo': 'alsvc_swiffer',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Symantec': {
                 'class_name': 'Symantec',
                 'repo': 'alsvc_symantec',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'Sync': {
                 'class_name': 'Sync',
                 'repo': 'alsvc_sync',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'TagCheck': {
                 'class_name': 'TagCheck',
                 'repo': 'alsvc_tagcheck',
                 'realm': 'bitbucket',
                 "config": {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'TorrentSlicer': {
                 'class_name': 'TorrentSlicer',
                 'repo': 'alsvc_torrentslicer',
                 'realm': 'bitbucket',
                 "config": {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'Unpacker': {
                 'class_name': 'Unpacker',
                 'repo': 'alsvc_unpacker',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
             'VirusTotalDynamic': {
                 'class_name': 'VirusTotalDynamic',
                 'repo': 'alsvc_virustotal_dynamic',
                 'realm': 'bitbucket',
                 "config": {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'VirusTotalStatic': {
                 'class_name': 'VirusTotalStatic',
                 'repo': 'alsvc_virustotal_static',
                 'realm': 'bitbucket',
                 "config": {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': False
             },
             'Yara': {
                 'class_name': 'Yara',
                 'repo': 'alsvc_yara',
                 'realm': 'bitbucket',
                 'config': {},
-                'install_by_default': True
+                'install_by_default': True,
+                'enabled': True
             },
         },
     },
