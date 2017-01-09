@@ -5,8 +5,8 @@
 git_update() {
     repo_path=$1
     repo=$2
-    branch=`cd ${repo_path} && git branch | grep "*" | tr -d "* "`
     if [ -d ${repo_path} ]; then
+        branch=`cd ${repo_path} && git branch | grep "*" | tr -d "* "`
         echo "Updating ${repo} ($branch):"
         (cd ${repo_path} &&
          git fetch --all &&
