@@ -236,6 +236,19 @@ DEFAULT_SEED = {
             'default': 60,
         },
         'master_list': {
+            # e.g.
+            # 'ServiceName': {
+            #     'class_name': 'ClassNameForTheService',
+            #     'repo': 'name_of_the_repo_in_the_realm',
+            #     'realm': 'realm_where_the_repo_is_located',
+            #     'config': { # config override block },
+            #     'install_by_default': True  # Will the service installer be called when setting up a worker
+            #     'enabled': True,  # Will the service be enabled by default in the system
+            #     'depends': {
+            #         'repo': 'name_of_the_depends_repo',
+            #         'realm': 'realm_where_the_depend_repo_is_located'
+            #     }
+            # }
             'APKaye': {
                 'class_name': 'APKaye',
                 'repo': 'alsvc_apkaye',

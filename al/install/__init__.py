@@ -264,13 +264,22 @@ class SiteInstaller(object):
                 self._clone_or_seturl(repo, realm_urls[repo_realm], realm_branchs[repo_realm], install_dir)
 
         for svc in service_git_list:
-            repo = services.get(svc, {}).get('repo', {})
-            repo_realm = services.get(svc, {}).get('realm', {})
-            if repo_realm:
+            service = services.get(svc, {})
+            repo = service.get('repo', None)
+            repo_realm = service.get('realm', None)
+            if repo and repo_realm:
                 self._clone_or_seturl(repo,
                                       realm_urls[repo_realm],
                                       realm_branchs[repo_realm],
                                       os.path.join(install_dir, "al_services"))
+                if 'depends' in service:
+                    depend_repo = service['depends'].get('repo', None)
+                    depend_realm = service['depends'].get('realm', None)
+                    if depend_repo and depend_realm:
+                        self._clone_or_seturl(repo,
+                                              realm_urls[depend_realm],
+                                              realm_branchs[depend_realm],
+                                              os.path.join(install_dir, "al_services"))
 
         for repo in site_specific_git_list:
             repo_realm = site_spec.get('repositories', {}).get(repo, {}).get('realm', {})
