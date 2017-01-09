@@ -48,11 +48,14 @@ def hostagent_bootstrap_stage0():
     if len(repo_cfg) == 0:
         raise Exception('No git repositories specified in bootstrap configuration.')
 
-    repo_list = bstrap_cfg['installation']['repositories']['repos'].keys()
-    try:
-        repo_list.remove('al_ui')
-    except:
-        pass
+    repo_list = []
+    installed_repos = os.listdir(os.path.join(AL_ROOT, 'pkg'))
+    for item in installed_repos:
+        if item == "al_services":
+            continue
+
+        if os.path.isdir(os.path.join(AL_ROOT, 'pkg', item)):
+            repo_list.append(item)
 
     installed_services = os.listdir(os.path.join(AL_ROOT, 'pkg', 'al_services'))
     for item in installed_services:
