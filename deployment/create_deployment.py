@@ -102,7 +102,7 @@ def save_site_spec_template(template_name, values, target):
 def report_completion(dep_type, working_dir):
     print("{type} deployment skeleton has been created into {working_dir}.".format(type=dep_type,
                                                                                    working_dir=working_dir))
-    if working_dir != "/opt/al/pkg/private":
+    if working_dir != "/opt/al/pkg/al_private":
         print("\nNOTE: You should commit the content of your {working_dir} to your personal or corporate "
               "GitHub account as al_private because you will need it during the deployment installation "
               "procedure. Your private deployment contains user and password and may even contain ssl certs. "
@@ -131,7 +131,7 @@ def appliance():
     secret_key = get_random_password(length=128)
 
     # Apply answers
-    working_dir = os.path.join(destination, "private")
+    working_dir = os.path.join(destination, "al_private")
 
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
@@ -208,7 +208,7 @@ def cluster():
     secret_key = get_random_password(length=128)
 
     # Apply answers
-    working_dir = os.path.join(destination, "private")
+    working_dir = os.path.join(destination, "al_private")
 
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
@@ -268,7 +268,7 @@ def devel_vm():
           "for FTP file transfers (user=ssftp) and to ssh in for remote debugging (user=al).")
 
     # Apply answers
-    working_dir = os.path.join(destination, "private")
+    working_dir = os.path.join(destination, "al_private")
 
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
