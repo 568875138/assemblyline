@@ -170,7 +170,7 @@ def ip_validator(value):
 
 def path_exits_validator(path):
     if os.path.exists(path):
-        working_dir = os.path.join(path, 'private')
+        working_dir = os.path.join(path, 'al_private')
         if os.path.exists(working_dir):
             if get_bool("%s already exists. Do you want to override it? " % working_dir, default=False):
                 shutil.rmtree(working_dir)
