@@ -266,6 +266,8 @@ class SiteInstaller(object):
         for svc in service_git_list:
             service = services.get(svc, {})
             repo = service.get('repo', None)
+            if internal_repo:
+                repo = "al_services/" + repo
             repo_realm = service.get('realm', None)
             if repo and repo_realm:
                 self._clone_or_seturl(repo,
@@ -274,6 +276,8 @@ class SiteInstaller(object):
                                       os.path.join(install_dir, "al_services"))
                 if 'depends' in service:
                     depend_repo = service['depends'].get('repo', None)
+                    if internal_repo:
+                        depend_repo = "al_services/" + depend_repo
                     depend_realm = service['depends'].get('realm', None)
                     if depend_repo and depend_realm:
                         self._clone_or_seturl(repo,
