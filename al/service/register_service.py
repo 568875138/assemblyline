@@ -22,11 +22,11 @@ def cmdline_register_service():
         if opt in ('-n', '--noexec'):
             store_config = False
 
-    if store_config and reregister_existing:
+    if not store_config and reregister_existing:
         print >> sys.stderr, sys.argv[0], 'cannot use -n and -e simultanously'
         sys.exit(1)
 
-    if store_config and len(args) != 1:
+    if not reregister_existing and len(args) != 1:
         print >> sys.stderr, sys.argv[0], '[-s] <fully-qualified class name>'
         sys.exit(1)
 
