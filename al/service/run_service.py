@@ -35,6 +35,8 @@ def scan_file(svc_class, sha256, **kwargs):
     children = []
     supplementary = []
 
+    cfg = forge.get_datastore().get_service(svc_class.SERVICE_NAME).get("config", {})
+
     import functools
     forge.get_filestore = functools.partial(mocks.get_local_transport, '.')
     forge.get_submit_client = functools.partial(mocks.get_mock_submit_client, children, supplementary)
@@ -44,7 +46,7 @@ def scan_file(svc_class, sha256, **kwargs):
             result_store_good,
             result_store_bad)
 
-    service = svc_class({})
+    service = svc_class(cfg)
     service.start_service()
 
     # Run all inputs through the service. Children will end up in the children list,
