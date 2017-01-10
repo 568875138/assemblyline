@@ -48,12 +48,12 @@ We recommend using clusterssh when performing operation on multiple computers so
 
 ### Create temporary git server
 
-    mkdir ${PYTHONPATH}/../git && cd ${PYTHONPATH}/../git
+    mkdir ${{PYTHONPATH}}/../git && cd ${{PYTHONPATH}}/../git
     git clone --bare ../pkg/assemblyline/ assemblyline && (cd assemblyline && git update-server-info)
     git clone --bare ../pkg/al_private/ al_private && (cd al_private && git update-server-info)
     git clone --bare ../pkg/al_ui/ al_ui && (cd al_ui && git update-server-info)
     for svc in ../pkg/al_services/*; do [ -d $svc ] && git clone --bare ../pkg/al_services/$svc $svc && (cd $svc && git update-server-info) done;
-    cd ${PYTHONPATH}/.. && sudo python -m SimpleHTTPServer 80
+    cd ${{PYTHONPATH}}/.. && sudo python -m SimpleHTTPServer 80
 
     # Note: Leave web server running in a window (you will return to this window later).
 

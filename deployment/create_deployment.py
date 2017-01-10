@@ -109,7 +109,7 @@ def report_completion(dep_type, working_dir):
                                                                                    working_dir=working_dir))
     if working_dir != "/opt/al/pkg/al_private":
         print("\nNOTE: You should commit the content of your {working_dir} to your personal or corporate "
-              "GitHub account as al_private because you will need it during the deployment installation "
+              "GitHub/BitBucket account as al_private because you will need it during the deployment installation "
               "procedure. Your private deployment contains user and password and may even contain ssl certs. "
               "You should make your repo only accessible by yourself.\n".format(working_dir=working_dir))
         print("You can now follow the step by step instructions in "
