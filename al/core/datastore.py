@@ -2484,7 +2484,11 @@ class RiakStore(DataStoreBase):
                         if item['_yz_rk'] != key:
                             classifications.append(item['classification'])
                     classifications = list(set(classifications))
-                    new_file_class = classifications[0]
+                    if len(classifications) >= 0:
+                        new_file_class = classifications[0]
+                    else:
+                        new_file_class = Classification.UNRESTRICTED
+
                     for c in classifications:
                         new_file_class = Classification.min_classification(new_file_class, c)
 
