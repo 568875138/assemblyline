@@ -3,6 +3,8 @@ import logging
 import re
 import requests
 
+import time
+
 from copy import copy
 from hashlib import md5
 from random import choice
@@ -836,12 +838,15 @@ class RiakStore(DataStoreBase):
         else:
             return None
 
-    def commit_index(self, bucket, hosts=config.datastore.riak.nodes):
+    def commit_index(self, bucket, hosts=config.datastore.riak.nodes, riak_batch_commit_time=1):
         log.warning("SOLR was forced into committing data for bucket %s." % bucket)
 
         plan = []
         for host in hosts:
             plan.append((self._commit_now, (bucket, host), host))
+
+        # Riak 2.2.0 now batches it's requests and commits every secs, we will leave time for riak to commit
+        time.sleep(riak_batch_commit_time + 0.05)
 
         res = execute_concurrently(plan)
         for val in res.itervalues():

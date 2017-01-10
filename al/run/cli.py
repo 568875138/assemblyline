@@ -345,8 +345,10 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     def do_commit_all_index(self, _):
         print "Forcing commit procedure for all indexes"
         indexed_buckets = self.datastore.INDEXED_BUCKET_LIST + self.datastore.ADMIN_INDEXED_BUCKET_LIST
+        time.sleep(1.05)
+
         for bucket in indexed_buckets:
-            self.datastore.commit_index(bucket)
+            self.datastore.commit_index(bucket, riak_batch_commit_time=0)
 
     def do_recreate_search_indexes(self, _):
         print "Recreating indexes:"
