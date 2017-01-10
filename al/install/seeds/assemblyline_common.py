@@ -618,7 +618,8 @@ DEFAULT_SEED = {
     'installation': {
         'docker': {
             'apt_repo_info': 'deb https://apt.dockerproject.org/repo ubuntu-trusty main',
-            'apt_repo_key_url': 'https://get.docker.com/gpg',
+            'apt_repo_key_url': 'https://apt.dockerproject.org/gpg',
+            'private_registry': 'localhost:5000'
         },
         'hooks': {
             'ui_pre': [],
