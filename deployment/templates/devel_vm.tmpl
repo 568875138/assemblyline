@@ -16,7 +16,7 @@ seed['filestore']['urls'] = [
                                                                           ftp_pass=quote('{password}'))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['private.common.hook_ui_pre'],
+seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
 
 seed['monitoring']['harddrive'] = False
 
@@ -31,7 +31,7 @@ seed['system']['internal_repository'] = {{
 }}
 
 seed['ui']['audit'] = False
-seed['ui']['context'] = "private.ui.site_specific.context"
+seed['ui']['context'] = "al_private.ui.site_specific.context"
 seed['ui']['debug'] = True
 seed['ui']['secret_key'] = "{secret_key}"
 

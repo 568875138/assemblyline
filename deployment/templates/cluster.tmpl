@@ -61,7 +61,7 @@ seed['filestore']['urls'] = [
                                                                      password=quote(FTP_PASS))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['private.common.hook_ui_pre'],
+seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
 
 seed['logging']['log_to_syslog'] = {log_to_syslog}
 seed['logging']['logserver']['elasticsearch']['heap_size'] = {elastic_heap}
@@ -85,7 +85,7 @@ seed['system']['internal_repository'] = {{
 seed['system']['user'] = SYS_USER
 
 seed['ui']['audit'] = True
-seed['ui']['context'] = "private.ui.site_specific.context"
+seed['ui']['context'] = "al_private.ui.site_specific.context"
 seed['ui']['debug'] = False
 seed['ui']['fqdn'] = '{fqdn}'
 seed['ui']['secret_key'] = "{secret_key}"
