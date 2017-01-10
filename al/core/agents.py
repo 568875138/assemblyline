@@ -296,10 +296,11 @@ class FlexManager(object):
         self.service_manager = ServiceManager(self.blitz_profile.get('services'))
         self.service_manager.start()
 
-        from assemblyline.al.common.vm import VmManager
-        self.vm_manager = VmManager(self.blitz_profile.get('virtual_machines'))
-        self.vm_manager.sysprep()
-        self.vm_manager.start()
+        if config.workers.install_kvm:
+            from assemblyline.al.common.vm import VmManager
+            self.vm_manager = VmManager(self.blitz_profile.get('virtual_machines'))
+            self.vm_manager.sysprep()
+            self.vm_manager.start()
 
     def _determine_busiest_service(self):
         queue_lengths = get_service_queue_lengths()
