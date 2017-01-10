@@ -384,8 +384,8 @@ class FlexManager(object):
         ram_required = allocation.ram_mb
         self.log.info("Machine has %s cores and %sMB ram. Each service allocation requires %s cores and %sMB ram." %
                       (self.cores, self.ram_mb, cores_required, ram_required))
-        num_cores_can_accomodate = int(min(48, (self.cores - 2) / cores_required))
-        num_ram_can_accomodate = int(min(48, (self.ram_mb - 2048) / ram_required))
+        num_cores_can_accomodate = int(min(48, max((self.cores - 2), self.cores) / cores_required))
+        num_ram_can_accomodate = int(min(48, max((self.ram_mb - 2048), self.ram_mb) / ram_required))
         num_to_allocate = min(num_cores_can_accomodate, num_ram_can_accomodate)
         limited_by = 'ram' if num_cores_can_accomodate > num_ram_can_accomodate else 'cores'
         self.log.info("We will dynamically allocate %d instances of %s. limited by: %s",
