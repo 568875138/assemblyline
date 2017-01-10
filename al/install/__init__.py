@@ -223,7 +223,7 @@ class SiteInstaller(object):
                 if not realm_url.endswith("/"):
                     realm_url += "/"
 
-                realm_urls[name] = realm_url + "{repo}.git"
+                realm_urls[name] = realm_url + "{repo}"
                 realm_branchs[name] = internal_repo['branch']
             else:
                 if realm['url'].lower().startswith("http"):
