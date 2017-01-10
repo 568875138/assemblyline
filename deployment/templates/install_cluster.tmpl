@@ -52,7 +52,7 @@ We recommend using clusterssh when performing operation on multiple computers so
     git clone --bare ../pkg/assemblyline/ assemblyline && (cd assemblyline && git update-server-info)
     git clone --bare ../pkg/al_private/ al_private && (cd al_private && git update-server-info)
     git clone --bare ../pkg/al_ui/ al_ui && (cd al_ui && git update-server-info)
-    for svc in ../pkg/al_services/*; do [ -d $svc ] && git clone --bare ../pkg/al_services/$svc $svc && (cd $svc && git update-server-info) done;
+    for svc in ../pkg/al_services/*; do [ -d $svc ] && git clone --bare $svc `echo $svc | sed -e 's|../pkg/al_services/||g'` && (cd `echo $svc | sed -e 's|../pkg/al_services/||g'` && git update-server-info) done;
     cd ${{PYTHONPATH}}/.. && sudo python -m SimpleHTTPServer 80
 
     # Note: Leave web server running in a window (you will return to this window later).
@@ -62,7 +62,7 @@ We recommend using clusterssh when performing operation on multiple computers so
 ### Set AL_SEED to an appropriate value and update .bashrc
 
     cat >> ~/.bashrc <<EOF
-    export AL_SEED=private.seeds.deployment.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     export AL_CORE_IP={ip_core}
     EOF
 
@@ -91,7 +91,7 @@ We recommend using clusterssh when performing operation on multiple computers so
 
 ### Run install script with install seed
 
-    export AL_SEED=private.seeds.deployment.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_core.py
 
 ## Log Server (Optional)
@@ -113,7 +113,7 @@ If a log server is specified in your seed, should should install it now.
 
 ### Run install script with install seed
 
-    export AL_SEED=private.seeds.deployment.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_logserver.py
 
 ## Workers (using cluster SSH)
@@ -134,7 +134,7 @@ If a log server is specified in your seed, should should install it now.
 
 ### Run install script with install seed
 
-    export AL_SEED=private.seeds.deployment.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_worker.py
 
 
