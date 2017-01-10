@@ -71,13 +71,21 @@ def install(alsi):
     # Install /etc/default/al
     if not os.path.exists("/etc/default/al"):
         defaults_tmp = tempfile.NamedTemporaryFile(delete=False)
+
         pypath = 'export PYTHONPATH=' + alsi.alroot + '/pkg\n'
-        ssdatastore = 'export AL_DATASTORE=' + alsi.config['datastore']['hosts'][0] + '\n'
-        alroot = 'export AL_ROOT=' + alsi.alroot + '\n'
-        aluser = 'export AL_USER=' + alsi.config['system']['user'] + '\n'
+        os.environ['PYTHONPATH'] = alsi.alroot + '/pkg'
         defaults_tmp.write(pypath)
+
+        ssdatastore = 'export AL_DATASTORE=' + alsi.config['datastore']['hosts'][0] + '\n'
+        os.environ['AL_DATASTORE'] = alsi.config['datastore']['hosts'][0]
         defaults_tmp.write(ssdatastore)
+
+        alroot = 'export AL_ROOT=' + alsi.alroot + '\n'
+        os.environ['AL_ROOT'] = alsi.alroot
         defaults_tmp.write(alroot)
+
+        aluser = 'export AL_USER=' + alsi.config['system']['user'] + '\n'
+        os.environ['AL_USER'] = alsi.config['system']['user']
         defaults_tmp.write(aluser)
 
         forced_branch = os.environ.get("AL_BRANCH", None)
