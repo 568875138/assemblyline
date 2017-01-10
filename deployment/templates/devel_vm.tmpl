@@ -4,6 +4,10 @@ from assemblyline.al.install.seeds.assemblyline_appliance import seed, appliance
 
 seed['auth']['internal']['users']['user']['password'] = "{password}"
 
+seed['datastore']['port'] = 9087
+seed['datastore']['stream_port'] = 9098
+seed['datastore']['solr_port'] = 9093
+
 seed['datastore']['riak']['solr']['heap_max_gb'] = 1
 
 seed['filestore']['ftp_password'] = "{password}"
