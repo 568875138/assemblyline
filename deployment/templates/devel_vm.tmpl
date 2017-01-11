@@ -9,6 +9,8 @@ seed['datastore']['stream_port'] = 9098
 seed['datastore']['solr_port'] = 9093
 
 seed['datastore']['riak']['solr']['heap_max_gb'] = 1
+seed['datastore']['riak']['ring_size'] = 32
+seed['datastore']['riak']['nvals'] = {{'low': 1, 'med': 1, 'high': 1}}
 
 seed['filestore']['ftp_password'] = "{password}"
 seed['filestore']['support_urls'] = [

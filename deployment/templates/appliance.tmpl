@@ -29,6 +29,8 @@ seed['datastore']['solr_port'] = 9093
 
 seed['datastore']['riak']['solr']['heap_max_gb'] = {solr_heap}
 seed['datastore']['riak']['solr']['heap_min_gb'] = {solr_heap}
+seed['datastore']['riak']['ring_size'] = 32
+seed['datastore']['riak']['nvals'] = {{'low': 1, 'med': 1, 'high': 1}}
 
 seed['filestore']['ftp_password'] = "{ftp_pass}"
 seed['filestore']['support_urls'] = [
