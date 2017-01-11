@@ -162,7 +162,8 @@ def appliance():
         "secret_key": secret_key,
         "ftp_pass": ftp_pass,
         "internal_pass": internal_pass,
-        "solr_heap": solr_heap}, target_seed)
+        "solr_heap": solr_heap
+    }, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
     create_images(app_name, banner_file, fav_icon_file)
 
@@ -201,15 +202,20 @@ def cluster():
         ip_logger = get_string("What will be your log server IP?", validator=ip_validator)
         log_ram = get_int("What amount of ram in GB does your log server box have?")
         log_to_syslog = True
+        logger_pass = get_random_password(length=32)
+        elastic_heap = min(int(log_ram / 3), 31)
+
+        cluster_template = "cluster.tmpl"
     else:
         ip_logger = None
-        log_ram = 4
         log_to_syslog = False
-    elastic_heap = min(int(log_ram / 3), 31)
+        logger_pass = None
+        elastic_heap = 1
+
+        cluster_template = "cluster_no_logger.tmpl"
 
     ftp_pass = get_random_password(length=32)
     internal_pass = get_random_password(length=32)
-    logger_pass = get_random_password(length=32)
     secret_key = get_random_password(length=128)
 
     # Apply answers
@@ -234,25 +240,60 @@ def cluster():
         'app_name': app_name,
         'ip_core': ip_core
     }, target_install_doc)
-    save_seed_template("cluster.tmpl", {
-        'organisation': organisation,
-        'fqdn': fqdn,
-        'install_kvm': install_kvm,
-        'logger_pass': logger_pass,
-        'elastic_heap': elastic_heap,
-        'log_to_syslog': log_to_syslog,
-        'ip_logger': ip_logger,
-        'ips_worker': ips_worker,
-        'ips_riak': ips_riak,
-        'ip_core': ip_core,
-        'repo_branch': repo_branch,
-        'sys_name': sys_name,
-        'password': password,
-        "secret_key": secret_key,
-        "ftp_pass": ftp_pass,
-        "internal_pass": internal_pass,
-        "solr_heap": solr_heap
-    }, target_seed)
+
+    if ip_core in ips_riak:
+        ds_port_prefix = 9
+        ring_size = 32
+        nvals = "{'low': 1, 'med': 1, 'high': 1}"
+    else:
+        ds_port_prefix = 8
+        ring_size = 128
+        nvals = "{'low': 1, 'med': 2, 'high': 3}"
+
+    if ip_logger is not None:
+        values = {
+            'organisation': organisation,
+            'fqdn': fqdn,
+            'install_kvm': install_kvm,
+            'logger_pass': logger_pass,
+            'elastic_heap': elastic_heap,
+            'log_to_syslog': log_to_syslog,
+            'ip_logger': ip_logger,
+            'ips_worker': ips_worker,
+            'ips_riak': ips_riak,
+            'ip_core': ip_core,
+            'repo_branch': repo_branch,
+            'sys_name': sys_name,
+            'password': password,
+            "secret_key": secret_key,
+            "ftp_pass": ftp_pass,
+            "internal_pass": internal_pass,
+            "solr_heap": solr_heap,
+            "ds_port_prefix": ds_port_prefix,
+            "ring_size": ring_size,
+            "nvals": nvals
+        }
+    else:
+        values = {
+            'organisation': organisation,
+            'fqdn': fqdn,
+            'install_kvm': install_kvm,
+            'ips_worker': ips_worker,
+            'ips_riak': ips_riak,
+            'ip_core': ip_core,
+            'repo_branch': repo_branch,
+            'sys_name': sys_name,
+            'password': password,
+            "secret_key": secret_key,
+            "ftp_pass": ftp_pass,
+            "internal_pass": internal_pass,
+            "solr_heap": solr_heap,
+            "ds_port_prefix": ds_port_prefix,
+            "ring_size": ring_size,
+            "nvals": nvals
+        }
+
+    save_seed_template(cluster_template, values, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
     create_images(app_name, banner_file, fav_icon_file)
 

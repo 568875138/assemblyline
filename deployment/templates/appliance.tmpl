@@ -7,7 +7,7 @@ seed['auth']['internal']['users'] = {{
         'uname': 'admin',
         'name': 'Default admin user',
         'password': '{password}',
-        'groups': ['ADMIN', 'USERS'],
+        'groups': ['ADMIN', 'INTERNAL', 'USERS'],
         'is_admin': True,
         'classification': 'UNRESTRICTED'
     }},
@@ -42,7 +42,13 @@ seed['filestore']['urls'] = [
                                                                           ftp_pass=quote('{ftp_pass}'))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
+seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre']
+
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_PASS'] = "{internal_pass}"
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_USER'] = 'internal'
+seed['services']['master_list']['Cuckoo']['install_by_default'] = {install_kvm}
+seed['services']['master_list']['Yara']['config']['SIGNATURE_PASS'] = "{internal_pass}"
+seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'internal'
 
 seed['submissions']['password'] = "{internal_pass}"
 seed['submissions']['user'] = "internal"

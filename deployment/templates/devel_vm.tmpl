@@ -22,11 +22,15 @@ seed['filestore']['urls'] = [
                                                                           ftp_pass=quote('{password}'))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
+seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre']
 
 seed['monitoring']['harddrive'] = False
 
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_PASS'] = "{password}"
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_USER'] = 'user'
 seed['services']['master_list']['Cuckoo']['install_by_default'] = False
+seed['services']['master_list']['Yara']['config']['SIGNATURE_PASS'] = "{password}"
+seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'user'
 
 seed['submissions']['password'] = "{password}"
 

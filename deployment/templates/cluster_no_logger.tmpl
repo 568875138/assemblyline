@@ -3,14 +3,12 @@ from urllib import quote
 from assemblyline.al.install.seeds import assemblyline_common
 
 IP_CORE = '{ip_core}'
-IP_LOGGER = '{ip_logger}'
 IP_WORKERS = {ips_worker}
 IP_RIAK_NODES = {ips_riak}
 
 SYS_USER = 'al'
 FTP_USER = 'ftp_user'
 FTP_PASS = '{ftp_pass}'
-LOGGER_PASS = '{logger_pass}'
 
 seed = assemblyline_common.DefaultSeed()
 
@@ -19,7 +17,7 @@ seed['auth']['internal']['users'] = {{
         'uname': 'admin',
         'name': 'Default admin user',
         'password': '{password}',
-        'groups': ['ADMIN', 'INTERNAL', 'USERS'],
+        'groups': ['ADMIN', 'USERS'],
         'is_admin': True,
         'classification': 'UNRESTRICTED'
     }},
@@ -67,23 +65,7 @@ seed['filestore']['urls'] = [
                                                                      password=quote(FTP_PASS))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre']
-
-seed['logging']['log_to_syslog'] = {log_to_syslog}
-seed['logging']['logserver']['elasticsearch']['heap_size'] = {elastic_heap}
-seed['logging']['logserver']['kibana']['url'] = 'https://kibanaadmin:{{password}}@{{logger}}'.format(
-    logger=IP_LOGGER,
-    password=quote(LOGGER_PASS))
-seed['logging']['logserver']['kibana']['password'] = LOGGER_PASS
-seed['logging']['logserver']['node'] = IP_LOGGER
-
-seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_PASS'] = "{internal_pass}"
-seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_URL'] = "https://%s:443" % IP_CORE
-seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_USER'] = 'internal'
-seed['services']['master_list']['Cuckoo']['install_by_default'] = {install_kvm}
-seed['services']['master_list']['Yara']['config']['SIGNATURE_PASS'] = "{internal_pass}"
-seed['services']['master_list']['Yara']['config']['SIGNATURE_URL'] = "https://%s:443" % IP_CORE
-seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'internal'
+seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
 
 seed['submissions']['url'] = "https://%s:443" % IP_CORE
 seed['submissions']['password'] = '{internal_pass}'
