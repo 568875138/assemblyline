@@ -31,12 +31,12 @@ The hostagent is also responsible to download and run virtual machines for servi
 
 #### Pre-Requisite
 
-* [Install Ubuntu Server](ui/docs/install_ubuntu_server.md)
+* [Install Ubuntu Server](docs/install_ubuntu_server.md)
 
 #### Development
 
-* [Install a self contained VM Appliance](ui/docs/install_vm_appliance.md)
-* [Create service tutorial](ui/docs/create_new_service.md)
+* [Install a self contained VM Appliance](docs/install_vm_appliance.md)
+* [Create service tutorial](docs/create_new_service.md)
 
 #### License (or lack thereof) and Conditions of use
 
