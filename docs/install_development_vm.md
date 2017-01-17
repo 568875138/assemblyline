@@ -1,13 +1,13 @@
-# Assemblyline VM appliance installation instruction
+# Assemblyline Development VM installation instruction
 This will install assemblyline in a self contained VirtualMachine. All actions need to be performed from inside de virtual machine your installing.
 
-*NOTE: VM Appliance installation disables Assemblyline VirtualMachine service support.*
+*NOTE: Development VM installation disables Assemblyline VirtualMachine service support.*
 
 **Prerequisites:**
 
 * You have to install the Ubuntu base OS before. See [Install Ubuntu Server](install_ubuntu_server.md)
 * Your machine should have a minimum of 8GB RAM and 20GB of disk space(less is possible through SOLR/Riak configs)
-* You have copied installdeps-assemblyline-bundle.tar.gz into your home directory
+* You are on a network connected to the internet and can download file from Amazon S3
 
 ## Install bootstrap and source
 
@@ -33,17 +33,9 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
     sudo chown -R `whoami`:`groups | awk '{print $1}'` ${PYTHONPATH}/.. &&
     cd ${PYTHONPATH}
 
-### Unpack install dependancy file
-
-    mkdir -p ${PYTHONPATH}/../var/installdeps
-    mv ~/installdeps-assemblyline-bundle.tar.gz ${PYTHONPATH}/../var/installdeps
-    cd ${PYTHONPATH}/../var/installdeps
-    tar zxvf installdeps-assemblyline-bundle.tar.gz
-    rm installdeps-assemblyline-bundle.tar.gz
-
 ### Clone/create main repos
 
-    # Preferred bitbucket way (ssh keys) [Use default values with no passphrase for the ssh-keygen]
+    # Clone repos using ssh keys
     cd
     ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
     cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
@@ -60,29 +52,25 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
     cd $PYTHONPATH
     git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
 
-    OR
+### Create Dev VM Deployment
 
-    # From bitbucket HTTPS
-    cd $PYTHONPATH
-    BB_USER=<your_bitbucket_username>
-    git clone https://${BB_USER}@bitbucket.org/cse-assemblyline/assemblyline.git
+    /opt/al/pkg/assemblyline/deployment/create_deployment.py
 
-    OR
-
-    # From your host if you have a git server running
-    cd $PYTHONPATH
-    export AL_BRANCH=production
-    git clone http://192.168.122.1/git/assemblyline --branch ${AL_BRANCH}
+    # Answer the questions from deployment script
+    # NOTE:
+    #    Answer to "Which deployment type would you like?" has to be: 1
+    #    Answer to "Where would you like us to create your deployment?" has to be: /opt/al/pkg
+    #    You don't really need to save the al_private to your git repo.
 
 ## Install Riak
 
 ### Run install script
 
-    export AL_SEED=assemblyline.al.install.seeds.assemblyline_appliance_local_vm.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_riak.py
     sudo reboot
 
-    export AL_SEED=assemblyline.al.install.seeds.assemblyline_appliance_local_vm.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_riak.py
     unset AL_SEED
 

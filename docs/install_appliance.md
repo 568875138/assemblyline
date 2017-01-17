@@ -29,7 +29,7 @@ This will install assemblyline on a bare-metal machine. All actions need to be p
 
 ### Clone/create main repos
 
-    # Preferred bitbucket way (ssh keys) [Use default values with no passphrase for the ssh-keygen]
+    # Clone repos using ssh keys
     cd
     ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
     cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
@@ -46,22 +46,25 @@ This will install assemblyline on a bare-metal machine. All actions need to be p
     cd $PYTHONPATH
     git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
 
-    OR
+### Create Appliance Deployment
 
-    # From bitbucket HTTPS
-    cd $PYTHONPATH
-    BB_USER=<your_bitbucket_username>
-    git clone https://${BB_USER}@bitbucket.org/cse-assemblyline/assemblyline.git
+    /opt/al/pkg/assemblyline/deployment/create_deployment.py
+
+    # Answer the questions from deployment script
+    # NOTE:
+    #    Answer to "Which deployment type would you like?" has to be: 2
+    #    Answer to "Where would you like us to create your deployment?" has to be: /opt/al/pkg
+    #    You don't really need to save the al_private to your git repo.
 
 ## Install Riak
 
 ### Run install script
 
-    export AL_SEED=assemblyline.al.install.seeds.assemblyline_appliance.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_riak.py
     sudo reboot
 
-    export AL_SEED=assemblyline.al.install.seeds.assemblyline_appliance.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_riak.py
     unset AL_SEED
 
