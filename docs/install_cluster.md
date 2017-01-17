@@ -26,12 +26,6 @@ We recommend using clusterssh when performing operation on multiple computers so
     sudo chown -R `whoami`:`groups | awk '{print $1}'` ${PYTHONPATH}/.. &&
     cd ${PYTHONPATH}
 
-### Drop your install seed
-
-    mkdir $PYTHONPATH/settings
-    cp ~/install_seed.py $PYTHONPATH/settings
-    touch $PYTHONPATH/settings/__init__.py
-
 ## CORE Server Pre-Install
 
 ### Clone main repo from Github
