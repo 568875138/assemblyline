@@ -4,8 +4,6 @@ from __future__ import print_function
 import subprocess
 from getters import *
 
-
-DEPENDS = ["convert", "figlet"]
 DEVEL_VM = "Development VM"
 APPLIANCE = "Appliance (Full deployment on single machine)"
 CLUSTER = "Cluster (High volume production deployment)"
@@ -22,19 +20,13 @@ BANNER_CMD = 'convert -font "{font}" -pointsize 36 -background ' \
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
+# noinspection PyBroadException
 def banner(msg):
-    stdout, _ = subprocess.Popen(["figlet", msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    print(stdout)
-
-
-def check_libs():
-    with open(os.devnull, "w") as devnull:
-        for dep in DEPENDS:
-            val = subprocess.call(["which"] + [dep], stdout=devnull)
-            if val != 0:
-                return False
-
-    return True
+    try:
+        stdout, _ = subprocess.Popen(["figlet", msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        print(stdout)
+    except:
+        print("##############################\n#\n# {msg}\n#\n##############################\n".format(msg=msg))
 
 
 def get_figlet(text):
@@ -50,22 +42,27 @@ def get_figlet(text):
     return std_out
 
 
-def create_images(app_name, banner_file, fav_icon_file):
+# noinspection PyBroadException
+def create_images(app_name, banner_file, fav_icon_file, deployment_type):
     print("\t* Creating images for app %s" % app_name)
 
-    exit_code = subprocess.call(FAV_ICON_CMD.format(text=get_figlet(app_name[0]), target=fav_icon_file), shell=True,
-                                stderr=subprocess.PIPE)
-    if exit_code != 0:
-        print("ERR: Cannot create favicon for your deployment, "
-              "verify that your imagemagick policy let you read labels.")
-        exit(exit_code)
+    try:
+        exit_code = subprocess.call(FAV_ICON_CMD.format(text=get_figlet(app_name[0]), target=fav_icon_file), shell=True,
+                                    stderr=subprocess.PIPE)
+        if exit_code != 0:
+            raise Exception("ERR: Cannot create favicon for your deployment, "
+                            "verify that your imagemagick policy let you read labels.")
+    except:
+        shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "favicon.ico"), fav_icon_file)
 
-    exit_code = subprocess.call(BANNER_CMD.format(text=get_figlet(app_name), target=banner_file), shell=True,
-                                stderr=subprocess.PIPE)
-    if exit_code != 0:
-        print("ERR: Cannot create banner image for your deployment, "
-              "verify that your imagemagick policy let you read labels.")
-        exit(exit_code)
+    try:
+        exit_code = subprocess.call(BANNER_CMD.format(text=get_figlet(app_name), target=banner_file), shell=True,
+                                    stderr=subprocess.PIPE)
+        if exit_code != 0:
+            raise Exception("ERR: Cannot create banner image for your deployment, "
+                            "verify that your imagemagick policy let you read labels.")
+    except:
+        shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "banner.png"), banner_file)
 
 
 def copy_skel(destination):
@@ -141,7 +138,7 @@ def appliance():
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
 
-    target_install_doc = os.path.join(working_dir, "doc", "deployment_installation.md")
+    target_install_doc = os.path.join(working_dir, "docs", "deployment_installation.md")
     target_seed = os.path.join(working_dir, "seeds", "deployment.py")
     target_site_spec = os.path.join(working_dir, "ui", "site_specific.py")
 
@@ -165,7 +162,7 @@ def appliance():
         "solr_heap": solr_heap
     }, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file)
+    create_images(app_name, banner_file, fav_icon_file, "appliance")
 
     report_completion("Appliance", working_dir)
 
@@ -224,7 +221,7 @@ def cluster():
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
 
-    target_install_doc = os.path.join(working_dir, "doc", "deployment_installation.md")
+    target_install_doc = os.path.join(working_dir, "docs", "deployment_installation.md")
     target_seed = os.path.join(working_dir, "seeds", "deployment.py")
     target_site_spec = os.path.join(working_dir, "ui", "site_specific.py")
 
@@ -295,7 +292,7 @@ def cluster():
 
     save_seed_template(cluster_template, values, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file)
+    create_images(app_name, banner_file, fav_icon_file, "cluster")
 
     report_completion("Cluster", working_dir)
 
@@ -319,7 +316,7 @@ def devel_vm():
     banner_file = os.path.join(working_dir, "ui", "static", "images", "banner.png")
     fav_icon_file = os.path.join(working_dir, "ui", "static", "images", "favicon.ico")
 
-    target_install_doc = os.path.join(working_dir, "doc", "deployment_installation.md")
+    target_install_doc = os.path.join(working_dir, "docs", "deployment_installation.md")
     target_seed = os.path.join(working_dir, "seeds", "deployment.py")
     target_site_spec = os.path.join(working_dir, "ui", "site_specific.py")
 
@@ -337,7 +334,7 @@ def devel_vm():
         "secret_key": secret_key
     }, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file)
+    create_images(app_name, banner_file, fav_icon_file, "dev_vm")
 
     report_completion("Development VM", working_dir)
 
@@ -364,10 +361,5 @@ DEPLOYMENT_MAP = {
     CLUSTER: cluster
 }
 
-
 if __name__ == "__main__":
-    if check_libs():
-        start()
-    else:
-        print("[ERROR]\nAssemblyline deployement creator requires you to "
-              "have the following commands installed: \n%s" % ", ".join(DEPENDS))
+    start()
