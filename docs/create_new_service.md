@@ -10,17 +10,17 @@ You can set yourself a Virtual Machine Appliance by following those two guides:
 
 1. [Install Ubuntu Server](install_ubuntu_server.md)
     * __Note:__ You may want to use Ubuntu desktop instead of server if you want to develop with a GUI.
-2. [Appliance VM Installation](install_vm_appliance.md)
+2. [Install Development VM](install_developement_vm.md)
 
 ## Your First Service
 
 ### Tutorial Service
 This section will walk you through the bare minimum needed to create a running (if functionally useless) service.
 
-* Under the `/opt/al/pkg/assemblyline/al/service` directory, create a directory named "service_tutorial".
+* Under the `/opt/al/pkg/al_services/` directory, create a directory named "alsvc_tutorial".
 * Create the file `__init__.py` in this directory with the following contents:
 
-    from assemblyline.al.service.service_tutorial.service_tutorial import ServiceTutorial
+    from al_services.alsvc_tutorial.service_tutorial import ServiceTutorial
 
 Create the file `service_tutorial.py` in that same directory with the following contents:
 
@@ -52,22 +52,22 @@ Create the file `service_tutorial.py` in that same directory with the following 
 
 Run this command to register your service with assemblyline (you only need to do this once):
 
-    /opt/al/pkg/assemblyline/al/service/register_service.py assemblyline.al.service.service_tutorial.service_tutorial.ServiceTutorial
+    /opt/al/pkg/assemblyline/al/service/register_service.py al_services.alsvc_tutorial.ServiceTutorial
 
 You will see a confirmation message if the registration succeeded.
 
-    INFO:root:Storing assemblyline.al.service.service_tutorial.service_tutorial.ServiceTutorial
+    INFO:root:Storing al_services.alsvc_tutorial.ServiceTutorial
     INFO:assemblyline.al.datastore:riakclient opened...
 
-*__NOTE:__ If you do not, the `service_tutorial.py` service may have a bug in it; use pylint to isolate the bug and fix it.*
+*__NOTE:__ If you do not, the `service_tutorial.py` service may have a bug in it; isolate the bug and fix it.*
 
 You can now run your service with the following command:
 
-    /opt/al/pkg/assemblyline/al/service/run_service_live.py assemblyline.al.service.service_tutorial.service_tutorial.ServiceTutorial
+    /opt/al/pkg/assemblyline/al/service/run_service_live.py al_services.alsvc_tutorial.ServiceTutorial
 
 You should see startup and heartbeat messages. If the service doesn't start, then once again, run `service_tutorial.py` through pylint to ensure it has no syntax errors that would prevent it from running.
 
-Submit a file to the local assemblyline instance using your Chromium window, and enable only this service. It should have the result added by the example above.
+Submit a file to the local assemblyline instance using your Chromium/Firefox window, and enable only this service. It should have the result added by the example above.
 
 
 #### Breaking it Down
@@ -76,7 +76,7 @@ Any service will have these three components at a bare minimum:
 
 ##### Configuration
 
-    class Example(ServiceBase):
+    class ServiceTutorial(ServiceBase):
         SERVICE_CATEGORY = 'Static Analysis'
         SERVICE_ACCEPTS = '.*'
         SERVICE_REVISION = ServiceBase.parse_revision('$Id$')
@@ -165,7 +165,7 @@ Assemblyline caches the scan results of a file, along with the version of the se
 
 The canonical paradigm for defining this function is as follows:
 
-    class Example(ServiceBase):
+    class ServiceTutorial(ServiceBase):
         def __init__(self, cfg=None):
             super(Example, self).__init__(cfg)
             self._mytool_version = 'unknown'
@@ -187,7 +187,7 @@ As you make changes to your service, you should be able to see them right away b
 
 Most services have configurable settings that can be modified by the assemblyline admins. To add such settings to your service, provide them in the class variable list:
 
-    class Example(ServiceBase):
+    class ServiceTutorial(ServiceBase):
         ...
         SERVICE_DEFAULT_CONFIG = {
             'IS_BOOLEAN': True,
@@ -204,14 +204,14 @@ In your service directory create and installer.py and use the SiteInstaller clas
 
     #!/usr/bin/env python
 
+
     def install(alsi):
         alsi.sudo_apt_install('libpq-dev')
         alsi.pip_install('psycopg2')
 
     if __name__ == '__main__':
         from assemblyline.al.install import SiteInstaller
-        alsi = SiteInstaller()
-        install(alsi)
+        install(SiteInstaller())
 
 
 ### Working with Nested ResultSections
@@ -252,3 +252,26 @@ __Note:__ However this summation only occurs after the `execute()` block of your
             for subsection in sect.subsections:
                 score = score + self.calculate_nested_scores(subsection)
         return score
+
+### Self-updating services
+
+If your service can automatically update itself you can register and update callback which will be called at an intervale that you choose.
+
+    from assemblyline.al.service.base import ServiceBase, UpdaterType, UpdaterFrequency
+
+    class ServiceTutorial(ServiceBase):
+    ....
+        def start(self):
+            self._register_update_callback(self.update_callback, utype=UpdaterType.BOX, freq=UpdaterFrequency.QUARTER_DAY)
+
+        def update_callback(self, **kwargs):
+            # you update code goes here
+            pass
+
+The `_register_update_callback` function can take the following extra parameters:
+
+* `blocking`: Should we stop service execution while updating [default: False]
+* `execute_now`: Should we execute the updater while we register the callback [default: True]
+* `utype`: Type of updating strategy (BOX: updates the whole box, CLUSTER: updates the full cluster, PROCESS: updates only this process) [default: PROCESS]
+* `freq`: At which frequency you want to update [default: HOURLY]
+
