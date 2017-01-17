@@ -173,8 +173,14 @@ class SiteInstaller(object):
 
     def get_nodetypes_from_seed(self):
         types = []
-        ip = self.get_ipaddress()
-        hostname = self.get_hostname()
+        # noinspection PyBroadException
+        try:
+            ip = self.get_ipaddress()
+            hostname = self.get_hostname()
+        except:
+            ip = "127.0.0.1"
+            hostname = "localhost"
+
         if ip in self.config['core']['nodes'] or \
                 hostname in self.config['core']['nodes'] or \
                 'localhost' in self.config['core']['nodes'] or \
@@ -195,8 +201,9 @@ class SiteInstaller(object):
 
         return types
 
-    def setup_git_repos(self, root_git_list=None, site_specific_git_list=None, service_git_list=None):
-        install_dir = os.path.realpath(__file__).split('assemblyline/al/install')[0]
+    def setup_git_repos(self, root_git_list=None, site_specific_git_list=None, service_git_list=None,
+                        git_override=None):
+        install_dir = os.path.realpath(__file__).split(os.path.join('assemblyline', 'al', 'install'))[0]
         installation = self.config['installation']
         site_spec = self.config['sitespecific']
         services = self.config['services']['master_list']
@@ -218,7 +225,10 @@ class SiteInstaller(object):
         realm_urls = {}
         realm_branchs = {}
         for name, realm in installation.get('repositories', {}).get('realms', {}).iteritems():
-            if internal_repo:
+            if git_override:
+                realm_urls[name] = git_override['url']
+                realm_branchs[name] = git_override['branch']
+            elif internal_repo:
                 realm_url = internal_repo['url']
                 if not realm_url.endswith("/"):
                     realm_url += "/"
