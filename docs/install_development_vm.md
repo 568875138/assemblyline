@@ -86,3 +86,10 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
 
     /opt/al/pkg/assemblyline/al/install/install_worker.py
 
+## Tweaks (optional but recommended)
+
+You should do this tweak if you don't plan on coding on this VM and instead you want to code on your desktop and sync the code to this VM via SSH or via pycharm remote deployment interface. This will prevent the VM to be able to pull the code when the hostagent is restarted.
+
+Remove the id_rsa files with the following command:
+
+    rm ~/.ssh/id_rsa*
