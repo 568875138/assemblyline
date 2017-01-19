@@ -46,14 +46,7 @@ def get_figlet(text):
 def create_images(app_name, banner_file, fav_icon_file, deployment_type):
     print("\t* Creating images for app %s" % app_name)
 
-    try:
-        exit_code = subprocess.call(FAV_ICON_CMD.format(text=get_figlet(app_name[0]), target=fav_icon_file), shell=True,
-                                    stderr=subprocess.PIPE)
-        if exit_code != 0:
-            raise Exception("ERR: Cannot create favicon for your deployment, "
-                            "verify that your imagemagick policy let you read labels.")
-    except:
-        shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "favicon.ico"), fav_icon_file)
+    shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "favicon.ico"), fav_icon_file)
 
     try:
         exit_code = subprocess.call(BANNER_CMD.format(text=get_figlet(app_name), target=banner_file), shell=True,
