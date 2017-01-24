@@ -5,7 +5,6 @@ Unless otherwise noted perform these steps in the order listed.
 ## Pre-requisites
 
 * All boxes have a fresh ubuntu 14.04.3 server install. (See [Install notes](install_ubuntu_server.md))
-* You have copied **install_seed.py** on the **~/** directory on all boxes
 
 ## On All Boxes
 We recommend using clusterssh when performing operation on multiple computers so they are all configured the same way.
@@ -113,6 +112,7 @@ Once you have all that info you can create you deployment.
 ### Clone assemblyline repo
 
     cd $PYTHONPATH
+    git clone http://${AL_CORE_IP}/git/al_private
     git clone http://${AL_CORE_IP}/git/assemblyline
 
 ### Run install script
@@ -150,6 +150,7 @@ If a log server is specified in your seed, should should install it now.
 ### Clone repos
 
     cd ${PYTHONPATH}
+    git clone http://${AL_CORE_IP}/git/al_private
     git clone http://${AL_CORE_IP}/git/assemblyline
 
 ### Run install script with install seed
@@ -171,6 +172,7 @@ If a log server is specified in your seed, should should install it now.
 ### Clone repos
 
     cd ${PYTHONPATH}
+    git clone http://${AL_CORE_IP}/git/al_private
     git clone http://${AL_CORE_IP}/git/assemblyline
 
 ### Run install script with install seed
