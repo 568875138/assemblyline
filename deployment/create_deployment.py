@@ -171,7 +171,7 @@ def cluster():
     organisation = get_string("What is your organisation acronym?")
     if get_bool("Is this a production cluster?"):
         sys_name = 'production'
-        repo_branch = 'production'
+        repo_branch = 'master'
     else:
         sys_name = 'staging'
         repo_branch = 'master'
