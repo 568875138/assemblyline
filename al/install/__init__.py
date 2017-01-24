@@ -58,7 +58,7 @@ class PackageFetcher(object):
                 except ImportError:
                     alsi.milestone("Installing SFTP transport dependancies")
                     alsi.sudo_apt_install("python-pip")
-                    alsi.pip_install_all(['paramiko==2.0.1', 'pysftp==0.2.9'])
+                    alsi.pip_install_all(['setuptools==30.2.0', 'paramiko==2.0.1', 'pysftp==0.2.9'])
                     from assemblyline.al.common.transport import sftp
 
                 sftpargs = realm_cfg['args']
