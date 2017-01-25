@@ -12,6 +12,90 @@ You can set yourself a Virtual Machine Appliance by following those two guides:
     * __Note:__ You may want to use Ubuntu desktop instead of server if you want to develop with a GUI.
 2. [Install Development VM](install_developement_vm.md)
 
+## Service Guidelines
+
+### What is a service
+
+Services are pieces of code that take a file or metadata about a file at input, analyse said file or metadata to achieve the following results:
+
+* Produce a human readable analysis of the data
+* Extract embedded pieces of data for further analysis
+* Tag distinctive features of the data
+* Set a level of confidence if the data is good or bad
+
+### Type of service
+
+These are the different type of services that we have so far in the system and most likely, your service will fit into one of those categories.
+
+**NOTE**: Some service will be hybrid services meaning that they will leverage two type of services.
+
+#### Assemblyline only services
+
+This is a service that was 100% designed for file analysis in the context of Assemblyline. This is a Python only service that has the following properties:
+
+* It did not exist prior to Assemblyline.
+* It does not just wrap any prior existing library.
+
+**Example**: Metapeek
+
+#### Python wrappers
+
+This is a service that essentially wrap a pre-existing Python library and parses its output to create Assemblyline results.
+
+**Example**: PEFile, PeePDF, PDFiD...
+
+#### Command line wrappers
+
+This is a service that will execute a command line tool and wait for its output. The service will then parse said output to produce and Assemblyline result.
+
+**Example**: Avg, Mcafee, Suricata, Unpacker ...
+
+#### API wrappers
+
+This is a service that will callout to an external service for processing and wait for the results.
+
+You'll want to avoid this type of service as often as possible because these service are harder to setup and harder to scale. Spinning up new instances of a API wrapper service might not necessarily increase throughput but might actually reduce it depending if the targeted server is overloaded.
+
+That said, in some case this makes a lot of sense and is the right way to go.
+
+**Example**: FSecure, KasperskyIcap, Metadefender, NSRL, VirusTotal...
+
+### What should I consider before creating a service
+
+1. Think big: You'll want your service to process as fast as possible because it will have to process millions of files per day.
+2. Small footprint: Reduce CPU/Memory consumption as much as you can so we don't waste important resources in the cluster
+3. Easy installer: The service should have an installer that does it all.
+3.1 Installation documentation: In the case of the API wrapper services, installation documentation of the external component is required
+4. If needed, think about your updating strategy. (e.g: AV signatures updates, Yara rules updates...)
+
+### Example of failures
+
+This is a few examples of what not to do when creating a service because it cause to much strain on the system or makes it too complex
+
+#### Asking to much of the workers
+
+The NSRL service was originally supposed to install the NSRL hashset on each of the worker instead of having one central NSRL DB that the service query into.
+
+This caused the following problems
+
+1. You have to install postgresql server on each worker which takes a lot of resources away from actual processing of files
+2. Pushing updates to NSRL meant few hours of extra resources usage on each worker reducing throughput
+3. Each instances of postgresql on the worker was using a lot of RAM but was actually idle in terms of CPU usage.
+
+We fixed it by having only one support server that hosted the DB (and other services dependancies). Now the service is very light weight because all it does is a SQL query to an external database. Also the database server can easily handle thousands of instances of this service connected at the same time.
+
+#### Queue to a queue
+
+The Suricata service is a good example of originally over-designing a service. The person came to the DEV team asking for a spare server to run a Suricata processing farm they build using celery. They then wanted to create a service that interface with their celery queue.
+
+The Dev team response to this was the Assemblyline is already a queuing system and that doing it this way would make it really hard to scale.
+
+We went back to the drawing board and created a Suricata service as a **command line wrapper** service instead of the **API wrapper** original design. This is now a lot easier to manage and to scale.
+
+### Before getting started
+
+Talk to CSE's Assemblyline team before getting started. They may already be working on the same service or know someone that does. The DEV team can help you out planning the design of your service depending of its complexity.
+
 ## Your First Service
 
 ### Tutorial Service
