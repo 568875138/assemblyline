@@ -29,6 +29,10 @@ Workers are actually responsible to process the given files.
 Each worker has a hostagent process that starts the different service to be run on the current worker and make sure that those service behave.
 The hostagent is also responsible to download and run virtual machines for service that are required to run inside of a virtual machine or that only run under windows.
 
+### Assemblyline reference manual
+
+If you want to know more about Assemblyline, you can get a copy and read the full [reference manual](https://bitbucket.org/cse-assemblyline/assemblyline/src/master/manuals/). Can also be found in the `assemblyline/manuals` directory of your installation.
+
 ## Get started
 
 ### Use as an appliance
