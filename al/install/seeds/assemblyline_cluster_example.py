@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from assemblyline.al.install.seeds import assemblyline_common
+from assemblyline.al.install.seeds.assemblyline_common import seed
 
 # ----------------- Just edit IPs, users and passwords in this section -----------------
 IP_CORE = '192.168.0.1'
@@ -34,7 +34,6 @@ FTP_USER = 'ftp_user'
 LOGGER_PASS = "logger_password"
 # ----------------- End of section -----------------
 
-seed = assemblyline_common.DefaultSeed()
 # Start with the default seed and update for AL
 seed['core']['nodes'] = [IP_CORE]
 seed['core']['redis']['nonpersistent']['host'] = IP_CORE

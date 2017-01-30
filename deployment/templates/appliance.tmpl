@@ -2,6 +2,12 @@
 from urllib import quote
 from assemblyline.al.install.seeds.assemblyline_appliance import seed, appliance_ip
 
+try:
+    from {update_seed_path} import update_seed
+    update_seed(seed)
+except:
+    pass
+
 seed['auth']['internal']['users'] = {{
     'admin': {{
         'uname': 'admin',

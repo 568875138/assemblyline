@@ -719,16 +719,15 @@ DEFAULT_SEED = {
     'sitespecific': {},
 }
 
-
-# noinspection PyPep8Naming
-def DefaultSeed():
-    return DEFAULT_SEED.copy()
-
-
-def dump_to_stdout(seed):
-    import json
-    print(json.dumps(seed, indent=4))
+seed = DEFAULT_SEED.copy()
 
 
 if __name__ == '__main__':
-    dump_to_stdout(DefaultSeed())
+    import sys
+
+    if "json" in sys.argv:
+        import json
+        print json.dumps(seed)
+    else:
+        import pprint
+        pprint.pprint(seed)

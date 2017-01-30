@@ -106,7 +106,7 @@ def report_completion(dep_type, working_dir):
               "{working_dir}/doc/deployment_installation.md.".format(working_dir=working_dir))
 
 
-def appliance():
+def appliance(update_seed_path):
     # Questions
     banner("Appliance")
     print("\nLet's get started creating you an 'Appliance' deployment.\n\n")
@@ -152,7 +152,8 @@ def appliance():
         "secret_key": secret_key,
         "ftp_pass": ftp_pass,
         "internal_pass": internal_pass,
-        "solr_heap": solr_heap
+        "solr_heap": solr_heap,
+        'update_seed_path': update_seed_path or 'invalid.seed.path'
     }, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
     create_images(app_name, banner_file, fav_icon_file, "appliance")
@@ -160,7 +161,7 @@ def appliance():
     report_completion("Appliance", working_dir)
 
 
-def cluster():
+def cluster(update_seed_path):
     # Questions
     banner("Cluster")
     print("\nLet's get started creating your 'Cluster' deployment.\n\n")
@@ -261,7 +262,8 @@ def cluster():
             "solr_heap": solr_heap,
             "ds_port_prefix": ds_port_prefix,
             "ring_size": ring_size,
-            "nvals": nvals
+            "nvals": nvals,
+            'update_seed_path': update_seed_path or 'invalid.seed.path'
         }
     else:
         values = {
@@ -280,7 +282,8 @@ def cluster():
             "solr_heap": solr_heap,
             "ds_port_prefix": ds_port_prefix,
             "ring_size": ring_size,
-            "nvals": nvals
+            "nvals": nvals,
+            'update_seed_path': update_seed_path or 'invalid.seed.path'
         }
 
     save_seed_template(cluster_template, values, target_seed)
@@ -290,7 +293,7 @@ def cluster():
     report_completion("Cluster", working_dir)
 
 
-def devel_vm():
+def devel_vm(update_seed_path):
     # Questions
     banner("Devel VM")
     print("\nLet's get started creating you a 'Development VM' deployment.\n\n")
@@ -324,7 +327,8 @@ def devel_vm():
     save_install_template("install_devel_vm.tmpl", {'app_name': app_name}, target_install_doc)
     save_seed_template("devel_vm.tmpl", {
         'password': password,
-        "secret_key": secret_key
+        "secret_key": secret_key,
+        'update_seed_path': update_seed_path or 'invalid.seed.path'
     }, target_seed)
     save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
     create_images(app_name, banner_file, fav_icon_file, "dev_vm")
@@ -332,7 +336,7 @@ def devel_vm():
     report_completion("Development VM", working_dir)
 
 
-def start():
+def start(update_seed_path):
     banner("assemblyline")
     print("Welcome to assemblyline deployment creator.\n\nWe will ask you a few question about the type of deployment "
           "you are trying to do and will automatically create you a deployment specific to you needs with all the "
@@ -343,7 +347,7 @@ def start():
 
     if get_bool("Are you ready to proceed?"):
         function = pick_from_list("Which deployment type would you like?", DEPLOYMENT_TYPES)
-        DEPLOYMENT_MAP[function]()
+        DEPLOYMENT_MAP[function](update_seed_path)
     else:
         exit(1)
 
@@ -355,4 +359,9 @@ DEPLOYMENT_MAP = {
 }
 
 if __name__ == "__main__":
-    start()
+    import sys
+    if len(sys.argv) == 2:
+        seed_path = sys.argv[1]
+    else:
+        seed_path = None
+    start(seed_path)

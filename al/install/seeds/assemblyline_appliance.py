@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from assemblyline.al.install.seeds import assemblyline_common
+from assemblyline.al.install.seeds.assemblyline_common import seed
 from assemblyline.al.install import SiteInstaller
 
 appliance_ip = SiteInstaller.get_ipaddress(silent=True)
@@ -11,7 +11,6 @@ FTP_PASS = 'Ch@ang3thisPassword'
 FTP_USER = 'ssftp'
 
 # Start with the default seed and update for AL
-seed = assemblyline_common.DefaultSeed()
 seed['core']['alerter']['shards'] = 1
 seed['core']['dispatcher']['shards'] = 1
 seed['core']['expiry']['delete_storage'] = False

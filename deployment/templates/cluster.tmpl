@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from urllib import quote
-from assemblyline.al.install.seeds import assemblyline_common
+from assemblyline.al.install.seeds.assemblyline_common import seed
 
 IP_CORE = '{ip_core}'
 IP_LOGGER = '{ip_logger}'
@@ -12,7 +12,11 @@ FTP_USER = 'ftp_user'
 FTP_PASS = '{ftp_pass}'
 LOGGER_PASS = '{logger_pass}'
 
-seed = assemblyline_common.DefaultSeed()
+try:
+    from {update_seed_path} import update_seed
+    update_seed(seed)
+except:
+    pass
 
 seed['auth']['internal']['users'] = {{
     'admin': {{
