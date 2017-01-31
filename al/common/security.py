@@ -12,7 +12,7 @@ def get_password_hash(password):
     if password is None or len(password) == 0:
         return None
 
-    return bcrypt.hash(password)
+    return bcrypt.encrypt(password)
 
 
 def verify_password(password, hash):

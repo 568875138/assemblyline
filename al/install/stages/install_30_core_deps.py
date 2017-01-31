@@ -53,8 +53,8 @@ def install(alsi=None):
         'enum34',
         'pyasn1',
         'riak',
-        'passlib==1.7.0',
-        'bcrypt==3.1.2'
+        'passlib==1.6.5',
+        'bcrypt==3.1.0'
     ])
     alsi.milestone("Importing protobuf library using instant_import monkey patch...")
     google = instant_import('protobuf', 'google')
