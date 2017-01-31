@@ -242,7 +242,7 @@ class SiteInstaller(object):
                         realm_url = "%s://%s:%s@%s" % (scheme, realm['user'], quote(realm['password']), url)
                     else:
                         realm_url = realm['url']
-                elif realm['url'].lower().startswith("git"):
+                elif realm['url'].lower().startswith("git") or realm['url'].lower().startswith("ssh"):
                     if realm['key']:
                         ssh_dir = os.path.expanduser("~/.ssh/")
                         if not os.path.exists(os.path.join(ssh_dir, name)):
