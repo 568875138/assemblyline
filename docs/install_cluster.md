@@ -4,7 +4,7 @@ Unless otherwise noted perform these steps in the order listed.
 
 ## Pre-requisites
 
-* All boxes have a fresh ubuntu 14.04.3 server install. (See [Install notes](install_ubuntu_server.md))
+* All boxes have a fresh ubuntu 14.04.x server install. (See [Install notes](install_ubuntu_server.md))
 
 ## On All Boxes
 We recommend using clusterssh when performing operation on multiple computers so they are all configured the same way.

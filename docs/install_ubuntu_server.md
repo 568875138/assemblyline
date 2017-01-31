@@ -3,16 +3,16 @@
 
 **Prerequisites**: 
 
-* Ubuntu 14.04.3 Server x64 installation media.
+* Ubuntu 14.04.x Server x64 installation media.
 * Install machine (or VM) should have at least 8GB RAM and 20GB of disk space
 * Accessible Ubuntu APT repository
 * You should know the assemblyline username and password you will use for the primary account. (we suggest 'user')
 * You should know the hostname that will be used for this node.
 
-## Install the Ubuntu 14.04.3 x64 base operating system
+## Install the Ubuntu 14.04.x x64 base operating system
 
 
-### Install Ubuntu 14.04.3 OS
+### Install Ubuntu 14.04.x OS
 
 **Boot from the installation media and follow the menu guidance below:**
 
