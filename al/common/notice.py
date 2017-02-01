@@ -17,7 +17,14 @@ alert = [
 ]
 
 aliases = config.core.alerter.metadata_aliases
-metadata = config.core.alerter.metadata_fields.keys()
+meta_fields = {
+    "al_score": "number",
+    "filename": "text",
+    "size": "number",
+    "ts": "date"
+}
+meta_fields.update(config.core.alerter.metadata_fields)
+metadata = meta_fields.keys()
 
 overrides = task.submission_overrides + [
     'completed_queue',
@@ -86,7 +93,7 @@ translation = {
         'list': ensure_safe_list,
         'number': ensure_int,
         'text': safe_str,
-    }.get(v, identity) for k, v in config.core.alerter.metadata_fields.iteritems()
+    }.get(v, identity) for k, v in meta_fields.iteritems()
 }
 
 
