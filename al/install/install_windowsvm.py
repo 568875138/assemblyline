@@ -124,7 +124,7 @@ alsi.pip_install_all([
 ])
 
 alsi.info("Download and install assemblyline_client")
-al_pkg = 'assemblyline_client-1.9.0.tar.gz'
+al_pkg = 'assemblyline_client-1.9.1.tar.gz'
 remote_path = 'python/assemblyline_client/' + al_pkg
 local_path = '/tmp/' + al_pkg
 alsi.fetch_package(remote_path, local_path)
