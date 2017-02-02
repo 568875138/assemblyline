@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import subprocess
+import re
 from getters import *
 
 DEVEL_VM = "Development VM"
@@ -40,6 +41,20 @@ def get_figlet(text):
     std_out = std_out.replace("'", "'\"'\"'")  # Fun with shells...
 
     return std_out
+
+
+def get_ram_gb():
+    try:
+        proc_proc = subprocess.Popen(["/bin/cat", "/proc/meminfo"],
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        std_out, _ = proc_proc.communicate()
+        found = re.search("MemTotal:[ \t]*([0-9]*)[ \t]*kB", std_out)
+        if found:
+            return int(found.group(1), 10) / 1024 / 1024
+    except:
+        pass
+
+    return None
 
 
 # noinspection PyBroadException
@@ -107,6 +122,13 @@ def report_completion(dep_type, working_dir):
 
 
 def appliance(update_seed_path):
+    # Calulate system ram
+    calculated_ram = get_ram_kb()
+    if calculated_ram:
+        ram_args = {"default": calculated_ram}
+    else:
+        ram_args = {}
+
     # Questions
     banner("Appliance")
     print("\nLet's get started creating you an 'Appliance' deployment.\n\n")
@@ -116,7 +138,7 @@ def appliance(update_seed_path):
     app_name = get_string("What will be the name of your deployment?", default="Appliance")
     organisation = get_string("What is your organisation acronym?")
     fqdn = get_string("What is the fully qualified domain name for your appliance?", default="assemblyline.local")
-    ram = get_int("What amount of ram in GB does your box have?")
+    ram = get_int("What amount of ram in GB does your box have?", **ram_args)
     solr_heap = min(int(ram / 3), 31)
     password = get_password("What password would you like for your admin user?", default="changeme")
     install_kvm = get_bool("Is this appliance a bare metal box?")
