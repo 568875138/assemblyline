@@ -290,7 +290,7 @@ class SiteInstaller(object):
                         depend_repo = "al_services/" + depend_repo
                     depend_realm = service['depends'].get('realm', None)
                     if depend_repo and depend_realm:
-                        self._clone_or_seturl(repo,
+                        self._clone_or_seturl(depend_repo,
                                               realm_urls[depend_realm],
                                               realm_branchs[depend_realm],
                                               os.path.join(install_dir, "al_services"))
