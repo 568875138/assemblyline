@@ -2,7 +2,10 @@ import pprint
 import copy
 
 from assemblyline.common.charset import is_safe_str, safe_str
+from assemblyline.al.common import forge
 
+config = forge.get_config()
+yara_externals = {"asl_%s" % i: i for i in config.system.yara.yara_externals}
 
 class YaraCharsetValidationException(Exception):
     def __init__(self, data):
@@ -22,7 +25,7 @@ class YaraParser(object):
                         "int8", "int16", "int32", "matches", "meta", "nocase", "not", "or", "of", "private", "rule",
                         "rva", "section", "strings", "them", "true", "uint8", "uint16", "uint32", "wide", "int8be",
                         "int16be", "int32be", "uint8be", "uint16be", "uint32be"]
-    AL_RESERVED_KW = ["asl_filename", "asl_filetype", "asl_protocol", "asl_submitter"]
+    AL_RESERVED_KW = yara_externals
     YARA_MODULES = {"1.6": [],
                     "1.7": [],
                     "2.0": [],
@@ -87,12 +90,7 @@ class YaraParser(object):
                                               show_header=False)
 
         try:
-            yara.compile(source=rule_text,
-                         externals={'asl_filename': '',
-                                    'asl_filetype': '',
-                                    'asl_protocol': '',
-                                    'asl_submitter': ''
-                                    })
+            yara.compile(source=rule_text, externals=yara_externals)
         except yara.Error, e:
             try:
                 line, message = e.message.split("): ", 1)
@@ -103,12 +101,7 @@ class YaraParser(object):
             return {"type": "Error", "line": line, "error": message, "rule_text": rule_text}
 
         try:
-            yara.compile(source=rule_text,
-                         externals={'asl_filename': '-',
-                                    'asl_filetype': '-',
-                                    'asl_protocol': '-',
-                                    'asl_submitter': '-'},
-                         error_on_warning=True)
+            yara.compile(source=rule_text, externals=yara_externals, error_on_warning=True)
             return None
         except yara.WarningError, w:
             return {"type": "WarningError", "error": str(w), "rule_text": rule_text}
