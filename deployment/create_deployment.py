@@ -18,7 +18,7 @@ FAV_ICON_CMD = 'convert -gravity Center -size 256x256 -font "{font}" ' \
 BANNER_CMD = 'convert -font "{font}" -pointsize 36 -background ' \
              'transparent -fill black label:\'{{text}}\' {{target}}'.format(font=FONT)
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
+current_dir = None
 
 
 # noinspection PyBroadException
@@ -44,6 +44,7 @@ def get_figlet(text):
 
 
 def get_ram_gb():
+    # noinspection PyBroadException
     try:
         proc_proc = subprocess.Popen(["/bin/cat", "/proc/meminfo"],
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -61,7 +62,7 @@ def get_ram_gb():
 def create_images(app_name, banner_file, fav_icon_file, deployment_type):
     print("\t* Creating images for app %s" % app_name)
 
-    shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "favicon.ico"), fav_icon_file)
+    shutil.copy(os.path.join(current_dir, "images", deployment_type, "favicon.ico"), fav_icon_file)
 
     try:
         exit_code = subprocess.call(BANNER_CMD.format(text=get_figlet(app_name), target=banner_file), shell=True,
@@ -70,7 +71,7 @@ def create_images(app_name, banner_file, fav_icon_file, deployment_type):
             raise Exception("ERR: Cannot create banner image for your deployment, "
                             "verify that your imagemagick policy let you read labels.")
     except:
-        shutil.copy(os.path.join(os.path.dirname(__file__), "images", deployment_type, "banner.png"), banner_file)
+        shutil.copy(os.path.join(current_dir, "images", deployment_type, "banner.png"), banner_file)
 
 
 def copy_skel(destination):
@@ -123,7 +124,7 @@ def report_completion(dep_type, working_dir):
 
 def appliance(update_seed_path):
     # Calulate system ram
-    calculated_ram = get_ram_kb()
+    calculated_ram = get_ram_gb()
     if calculated_ram:
         ram_args = {"default": calculated_ram}
     else:
@@ -386,4 +387,6 @@ if __name__ == "__main__":
         seed_path = sys.argv[1]
     else:
         seed_path = None
+
+    current_dir = os.path.dirname(os.path.realpath(__file__))
     start(seed_path)
