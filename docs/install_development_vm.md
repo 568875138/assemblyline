@@ -25,7 +25,7 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
 
     source ~/.bashrc
 
-    The source command will generate an error, but it will disappear once the install is complete.
+    # The source command will generate an error, but it will disappear once the install is complete.
 
 ### Create repository directory
 
