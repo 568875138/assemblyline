@@ -56,7 +56,7 @@ We recommend using clusterssh when performing operation on multiple computers so
     chmod 700 $PYTHONPATH/../.ssh/
 
     cd $PYTHONPATH
-    git@bitbucket.org:$BB_USER/al_private.git
+    git clone git@bitbucket.org:$BB_USER/al_private.git
     git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
 
     ./assemblyline/al/run/setup_dev_environment.py al_private.seeds.deployment.seed
