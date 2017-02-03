@@ -317,6 +317,7 @@ tl_patterns = [
 
 trusted_mimes = {
     'application/x-bittorrent': 'meta/torrent',
+    'application/x-tar': 'archive/tar',
 }
 
 for x in tl_patterns:
