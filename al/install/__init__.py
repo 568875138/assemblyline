@@ -667,7 +667,13 @@ class SiteInstaller(object):
             return
 
         self.info("Linking %s --> %s", src, dst)
-        os.symlink(src, dst)
+        try:
+            os.symlink(src, dst)
+        except OSError, os_err:
+            if os_err.errno == 17:
+                pass
+            else:
+                raise
 
     def install_pefile(self):
         # pefile 1.2.10-114 is not provided by pypi anymore therefor the following won't work
