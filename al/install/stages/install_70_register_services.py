@@ -8,7 +8,7 @@ def install(alsi=None):
     # for now they always get default.
     services_to_register = alsi.config['services']['master_list']
     default_profile = alsi.config['workers']['default_profile'],
-    alsi.info("Preparing to Register: %s", services_to_register)
+    alsi.info("Preparing to Register: %s", ",".join(services_to_register.keys()))
 
     for service, svc_detail in services_to_register.iteritems():
         svc_detail = alsi.config['services']['master_list'][service]
