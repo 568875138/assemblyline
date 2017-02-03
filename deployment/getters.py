@@ -11,9 +11,9 @@ PASS_BASIC = [chr(x + 65) for x in xrange(26)] + \
              ["!", "@", "$", "%", "^", "?", "&", "*", "(", ")"]
 
 
-def get_int(msg, min_val=None, max_val=None):
+def get_int(msg, min_val=None, max_val=None, default=None):
     while True:
-        input_val = raw_input("%s: " % msg)
+        input_val = raw_input("%s%s: " % (msg, {True: "", False:" [%s]" % default}[default is None]))
         if input_val:
             try:
                 int_input = int(input_val)
@@ -29,11 +29,14 @@ def get_int(msg, min_val=None, max_val=None):
                 print("Input is not an Integer: %s" % input_val)
             except IndexError, e:
                 print(e.message)
+        else:
+            if default:
+                return default
 
 
-def get_float(msg, min_val=None, max_val=None):
+def get_float(msg, min_val=None, max_val=None, default=None):
     while True:
-        input_val = raw_input("%s: " % msg)
+        input_val = raw_input("%s%s: " % (msg, {True: "", False: " [%s]" % default}[default is None]))
         if input_val:
             try:
                 float_input = float(input_val)
@@ -49,6 +52,9 @@ def get_float(msg, min_val=None, max_val=None):
                 print("Input is not an Integer: %s" % input_val)
             except IndexError, e:
                 print(e.message)
+        else:
+            if default:
+                return default
 
 
 def get_string_list(msg, validator=None):
