@@ -92,4 +92,5 @@ You should do this tweak if you don't plan on coding on this VM and instead you 
 
 Remove the id_rsa files with the following command:
 
-    rm ~/.ssh/id_rsa*
+    sudo rm ~/.ssh/id_rsa*
+    sudo rm /opt/al/.ssh/id_rsa*
