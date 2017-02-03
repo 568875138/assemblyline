@@ -10,16 +10,6 @@ APPLIANCE = "Appliance (Full deployment on single machine)"
 CLUSTER = "Cluster (High volume production deployment)"
 DEPLOYMENT_TYPES = [DEVEL_VM, APPLIANCE, CLUSTER]
 
-FONT = "DejaVu-Sans-Mono-Bold"
-
-FIGLET_CMD = 'figlet {text} | grep -v "^\s*$"'
-FAV_ICON_CMD = 'convert -gravity Center -size 256x256 -font "{font}" ' \
-               '-pointsize 30 -background transparent -fill black label:\'{{text}}\' {{target}}'.format(font=FONT)
-BANNER_CMD = 'convert -font "{font}" -pointsize 36 -background ' \
-             'transparent -fill black label:\'{{text}}\' {{target}}'.format(font=FONT)
-
-current_dir = None
-
 
 # noinspection PyBroadException
 def banner(msg):
@@ -28,19 +18,6 @@ def banner(msg):
         print(stdout)
     except:
         print("##############################\n#\n# {msg}\n#\n##############################\n".format(msg=msg))
-
-
-def get_figlet(text):
-    fig_proc = subprocess.Popen(FIGLET_CMD.format(text=text), shell=True,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    std_out, _ = fig_proc.communicate()
-    std_out = std_out.replace("\\", "\\\\")
-    std_out = std_out.replace("\n", "\\n")
-    std_out = std_out.replace(" ", "\\ ")
-    std_out = std_out.replace("'", "'\"'\"'")  # Fun with shells...
-
-    return std_out
 
 
 def get_ram_gb():
@@ -59,51 +36,43 @@ def get_ram_gb():
 
 
 # noinspection PyBroadException
-def create_images(app_name, banner_file, fav_icon_file, deployment_type):
+def create_images(templating_directory, app_name, banner_file, fav_icon_file, deployment_type):
     print("\t* Creating images for app %s" % app_name)
 
-    shutil.copy(os.path.join(current_dir, "images", deployment_type, "favicon.ico"), fav_icon_file)
-
-    try:
-        exit_code = subprocess.call(BANNER_CMD.format(text=get_figlet(app_name), target=banner_file), shell=True,
-                                    stderr=subprocess.PIPE)
-        if exit_code != 0:
-            raise Exception("ERR: Cannot create banner image for your deployment, "
-                            "verify that your imagemagick policy let you read labels.")
-    except:
-        shutil.copy(os.path.join(current_dir, "images", deployment_type, "banner.png"), banner_file)
+    shutil.copy(os.path.join(templating_directory, "images", deployment_type, "favicon.ico"), fav_icon_file)
+    shutil.copy(os.path.join(templating_directory, "images", deployment_type, "banner.png"), banner_file)
 
 
-def copy_skel(destination):
+def copy_skel(templating_directory, destination):
     print("\t* Copying skeleton to %s" % destination)
 
-    shutil.copytree(os.path.join(current_dir, "skel"), destination)
+    shutil.copytree(os.path.join(templating_directory, "skel"), destination)
 
 
-def save_install_template(template_name, values, target):
+def save_install_template(templating_directory, template_name, values, target):
     print("\t* Creating installation doc")
 
-    install_template = open(os.path.join(current_dir, "templates", template_name)).read()
+    install_template = open(os.path.join(templating_directory, "templates", template_name)).read()
     install_template = install_template.format(**values)
 
     with open(target, 'wb') as seed_file:
         seed_file.write(install_template)
 
 
-def save_seed_template(template_name, values, target):
+def save_seed_template(templating_directory, template_name, values, target):
     print("\t* Creating seed from template")
 
-    seed_template = open(os.path.join(current_dir, "templates", template_name)).read()
+    seed_template = open(os.path.join(templating_directory, "templates", template_name)).read()
     seed_template = seed_template.format(**values)
 
     with open(target, 'wb') as seed_file:
         seed_file.write(seed_template)
 
 
-def save_site_spec_template(template_name, values, target):
+def save_site_spec_template(templating_directory, template_name, values, target):
     print("\t* Creating site_pecific from template")
 
-    site_spec_template = open(os.path.join(current_dir, "templates", template_name)).read()
+    site_spec_template = open(os.path.join(templating_directory, "templates", template_name)).read()
     site_spec_template = site_spec_template.format(**values)
 
     with open(target, 'wb') as site_spec_file:
@@ -122,7 +91,7 @@ def report_completion(dep_type, working_dir):
               "{working_dir}/doc/deployment_installation.md.".format(working_dir=working_dir))
 
 
-def appliance(update_seed_path):
+def appliance(templating_directory, update_seed_path):
     # Calulate system ram
     calculated_ram = get_ram_gb()
     if calculated_ram:
@@ -165,9 +134,9 @@ def appliance(update_seed_path):
             print("Cancelling install...")
             exit(1)
 
-    copy_skel(working_dir)
-    save_install_template("install_appliance.tmpl", {'app_name': app_name}, target_install_doc)
-    save_seed_template("appliance.tmpl", {
+    copy_skel(templating_directory, working_dir)
+    save_install_template(templating_directory, "install_appliance.tmpl", {'app_name': app_name}, target_install_doc)
+    save_seed_template(templating_directory, "appliance.tmpl", {
         'organisation': organisation,
         'fqdn': fqdn,
         'install_kvm': install_kvm,
@@ -178,13 +147,13 @@ def appliance(update_seed_path):
         "solr_heap": solr_heap,
         'update_seed_path': update_seed_path or 'invalid.seed.path'
     }, target_seed)
-    save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file, "appliance")
+    save_site_spec_template(templating_directory, "site_specific.tmpl", {'app_name': app_name}, target_site_spec)
+    create_images(templating_directory, app_name, banner_file, fav_icon_file, "appliance")
 
     report_completion("Appliance", working_dir)
 
 
-def cluster(update_seed_path):
+def cluster(templating_directory, update_seed_path):
     # Questions
     banner("Cluster")
     print("\nLet's get started creating your 'Cluster' deployment.\n\n")
@@ -249,8 +218,8 @@ def cluster(update_seed_path):
             print("Cancelling install...")
             exit(1)
 
-    copy_skel(working_dir)
-    save_install_template("install_cluster.tmpl", {
+    copy_skel(templating_directory, working_dir)
+    save_install_template(templating_directory, "install_cluster.tmpl", {
         'app_name': app_name,
         'ip_core': ip_core
     }, target_install_doc)
@@ -309,14 +278,14 @@ def cluster(update_seed_path):
             'update_seed_path': update_seed_path or 'invalid.seed.path'
         }
 
-    save_seed_template(cluster_template, values, target_seed)
-    save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file, "cluster")
+    save_seed_template(templating_directory, cluster_template, values, target_seed)
+    save_site_spec_template(templating_directory, "site_specific.tmpl", {'app_name': app_name}, target_site_spec)
+    create_images(templating_directory, app_name, banner_file, fav_icon_file, "cluster")
 
     report_completion("Cluster", working_dir)
 
 
-def devel_vm(update_seed_path):
+def devel_vm(templating_directory, update_seed_path):
     # Questions
     banner("Devel VM")
     print("\nLet's get started creating you a 'Development VM' deployment.\n\n")
@@ -346,20 +315,20 @@ def devel_vm(update_seed_path):
             print("Cancelling install...")
             exit(1)
 
-    copy_skel(working_dir)
-    save_install_template("install_devel_vm.tmpl", {'app_name': app_name}, target_install_doc)
-    save_seed_template("devel_vm.tmpl", {
+    copy_skel(templating_directory, working_dir)
+    save_install_template(templating_directory, "install_devel_vm.tmpl", {'app_name': app_name}, target_install_doc)
+    save_seed_template(templating_directory, "devel_vm.tmpl", {
         'password': password,
         "secret_key": secret_key,
         'update_seed_path': update_seed_path or 'invalid.seed.path'
     }, target_seed)
-    save_site_spec_template("site_specific.tmpl", {'app_name': app_name}, target_site_spec)
-    create_images(app_name, banner_file, fav_icon_file, "dev_vm")
+    save_site_spec_template(templating_directory, "site_specific.tmpl", {'app_name': app_name}, target_site_spec)
+    create_images(templating_directory, app_name, banner_file, fav_icon_file, "dev_vm")
 
     report_completion("Development VM", working_dir)
 
 
-def start(update_seed_path):
+def start(templating_directory, update_seed_path):
     banner("assemblyline")
     print("Welcome to assemblyline deployment creator.\n\nWe will ask you a few question about the type of deployment "
           "you are trying to do and will automatically create you a deployment specific to you needs with all the "
@@ -370,7 +339,7 @@ def start(update_seed_path):
 
     if get_bool("Are you ready to proceed?"):
         function = pick_from_list("Which deployment type would you like?", DEPLOYMENT_TYPES)
-        DEPLOYMENT_MAP[function](update_seed_path)
+        DEPLOYMENT_MAP[function](templating_directory, update_seed_path)
     else:
         exit(1)
 
@@ -388,5 +357,4 @@ if __name__ == "__main__":
     else:
         seed_path = None
 
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    start(seed_path)
+    start(os.path.dirname(os.path.realpath(__file__)), seed_path)
