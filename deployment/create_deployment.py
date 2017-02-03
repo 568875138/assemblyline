@@ -296,7 +296,7 @@ def devel_vm(templating_directory, update_seed_path):
     password = get_password("What password would you like for all components in your VM?", default="changeme")
     secret_key = get_random_password(length=128)
     print("The password you've picked will be used for login into the web UI (user=user), "
-          "for FTP file transfers (user=ssftp) and to ssh in for remote debugging (user=al).")
+          "for FTP file transfers (user=alftp) and to ssh in for remote debugging (user=al).")
 
     # Apply answers
     working_dir = os.path.join(destination, "al_private")

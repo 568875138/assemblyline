@@ -166,7 +166,7 @@ DEFAULT_SEED = {
     'filestore': {
         'ftp_password': 'Ch@ang3thisPassword',  # The FTP user password
         'ftp_root': '/opt/al/var',
-        'ftp_user': 'ssftp',
+        'ftp_user': 'alftp',
         'ftp_ip_restriction': None,
         'support_urls': ['ftp://alftp:Ch@ang3thisPassword@localhost/opt/al/var/support'],
         'urls': ['ftp://alftp:Ch@ang3thisPassword@localhost/opt/al/var/storage'],

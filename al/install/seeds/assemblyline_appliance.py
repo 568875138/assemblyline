@@ -8,7 +8,7 @@ appliance_ip = SiteInstaller.get_ipaddress(silent=True)
 SYS_PASS = 'changeme'
 SYS_USER = 'al'
 FTP_PASS = 'Ch@ang3thisPassword'
-FTP_USER = 'ssftp'
+FTP_USER = 'alftp'
 
 # Start with the default seed and update for AL
 seed['core']['alerter']['shards'] = 1
