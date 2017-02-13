@@ -47,6 +47,7 @@ def get_mac_address():
     return "".join(["{0:02x}".format((uuid.getnode() >> i) & 0xff) for i in range(0, 8 * 6, 8)][::-1]).upper()
 
 
+# noinspection PyUnboundLocalVariable
 def get_mac_for_ip(ip):
     import netifaces as nif
     for i in nif.interfaces():
@@ -71,7 +72,7 @@ def get_random_mac(seperator=':'):
     return seperator.join("%02x" % x for x in mac).upper()
 
 
-# noinspection PyBroadException
+# noinspection PyBroadException,PyUnresolvedReferences,PyUnboundLocalVariable
 def get_hostip():
     import netifaces as nif
     # fetch the nic serving up the default gateway

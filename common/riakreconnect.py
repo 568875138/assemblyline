@@ -33,7 +33,7 @@ class RiakReconnect(object):
             while True:
                 try:
                     return original(*args, **kw)
-                except Exception, e: # pylint: disable=W0703
+                except Exception, e:  # pylint: disable=W0703
                     re_raise = True
                     for x in self.RECONNECT_MSGS:
                         msg = str(e)

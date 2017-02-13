@@ -31,25 +31,25 @@ STRONG_INDICATORS = {
         re.compile('\.oneOfChild'),
     ],
     'code/csharp': [
-        re.compile(r'(^|\n)[ \t]*namespace[ \t]+[\w\.]+'),
-        re.compile(r'(^|\n)[ \t]*using[ \t]+[\w\.]+;'),
+        re.compile(r'(^|\n)[ \t]*namespace[ \t]+[\w.]+'),
+        re.compile(r'(^|\n)[ \t]*using[ \t]+[\w.]+;'),
         re.compile(r'(^|\n)[ \t]*internal class '),
     ],
     'code/php': [
         re.compile(r'(^|\n)<\?php'),
-        re.compile(r'namespace[ \t]+[\w\.]+'),
-        re.compile(r'function[ \t]*\w+[ \t]*\(\$[^\)]+\)[ \t]*\{'),
+        re.compile(r'namespace[ \t]+[\w.]+'),
+        re.compile(r'function[ \t]*\w+[ \t]*\(\$[^)]+\)[ \t]*\{'),
         re.compile(r'\beval[ \t]*\('),
     ],
     'code/c': [
         re.compile(r'(^|\n)(static|typedef)?[ \t]*struct '),
-        re.compile(r'(^|\n)#include[ \t]*(<|")[\w\./]+(>|")'),
+        re.compile(r'(^|\n)#include[ \t]*(<|")[\w./]+(>|")'),
         re.compile(r'(^|\n)#(ifndef |define |endif |pragma )'),
     ],
     'code/python': [
         re.compile(r'(^|\n)[ \t]*if __name__[ \t]*==[ \t]*[\'\"]__main__[\'\"][ \t]*:'),
-        re.compile(r'(^|\n)[ \t]*from[ \t]+[\w\.]+[ \t]+import[ \t]+[\w\.\*]+([ \t]+as \w+)?'),
-        re.compile(r'(^|\n)[ \t]*def[ \t]*\w+[ \t]*\([^\)]*\)[ \t]*:'),
+        re.compile(r'(^|\n)[ \t]*from[ \t]+[\w.]+[ \t]+import[ \t]+[\w.*]+([ \t]+as \w+)?'),
+        re.compile(r'(^|\n)[ \t]*def[ \t]*\w+[ \t]*\([^)]*\)[ \t]*:'),
     ],
     'code/rust': [
         re.compile(r'(^|\n)(pub|priv)[ \t]*(struct |enum |impl |const )'),
@@ -61,7 +61,7 @@ STRONG_INDICATORS = {
     ],
     'code/java': [
         re.compile(r'(^|\n)[ \t]*public[ \t]+class[ \t]+\w+[ \t]+(extends[ \t]+\w+[ \t]+)?\{'),
-        re.compile(r'(^|\n)[\w \t]+\([^\)]+\)[ \t]+throws[ \t]+[\w, \t]+[ \t]+\{'),
+        re.compile(r'(^|\n)[\w \t]+\([^)]+\)[ \t]+throws[ \t]+[\w, \t]+[ \t]+\{'),
         re.compile(r'(^|\n)[ \t]*(private|public)[ \t]*static[ \t]*\w+'),
     ],
     'code/perl': [
@@ -77,11 +77,11 @@ STRONG_INDICATORS = {
         re.compile(r'(^|\n)[ \t]*func[ \t]+\w+\('),
     ],
     'code/css': [
-        re.compile(r'(^|\n|\})(html|body|footer|span\.|img\.|a\.|\.[a-zA-Z\-\.]+)[^\{]+\{'
+        re.compile(r'(^|\n|\})(html|body|footer|span\.|img\.|a\.|\.[a-zA-Z\-.]+)[^{]+\{'
                    '[ \t]*(padding|color|width|margin|background|font|text)[^}]+\}'),
     ],
     'text/markdown': [
-        re.compile(r'\*[ \t]*`[^`]+`[ \t]*\-[ \t]*\w+'),
+        re.compile(r'\*[ \t]*`[^`]+`[ \t]*-[ \t]*\w+'),
     ]
 
 }
@@ -110,7 +110,7 @@ WEAK_SCORE = 1
 
 WEAK_INDICATORS = {k: re.compile('|'.join(v)) for k, v in WEAK_INDICATORS.iteritems()}
 
-SHEBANG = re.compile(r'^#![\w\./]+/(?:env[ \t]*)?(\w+)[ \t]*\n')
+SHEBANG = re.compile(r'^#![\w./]+/(?:env[ \t]*)?(\w+)[ \t]*\n')
 
 EXECUTABLES = {
     'escript': 'erlang',

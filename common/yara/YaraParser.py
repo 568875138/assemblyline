@@ -9,6 +9,7 @@ class YaraCharsetValidationException(Exception):
         self.data = data
 
 
+# noinspection PyUnresolvedReferences
 class YaraParser(object):
     STATUSES = ["DEPLOYED", "TESTING", "NOISY", "DISABLED", "STAGING"]
     VALID_YARA_VERSION = ["1.6", "1.7", "2.0", "2.1", "3.0", "3.1", "3.2", "3.3", "3.4"]

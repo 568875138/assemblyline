@@ -4,6 +4,7 @@ import subprocess
 
 from assemblyline.common import net
 
+
 def get_osinfo():
     os_type = platform.system()
     vers = platform.version()
@@ -27,11 +28,9 @@ def get_platform():
 
 def get_machine_info(is_agent=False):
     import psutil
-    out = {}
-    out['cores'] = len(psutil.cpu_percent(interval=0.01, percpu=True))
-    out['memory'] = "%.1f" % (float(psutil.phymem_usage().total)/1024/1024/1024)
-    out['os'] = get_osinfo()
-    out['ip'] = net.get_hostip()
+    out = {'cores': len(psutil.cpu_percent(interval=0.01, percpu=True)),
+           'memory': "%.1f" % (float(psutil.phymem_usage().total) / 1024 / 1024 / 1024), 'os': get_osinfo(),
+           'ip': net.get_hostip()}
     if is_agent:
         out['uid'] = "Agent-" + net.get_mac_address()
     else:
@@ -39,4 +38,3 @@ def get_machine_info(is_agent=False):
     out['name'] = net.get_hostname()
     
     return out
-

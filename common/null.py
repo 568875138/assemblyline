@@ -32,4 +32,3 @@ def is_low_priority(_):
     return False
 
 whitelist = []
-

@@ -56,4 +56,3 @@ RECOGNIZED_TAGS = {
 }
 
 RULE_PATHS = '/usr/share/file/magic.mgc'
-

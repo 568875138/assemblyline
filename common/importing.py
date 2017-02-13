@@ -18,20 +18,23 @@ def apply_overlay(module_name, overlay):
 
     return True
 
+
 def apply_seed(module_name, seed):
     return apply_overlay(module_name, construct_overlay(module_name, seed))
+
 
 def construct_overlay(module_name, seed):
     specification = seed.get('overlay', {}).get(module_name, {})
     return {
         k: module_attribute_by_name(v) for k, v in specification.iteritems()
-    }
+        }
+
 
 def module_attribute_by_name(name):
     module_path, _sep, module_attribute_name = name.rpartition('.')
     module = importlib.import_module(module_path)
     return getattr(module, module_attribute_name)
 
+
 class_by_name = module_attribute_by_name
 class_by_path = module_attribute_by_name
-

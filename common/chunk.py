@@ -8,4 +8,3 @@ def chunk(l, n):
 
 def chunked_list(l, n):
     return [x for x in chunk(l, n)]
-

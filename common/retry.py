@@ -2,13 +2,16 @@ from inspect import getmembers, ismethod
 from sys import exc_info
 from time import sleep
 
+
+# noinspection PyPep8Naming
 class retry(object):
     """
     This class can be used to perform an automatic retry with (a truncated
     binary exponential backoff) delay of a function/method that throws an
     exception.
-    """    
-    def __init__(self, exceptions, retries=4, initial=1, handle=False):
+    """
+
+    def __init__(self, exceptions, retries=4, initial=1, handle=None):
         self.exceptions = exceptions
         self.handle = handle
         self.initial = initial
@@ -17,9 +20,10 @@ class retry(object):
 
     def __call__(self, original):
         """We can use an instance of this class as a decorator."""
+
         def wrapper(*args, **kwargs):
             return self.execute(original, *args, **kwargs)
- 
+
         # Make this a well-behaved decorator.
         wrapper.__name__ = original.__name__
         wrapper.__doc__ = original.__doc__
@@ -53,11 +57,14 @@ class retry(object):
     @staticmethod
     def forever(e):
         pass
-    
+
+
+# noinspection PyPep8Naming
 class retryall(object):
     """
     This class can be used as a decorator to override the type of exceptions returned by every method of a class
-    """    
+    """
+
     def __init__(self, exceptions, retries=4, initial=1, handle=False):
         self.retry = retry(exceptions, retries, initial, handle)
 

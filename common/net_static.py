@@ -1235,4 +1235,3 @@ TLDS_ALPHA_BY_DOMAIN = [
     "ZONE",
     "ZUERICH",
     "ZW"]
-

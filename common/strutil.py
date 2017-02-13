@@ -56,5 +56,3 @@ class StringTable(object):
         if s in self._value_map:
             return s
         raise AttributeError("Invalid value for %s (%s)" % (self._name, s))
-
-

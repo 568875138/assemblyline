@@ -2,12 +2,14 @@ from math import log
 from socket import inet_aton
 from struct import pack, unpack
 
+
 # If you are tempted to extend this module to add support for IPv6 (or some
 # similar invasive change) take a look at using PySubnetTree and extending it
 # to allow arbitrary ranges instead.
 
 def _convert(ip):
     return unpack('!I', inet_aton(ip))[0]
+
 
 def _next(lower, upper):
     size = 2
@@ -16,21 +18,29 @@ def _next(lower, upper):
 
     return size / 2
 
+
 def _valid(lower, upper):
     return lower & (upper - lower) == 0
 
+
+# noinspection PyPep8Naming
 class _dict(dict):
     pass
+
 
 def ip_to_int(ip):
     if type(ip) == int:
         return ip
     return _convert(ip)
 
+
+# noinspection PyTypeChecker
 class RangeTable(object):
     """Efficient storage of IPv4 ranges and lookup of IPv4 addresses."""
+
     def __init__(self):
         self.clear()
+        self._trie = _dict()
 
     def _add_cidr(self, lower, upper, value):
         if not _valid(lower, upper):
@@ -53,7 +63,7 @@ class RangeTable(object):
             if not isinstance(d, _dict):
                 prev = d
                 d = _dict()
-                d.update({x:prev for x in range(0, 256)})
+                d.update({x: prev for x in range(0, 256)})
             trie[point] = d
             trie = d
         trie[path[-1]] = value
@@ -71,7 +81,8 @@ class RangeTable(object):
             path = path[1:]
         return entry
 
-    def _to_path(self, integer):
+    @staticmethod
+    def _to_path(integer):
         return unpack('B' * 4, pack('!I', integer))
 
     def __getitem__(self, key):
@@ -99,8 +110,8 @@ class RangeTable(object):
         self._add_range(span[0], span[1], value)
 
     def add_range(self, lower, upper, value):
-        lower = ip_to_int(lower) 
-        upper = ip_to_int(upper) 
+        lower = ip_to_int(lower)
+        upper = ip_to_int(upper)
 
         self._add_range(lower, upper, value)
 
@@ -110,11 +121,12 @@ class RangeTable(object):
             lower += size
 
     def clear(self):
-        self._trie = _dict() # pylint:disable=W0201
+        self._trie = _dict()  # pylint:disable=W0201
 
     def dump(self):
         from pprint import pformat
         return pformat(self._trie)
+
 
 PRIVATE_NETWORKS = [
     "10.0.0.0/8",
@@ -146,11 +158,14 @@ _reserved_ips = RangeTable()
 for cidr in RESERVED_NETWORKS:
     _reserved_ips[cidr] = True
 
+
 def is_ip_private(ip):
     return _private_ips[ip] or False
 
+
 def is_ip_reserved(ip):
     return _private_ips[ip] or _reserved_ips[ip] or False
+
 
 if __name__ == '__main__':
     r = RangeTable()
@@ -166,7 +181,7 @@ if __name__ == '__main__':
 
     r['0.0.0.1-0.0.0.2'] = {'message': 'not blah'}
     r['0.0.0.200 - 0.0.1.2'] = 'testing'
-    r['127.0.0.1/8'] = 'loopback' # Notice we handle the incorrect CIDR.
+    r['127.0.0.1/8'] = 'loopback'  # Notice we handle the incorrect CIDR.
 
     print r['0.0.0.0']
     print r['0.0.0.1']

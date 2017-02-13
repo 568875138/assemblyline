@@ -15,7 +15,7 @@ def _epoch_to_ms(t):
     # noinspection PyBroadException
     try:
         return str(t - int(t))[1:]
-    except: # pylint:disable=W0702
+    except:  # pylint:disable=W0702
         return ''
 
 
@@ -28,7 +28,7 @@ def _timestamp_to_ms(ts):
             end = len(ts)
 
         return float(ts[start:end])
-    except: # pylint:disable=W0702
+    except:  # pylint:disable=W0702
         return 0.0
 
 

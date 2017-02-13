@@ -1,5 +1,6 @@
 
 hostname = 'unknownhost'
+# noinspection PyBroadException
 try:
     from assemblyline.common.net import get_hostname
     hostname = get_hostname()
@@ -7,6 +8,7 @@ except:  # pylint:disable=W0702
     pass
 
 ip = 'x.x.x.x'
+# noinspection PyBroadException
 try:
     from assemblyline.common.net import get_hostip
     ip = get_hostip()
