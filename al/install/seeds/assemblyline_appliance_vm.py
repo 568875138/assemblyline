@@ -6,7 +6,6 @@ seed['services']['master_list']['Cuckoo']['install_by_default'] = False
 
 seed['monitoring']['harddrive'] = False
 seed['workers']['install_kvm'] = False
-seed['workers']['virtualmachines']['master_list'] = {}
 
 if __name__ == '__main__':
     import sys

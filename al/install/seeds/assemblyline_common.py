@@ -639,10 +639,10 @@ DEFAULT_SEED = {
             'use_parent_as_datastore': False,
             'use_parent_as_queue': False,
             'master_list': {
-                'BitDefender': make_vm_dict('BitDefender', 2048, 2, 43200,
-                                            "multiav.001.qcow2", 'linux', 'ubuntuprecise', 4),
-                'McAfee': make_vm_dict('McAfee', 2048, 2, 86400,
-                                       "multiav.001.qcow2", 'linux', 'ubuntuprecise', 3),
+                # 'BitDefender': make_vm_dict('BitDefender', 2048, 2, 43200,
+                #                             "mcafee.001.qcow2", 'linux', 'ubuntutrusty', 4),
+                # 'McAfee': make_vm_dict('McAfee', 2048, 2, 86400,
+                #                        "mcafee.001.qcow2", 'linux', 'ubuntutrusty', 3),
             }
 
         },
