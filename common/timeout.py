@@ -48,18 +48,35 @@ def timeout(func, args=(), kwargs=None, timeout_duration=10, default=None):
 
 # noinspection PyBroadException
 class SubprocessTimer(object):
-    def __init__(self, timeout_value):
+    def __init__(self, timeout_value, raise_on_timeout=True):
         self.timeout = timeout_value
         self.timed_out = False
         self.stime = 0
         self.proc = None
-        self.timeout_t = threading.Thread(target=self._check_timeout,
-                                          name="PROCESS_TIMEOUT_THREAD_%s_SEC" % str(timeout_value))
-        self.timeout_t.daemon = True
+        self.stop = False
+        self.raise_on_timeout = raise_on_timeout
+        self.timeout_t = self._init_thread()
+
+    def __enter__(self):
         self.timeout_t.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+        if self.timed_out and self.raise_on_timeout:
+            raise TimeoutException("%s seconds timeout reached" % self.timeout)
+
+    def _init_thread(self):
+        t = threading.Thread(target=self._check_timeout,
+                             name="PROCESS_TIMEOUT_THREAD_%s_SEC" % str(self.timeout))
+        t.daemon = True
+        return t
 
     def _check_timeout(self):
         while True:
+            if self.stop:
+                break
+
             if self.proc is not None:
                 if time.time() - self.stime > self.timeout:
                     self.timed_out = True
@@ -69,71 +86,68 @@ class SubprocessTimer(object):
                         pass
                     self.proc = None
                     self.stime = 0
-            time.sleep(1)
+            time.sleep(0.1)
+
+    def close(self):
+        self.stop = True
+
+    def has_timed_out(self):
+        return self.timed_out
 
     def run(self, running_process):
+        if self.timeout_t and not self.timeout_t.isAlive():
+            self.timeout_t = self._init_thread()
+            self.timeout_t.start()
+
+        self.stop = False
         self.timed_out = False
         self.stime = time.time()
         self.proc = running_process
+
         return running_process
-
-    def run_communicate(self, max_retry, args, log=None, logging_extra_func=None):
-        retry = 0
-        successful = False
-        com_res = None
-        while not successful and retry < max_retry:
-            self.run(subprocess.Popen(**args))
-            com_res = self.proc.communicate()
-
-            if self.timed_out:
-                com_res = None
-                retry += 1
-
-                if log is not None:
-                    msg = "Execution timed out (max %s seconds) at attempt %d of %d" % (self.timeout, retry, max_retry)
-                    if retry == max_retry:
-                        msg += " [This was the last attempt]"
-                    if logging_extra_func is not None:
-                        msg += " %s" % logging_extra_func()
-                    msg += "."
-                    log.warning(msg)
-            else:
-                self.proc = None
-                self.stime = 0
-                successful = True
-
-        return com_res
 
 
 if __name__ == "__main__":
+    def run_sp_timer(timer, shell_func):
+        print "\n-->> Executing command: %s" % shell_func
+        stime = time.time()
+        proc = timer.run(subprocess.Popen(shell_func, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE))
+
+        proc.wait()
+        ret_val = proc.poll()
+
+        if timer.has_timed_out():
+            print "Process timeout!"
+        else:
+            print "Execution complete!"
+
+        etime = time.time()
+        print "Execution time: %s seconds\nReturn value: %s" % (str(etime - stime), str(ret_val))
+
+        timer.close()
+
+    ########################################################
+    # In the following exemples, we initialize a timer and and use it multiple times
     ST = SubprocessTimer(3)
+    print "\nGlobal timer kills processes running more than 3 seconds..."
+    run_sp_timer(ST, 'sleep 5')
+    run_sp_timer(ST, 'sleep 1')
 
-    print "Timer kills processes running more than 3 seconds...\n\n-->> First process \"sleep 5\":"
-    stime = time.time()
-    proc = ST.run(subprocess.Popen(["sleep", "5"], stderr=subprocess.PIPE, stdout=subprocess.PIPE))
+    ########################################################
+    # In the following exemple, we use a timer wrapped into a 'with' statement
+    print "\n\n'With statement' timer kills processes running more than 2 seconds..."
+    print "\n-->> Executing commandL: \"sleep 4\""
+    stime = etime = time.time()
+    ret_val = None
+    try:
+        with SubprocessTimer(2) as new_ST:
+            proc = new_ST.run(subprocess.Popen(["sleep", "4"], stderr=subprocess.PIPE, stdout=subprocess.PIPE))
+            proc.wait()
+            ret_val = proc.poll()
+            etime = time.time()
 
-    proc.wait()
-    ret_val = proc.poll()
-
-    if ret_val < 0:
-        print "Process timeout!"
-    else:
         print "Execution complete!"
-
-    etime = time.time()
-    print "Execution time: %s seconds\nReturn value: %s" % (str(etime - stime), str(ret_val))
-
-    print "\n\n-->> Second process \"sleep 2\":\n"
-    stime = time.time()
-    proc = ST.run(subprocess.Popen(["sleep", "2"], stderr=subprocess.PIPE, stdout=subprocess.PIPE))
-
-    proc.wait()
-    ret_val = proc.poll()
-
-    if ret_val < 0:
+    except TimeoutException:
         print "Process timeout!"
-    else:
-        print "Execution complete!"
-
-    etime = time.time()
-    print "Execution time: %s seconds\nReturn value: %s" % (str(etime - stime), str(ret_val))
+    finally:
+        print "Execution time: %s seconds\nReturn value: %s" % (str(etime - stime), str(ret_val))
