@@ -7,5 +7,5 @@
 */5 * * * *	root	find /tmp/ -name '*_vm_meta' -amin +15 -delete 2> /dev/null
 */5 * * * *	root	find /tmp/al/ -amin +15 -delete 2> /dev/null
 */5 * * * *	root	find /run/shm/storage/ -amin +15 -type f -delete 2> /dev/null
-*/5 * * * *	root	find /tmp/al3_ui/ -type f -amin +15 -delete 2> /dev/null
+*/5 * * * *	root	find /tmp/al_ui/ -type f -amin +15 -delete 2> /dev/null
 */5 * * * *	root	find /opt/al/var/cache/signatures -type f -atime +7 -delete 2> /dev/null
