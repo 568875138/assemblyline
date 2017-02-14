@@ -359,3 +359,54 @@ The `_register_update_callback` function can take the following extra parameters
 * `utype`: Type of updating strategy (BOX: updates the whole box, CLUSTER: updates the full cluster, PROCESS: updates only this process) [default: PROCESS]
 * `freq`: At which frequency you want to update [default: HOURLY]
 
+### Execution gone wild
+
+There are many things that can go wrong by executing an external program/library and making sure that your assemblyline service stays up and still continue processing normally without eating up all the resources. We have some protection classes and functions to help with this.
+
+#### Subprocess Reaper
+
+Imagine this, you call a subprocess command which in turn calls another command but that second command hangs. Assemblyline service will auto-kill a service that reaches the timeout value but the second command will stay hung forever because the kill command does not follow through childrens.
+
+Thankfully, Linux supports propagating kill signals to the childrens so we've added a special function to kill rogue children processes. Simply add `, preexec_fn=set_death_signal()` to your subprocess calls.
+
+    from assemblyline.common.reaper import set_death_signal
+
+    proc = Subprocess.Popen(["my_shell_command"], stdout=PIPE, stderr=PIPE, preexec_fn=set_death_signal())
+
+#### Limit execution time
+
+Your assemblyline service may need to process millions of files daily so if your calling functions or subprocess that can go rogue and take ages to run, you may to wrap those up into a timer.
+
+Assemblyline provides two types of timers, one for direct python function and one especially made for Subprocess.
+
+##### Python timer
+
+Lets say you want to wrap `my_function` inside a 2 seconds timer you can do the following:
+
+    from assemblyline.common.timeout import timeout
+
+    def my_function(sleep_time):
+        time.sleep(sleep_time)
+        return "Done sleeping"
+
+    try:
+        output = timeout(my_function, (5,), timeout_duration=1)
+    except TimeoutException:
+        print "Timeout reached"
+
+##### Subprocess timer
+
+If you want to wrap call to a subprocessed function, you should use the SubprocessTimer class instead because that class will take care of killing the process if timer is reached.
+
+    from assemblyline.common.timeout import SubprocessTimer
+
+    try:
+        with SubprocessTimer(2) as timer:
+            proc = timer.run(subprocess.Popen(["sleep", "4"], stderr=subprocess.PIPE, stdout=subprocess.PIPE))
+            std_out, std_err = proc.communicate()
+
+        print "Execution complete!"
+    except TimeoutException:
+        print "Process timeout!"
+
+***Note***: SubprocessTimer can be combined to Subprocess reaper for maximum execution security.
