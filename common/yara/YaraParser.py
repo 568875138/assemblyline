@@ -1,8 +1,12 @@
 import pprint
 import copy
+import re
 
 from assemblyline.common.charset import is_safe_str, safe_str
+from assemblyline.al.common import forge
 
+config = forge.get_config()
+yara_externals = {"asl_%s" % i: i for i in config.system.yara.yara_externals}
 
 class YaraCharsetValidationException(Exception):
     def __init__(self, data):
@@ -23,7 +27,7 @@ class YaraParser(object):
                         "int8", "int16", "int32", "matches", "meta", "nocase", "not", "or", "of", "private", "rule",
                         "rva", "section", "strings", "them", "true", "uint8", "uint16", "uint32", "wide", "int8be",
                         "int16be", "int32be", "uint8be", "uint16be", "uint32be"]
-
+    AL_RESERVED_KW = yara_externals
     YARA_MODULES = {"1.6": [],
                     "1.7": [],
                     "2.0": [],
@@ -88,7 +92,7 @@ class YaraParser(object):
                                               show_header=False)
 
         try:
-            yara.compile(source=rule_text)
+            yara.compile(source=rule_text, externals=yara_externals)
         except yara.Error, e:
             try:
                 line, message = e.message.split("): ", 1)
@@ -99,7 +103,7 @@ class YaraParser(object):
             return {"type": "Error", "line": line, "error": message, "rule_text": rule_text}
 
         try:
-            yara.compile(source=rule_text, error_on_warning=True)
+            yara.compile(source=rule_text, externals=yara_externals, error_on_warning=True)
             return None
         except yara.WarningError, w:
             return {"type": "WarningError", "error": str(w), "rule_text": rule_text}
@@ -274,6 +278,7 @@ class YaraParser(object):
     @staticmethod
     def parse_dependencies(conditions, modules=None):
         yara_reserved_kw = copy.deepcopy(YaraParser.YARA_RESERVED_KW)
+        al_reserved_kw = copy.deepcopy(YaraParser.AL_RESERVED_KW)
         out_depends = []
         out_modules = []
         # Build dependencies
@@ -285,6 +290,13 @@ class YaraParser(object):
                 temp = c[:c.index("//")]
             else:
                 temp = c
+
+            # Remove static and regex strings for externals/modules
+
+            if '"' in c:
+                temp = re.sub('"[^"]+"', '', temp)
+            if ' matches ' in c:
+                temp = re.sub('matches[ ]+/[^ ]+/[a-zA-Z]{0,4}', '', temp)
                 
             # Remove special chars
             temp = temp.replace("(", " ").replace(")", " ").replace("..", " ").replace("<", " ").replace(">", " ").\
@@ -305,10 +317,14 @@ class YaraParser(object):
                         yara_reserved_kw.append(item)
                     continue
                 
-                # Filter out reserved RW
+                # Filter out reserved KW
                 if item in yara_reserved_kw:
                     continue
-                
+
+                # Filter out AL reserved KW
+                if item in al_reserved_kw:
+                    continue
+
                 # Filter out Strings
                 if item.startswith("$") or item.startswith("#") or item.startswith("@"):
                     continue
