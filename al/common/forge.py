@@ -158,9 +158,9 @@ def get_whitelist():
 
 def get_yara_importer():
     config = get_config()
-    return _dynamic_import(config.system.yara.yara_importer)
+    return _dynamic_import(config.system.yara.importer)
 
 
 def get_yara_parser():
     config = get_config()
-    return _dynamic_import(config.system.yara.yara_parser)
+    return _dynamic_import(config.system.yara.parser)

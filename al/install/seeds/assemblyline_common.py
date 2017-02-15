@@ -608,9 +608,9 @@ DEFAULT_SEED = {
         'use_proxy': True,
         'user': 'al',  # The system (linux) user AL runs as.
         'yara': {
-            'yara_externals': ['submitter', 'mime', 'tag'],
-            'yara_importer': "assemblyline.common.yara.YaraImporter",
-            'yara_parser': 'assemblyline.common.yara.YaraParser',
+            'externals': ['submitter', 'mime', 'tag'],
+            'importer': "assemblyline.common.yara.YaraImporter",
+            'parser': 'assemblyline.common.yara.YaraParser',
         }
     },
 
