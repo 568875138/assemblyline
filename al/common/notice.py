@@ -166,7 +166,10 @@ class Notice(object):
         return self._contains(name)
 
     def metadata(self):
-        return {}
+        try:
+            return self.get("metadata", {})
+        except KeyError:
+            return {}
 
     def parse(self, **defaults):
         hdr = {
