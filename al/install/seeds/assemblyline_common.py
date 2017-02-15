@@ -273,6 +273,14 @@ DEFAULT_SEED = {
                 'install_by_default': True,
                 'enabled': False
             },
+            'Binja': {
+                'class_name': 'Binja',
+                'repo': 'alsvc_binja',
+                'realm': 'bitbucket',
+                'config': {},
+                'install_by_default': False,
+                'enabled': False
+            },
             'BitDefender': {
                 'class_name': 'BitDefender',
                 'repo': 'alsvc_bitdefender',
