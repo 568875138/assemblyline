@@ -599,8 +599,11 @@ DEFAULT_SEED = {
         'update_interval': 5,
         'use_proxy': True,
         'user': 'al',  # The system (linux) user AL runs as.
-        'yara_importer': "assemblyline.common.yara.YaraImporter",
-        'yara_parser': 'assemblyline.common.yara.YaraParser',
+        'yara': {
+            'yara_externals': ['submitter', 'mime', 'tag'],
+            'yara_importer': "assemblyline.common.yara.YaraImporter",
+            'yara_parser': 'assemblyline.common.yara.YaraParser',
+        }
     },
 
     'ui': {
