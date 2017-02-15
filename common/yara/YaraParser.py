@@ -1,5 +1,6 @@
 import pprint
 import copy
+import re
 
 from assemblyline.common.charset import is_safe_str, safe_str
 from assemblyline.al.common import forge
@@ -288,6 +289,13 @@ class YaraParser(object):
                 temp = c[:c.index("//")]
             else:
                 temp = c
+
+            # Remove static and regex strings for externals/modules
+
+            if '"' in c:
+                temp = re.sub('"[^"]+"', '', temp)
+            if ' matches ' in c:
+                temp = re.sub('matches[ ]+/[^ ]+/[a-zA-Z]{0,4}', '', temp)
                 
             # Remove special chars
             temp = temp.replace("(", " ").replace(")", " ").replace("..", " ").replace("<", " ").replace(">", " ").\
