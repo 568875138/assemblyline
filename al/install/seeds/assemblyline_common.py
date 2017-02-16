@@ -23,14 +23,22 @@ DEFAULT_SEED = {
             'max_failures': 5,
             'strict_requirements': True,
             'users': {
-                'user': {
-                    'uname': 'user',
-                    'name': 'Test User',
-                    'password': 'changeme',
-                    'groups': ['ADMIN', 'USERS'],
+                'admin': {
+                    'uname': 'admin',
+                    'name': 'Default admin user',
+                    'password': 'changme',
+                    'groups': ['ADMIN', 'INTERNAL', 'USERS'],
                     'is_admin': True,
-                    'classification': 'UNRESTRICTED',
+                    'classification': 'UNRESTRICTED'
                 },
+                'internal': {
+                    'uname': 'internal',
+                    'name': 'Internal re-submission user',
+                    'password': 'Int3rn@lP4s$',
+                    'groups': ['INTERNAL'],
+                    'is_admin': False,
+                    'classification': 'UNRESTRICTED'
+                }
             },
         },
         'login_method': 'al_ui.site_specific.internal_authenticator',
@@ -86,7 +94,7 @@ DEFAULT_SEED = {
             'shards': 2,
             'stale_after': 1 * 24 * 60 * 60,
             'submitter_threads': 4,
-            'user': 'user',
+            'user': 'internal',
         },
         'redis': {
             'nonpersistent': {
@@ -547,10 +555,10 @@ DEFAULT_SEED = {
             'priority': 10000,
             'size': 104857600,
         },
-        'password': 'al_pass',
+        'password': 'Int3rn@lP4s$',
         'ttl': 15,  # Days.
         'url': "https://localhost:443",
-        'user': 'al',
+        'user': 'internal',
         'working_dir': '/opt/al/tmp/submission',
     },
 

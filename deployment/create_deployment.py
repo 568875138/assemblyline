@@ -104,7 +104,7 @@ def appliance(templating_directory, update_seed_path):
     print("\nLet's get started creating you an 'Appliance' deployment.\n\n")
     destination = get_string("Where would you like us to create your deployment? (the directory needs to "
                              "exist and need to be writeable by your current user)", validator=path_exits_validator,
-                             default="/tmp")
+                             default="/opt/al/pkg")
     app_name = get_string("What will be the name of your deployment?", default="Appliance")
     organisation = get_string("What is your organisation acronym?")
     fqdn = get_string("What is the fully qualified domain name for your appliance?", default="assemblyline.local")
@@ -159,7 +159,7 @@ def cluster(templating_directory, update_seed_path):
     print("\nLet's get started creating your 'Cluster' deployment.\n\n")
     destination = get_string("Where would you like us to create your deployment? (the directory needs to "
                              "exist and need to be writeable by your current user)", validator=path_exits_validator,
-                             default="/tmp")
+                             default="/opt/al/pkg")
     app_name = get_string("What will be the name of your deployment?")
     organisation = get_string("What is your organisation acronym?")
     if get_bool("Is this a production cluster?"):
@@ -291,11 +291,11 @@ def devel_vm(templating_directory, update_seed_path):
     print("\nLet's get started creating you a 'Development VM' deployment.\n\n")
     destination = get_string("Where would you like us to create your deployment? (the directory needs to "
                              "exist and need to be writeable by your current user)", validator=path_exits_validator,
-                             default="/tmp")
+                             default="/opt/al/pkg")
     app_name = get_string("What will be the name of your deployment?", default="Dev VM")
     password = get_password("What password would you like for all components in your VM?", default="changeme")
     secret_key = get_random_password(length=128)
-    print("The password you've picked will be used for login into the web UI (user=user), "
+    print("The password you've picked will be used for login into the web UI (user=admin), "
           "for FTP file transfers (user=alftp) and to ssh in for remote debugging (user=al).")
 
     # Apply answers

@@ -8,7 +8,8 @@ try:
 except:
     pass
 
-seed['auth']['internal']['users']['user']['password'] = "{password}"
+seed['auth']['internal']['users']['admin']['password'] = '{password}'
+seed['auth']['internal']['users']['internal']['password'] = '{password}'
 
 seed['datastore']['port'] = 9087
 seed['datastore']['stream_port'] = 9098

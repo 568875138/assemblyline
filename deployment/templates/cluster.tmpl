@@ -18,24 +18,9 @@ try:
 except:
     pass
 
-seed['auth']['internal']['users'] = {{
-    'admin': {{
-        'uname': 'admin',
-        'name': 'Default admin user',
-        'password': '{password}',
-        'groups': ['ADMIN', 'INTERNAL', 'USERS'],
-        'is_admin': True,
-        'classification': 'UNRESTRICTED'
-    }},
-    'internal': {{
-        'uname': 'internal',
-        'name': 'Internal re-submission user',
-        'password': '{internal_pass}',
-        'groups': ['INTERNAL'],
-        'is_admin': False,
-        'classification': 'UNRESTRICTED'
-    }}
-}}
+
+seed['auth']['internal']['users']['admin']['password'] = '{password}'
+seed['auth']['internal']['users']['internal']['password'] = '{internal_pass}'
 
 seed['core']['alerter']['shards'] = 4
 seed['core']['dispatcher']['max']['inflight'] = 5000
@@ -91,7 +76,6 @@ seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'internal'
 
 seed['submissions']['url'] = "https://%s:443" % IP_CORE
 seed['submissions']['password'] = '{internal_pass}'
-seed['submissions']['user'] = 'internal'
 
 seed['system']['name'] = '{sys_name}'
 seed['system']['organisation'] = '{organisation}'

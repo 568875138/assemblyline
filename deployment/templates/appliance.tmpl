@@ -8,24 +8,8 @@ try:
 except:
     pass
 
-seed['auth']['internal']['users'] = {{
-    'admin': {{
-        'uname': 'admin',
-        'name': 'Default admin user',
-        'password': '{password}',
-        'groups': ['ADMIN', 'INTERNAL', 'USERS'],
-        'is_admin': True,
-        'classification': 'UNRESTRICTED'
-    }},
-    'internal': {{
-        'uname': 'internal',
-        'name': 'Internal re-submission user',
-        'password': '{internal_pass}',
-        'groups': ['INTERNAL'],
-        'is_admin': False,
-        'classification': 'UNRESTRICTED'
-    }}
-}}
+seed['auth']['internal']['users']['admin']['password'] = '{password}'
+seed['auth']['internal']['users']['internal']['password'] = '{internal_pass}'
 
 seed['core']['middleman']['user'] = 'internal'
 
@@ -57,7 +41,6 @@ seed['services']['master_list']['Yara']['config']['SIGNATURE_PASS'] = "{internal
 seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'internal'
 
 seed['submissions']['password'] = "{internal_pass}"
-seed['submissions']['user'] = "internal"
 
 seed['system']['organisation'] = '{organisation}'
 seed['system']['password'] = None
