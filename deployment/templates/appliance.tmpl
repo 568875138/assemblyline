@@ -32,7 +32,7 @@ seed['filestore']['urls'] = [
                                                                           ftp_pass=quote('{ftp_pass}'))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre']
+seed['installation']['hooks']['ui_pre'].append('al_private.common.hook_ui_pre')
 
 seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_PASS'] = "{internal_pass}"
 seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_USER'] = 'internal'

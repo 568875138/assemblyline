@@ -16,7 +16,6 @@ try:
 except:
     pass
 
-
 seed['auth']['internal']['users']['admin']['password'] = '{password}'
 seed['auth']['internal']['users']['internal']['password'] = '{internal_pass}'
 
@@ -54,7 +53,15 @@ seed['filestore']['urls'] = [
                                                                      password=quote(FTP_PASS))
 ]
 
-seed['installation']['hooks']['ui_pre'] = ['al_private.common.hook_ui_pre'],
+seed['installation']['hooks']['ui_pre'].append('al_private.common.hook_ui_pre')
+
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_PASS'] = "{internal_pass}"
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_URL'] = "https://%s:443" % IP_CORE
+seed['services']['master_list']['ConfigDecoder']['config']['SIGNATURE_USER'] = 'internal'
+seed['services']['master_list']['Cuckoo']['install_by_default'] = {install_kvm}
+seed['services']['master_list']['Yara']['config']['SIGNATURE_PASS'] = "{internal_pass}"
+seed['services']['master_list']['Yara']['config']['SIGNATURE_URL'] = "https://%s:443" % IP_CORE
+seed['services']['master_list']['Yara']['config']['SIGNATURE_USER'] = 'internal'
 
 seed['submissions']['url'] = "https://%s:443" % IP_CORE
 seed['submissions']['password'] = '{internal_pass}'
