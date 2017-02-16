@@ -27,7 +27,7 @@ We recommend using clusterssh when performing operation on multiple computers so
 
 ## CORE Server Pre-Install
 
-### Clone main repo from Github
+### Clone/create main repos
 
     # Clone repos using ssh keys
     cd
