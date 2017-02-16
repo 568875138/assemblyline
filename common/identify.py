@@ -3,6 +3,7 @@
 import platform
 import re
 import subprocess
+import struct
 import sys
 import threading
 import uuid
@@ -597,6 +598,38 @@ def cart_ident(path):
     return metadata.get('al', {}).get('tag', 'archive/cart')
 
 
+def dos_ident(path):
+    # noinspection PyBroadException
+    try:
+        with open(path, "rb") as fh:
+            file_header = fh.read(0x40)
+            if file_header[0:2] != "MZ":
+                raise ValueError()
+
+            header_pos, = struct.unpack("<I", file_header[-4:])
+            fh.seek(header_pos)
+            if fh.read(4) != "PE\x00\x00":
+                raise ValueError()
+            machine_id, = struct.unpack("<H", fh.read(2))
+            if machine_id == 0x014c:
+                width = 32
+            elif machine_id == 0x8664:
+                width = 64
+            else:
+                raise ValueError()
+            characteristics, = struct.unpack("<H", fh.read(18)[-2:])
+            if characteristics & 0x2000:
+                pe_type = "dll"
+            elif characteristics & 0x0002:
+                pe_type = "pe"
+            else:
+                raise ValueError()
+            return "executable/windows/%s%i" % (pe_type, width)
+    except:
+        pass
+    return "executable/windows/dos"
+
+
 def fileinfo(path):
     path = safe_str(path)
 
@@ -616,6 +649,9 @@ def fileinfo(path):
         data['tag'], _ = guess_language(path)
     elif data['tag'] == 'archive/cart':
         data['tag'] = cart_ident(path)
+    elif data['tag'] == 'executable/windows/dos':
+        # The default magic file misidentifies PE files with a munged DOS header
+        data['tag'] = dos_ident(path)
 
     return data
 

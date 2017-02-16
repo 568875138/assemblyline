@@ -6,7 +6,7 @@ from assemblyline.common.charset import is_safe_str, safe_str
 from assemblyline.al.common import forge
 
 config = forge.get_config()
-yara_externals = {"asl_%s" % i: i for i in config.system.yara.yara_externals}
+yara_externals = {"asl_%s" % i: i for i in config.system.yara.externals}
 
 class YaraCharsetValidationException(Exception):
     def __init__(self, data):
