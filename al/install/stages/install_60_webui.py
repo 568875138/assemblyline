@@ -44,13 +44,14 @@ def install(alsi):
     www_dir = os.path.join(alsi.alroot, 'var/www')
     uwsgi_log_dir = os.path.join(alsi.alroot, 'var/log/uwsgi')
     gunicorn_log_dir = os.path.join(alsi.alroot, 'var/log/gunicorn')
-    for d in [www_dir, uwsgi_log_dir, gunicorn_log_dir]:
+    uwsgi_ini_dir = os.path.join(alsi.alroot, '/opt/al/etc/uwsgi/vassals')
+    for d in [www_dir, uwsgi_log_dir, gunicorn_log_dir, uwsgi_ini_dir]:
         if not os.path.exists(d):
             os.makedirs(d)
 
     uwsgi_ini_path = os.path.join(alsi.alroot, 'pkg/assemblyline/al/install/etc/uwsgi/alui_uwsgi.ini')
-    with open(uwsgi_ini_path, 'rb') as uwsgi_ini_file:
-        uwsgi_ini = uwsgi_ini_file.read()
+    with open(uwsgi_ini_path, 'rb') as f:
+        uwsgi_ini = f.read()
 
     uwsgi_ini = uwsgi_ini.format(
             start_workers=alsi.config['ui']['uwsgi']['start_workers'],
@@ -61,7 +62,8 @@ def install(alsi):
     with open('/tmp/alui_uwsgi.ini', 'wb') as f:
         f.write(uwsgi_ini)
 
-    alsi.runcmd('sudo cp /tmp/alui_uwsgi.ini /opt/al/etc/uwsgi/vassals/alui_uwsgi.ini')
+    uwsgi_ini_dst_path = os.path.join(uwsgi_ini_dir, 'alui_uwsgi.ini')
+    alsi.runcmd('sudo cp /tmp/alui_uwsgi.ini %s' % uwsgi_ini_dst_path)
 
     alsi.sudo_install_file(
             'assemblyline/al/install/etc/logrotate.d/uwsgi',
