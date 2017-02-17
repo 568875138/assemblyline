@@ -2,7 +2,7 @@
 
 import os
 
-RIAK_DEB = 'riak_2.2.0-1_amd64.deb'
+RIAK_DEB = 'riak_2.1.4-1_amd64.deb'
 
 
 def patch_riak_conf(alsi):
@@ -131,9 +131,9 @@ def install(alsi=None):
                          "vda" not in x]
         for bd in block_devices:
             alsi.append_line_if_doesnt_exist("/etc/rc.local",
-                                            "echo noop > /sys/block/%s/queue/scheduler 2> /dev/null || true" % bd)
+                                             "echo noop > /sys/block/%s/queue/scheduler 2> /dev/null || true" % bd)
             alsi.append_line_if_doesnt_exist("/etc/rc.local",
-                                            "echo 1024 > /sys/block/%s/queue/nr_requests 2> /dev/null  || true" % bd)
+                                             "echo 1024 > /sys/block/%s/queue/nr_requests 2> /dev/null  || true" % bd)
         alsi.append_line_if_doesnt_exist("/etc/rc.local", "exit 0")
 
     if tweaks['fs']:
