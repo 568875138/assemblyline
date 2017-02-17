@@ -846,7 +846,8 @@ class ServiceBase(object):  # pylint:disable=R0922
                                      "it in request", self.SERVICE_NAME)
                     task.result = old_result
                 elif task.save_result_flag and not task.result:
-                    self.log.warn("Service %s supplied NO result at all.", self.SERVICE_NAME)
+                    self.log.info("Service %s supplied NO result at all. Creating empty result for the service...",
+                                  self.SERVICE_NAME)
                     task.result = Result()
 
                 task.milestones = {'service_started': start_time, 'service_completed': time.time()}
