@@ -187,6 +187,7 @@ tag_to_extension = {
     'document/office/wordperfect': 'wp',
     'document/office/wordpro': 'lwp',
     'document/pdf': '.pdf',
+    'document/email': '.eml',
     'executable/windows/pe32': '.exe',
     'executable/windows/pe64': '.exe',
     'executable/windows/dll32': '.dll',
@@ -319,6 +320,7 @@ tl_patterns = [
 trusted_mimes = {
     'application/x-bittorrent': 'meta/torrent',
     'application/x-tar': 'archive/tar',
+    'message/rfc822': 'document/email'
 }
 
 for x in tl_patterns:
