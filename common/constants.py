@@ -73,6 +73,7 @@ RECOGNIZED_TAGS = {
     'document/office/word': True,
     'document/office/wordpro': True,
     'document/office/wordperfect': True,
+    'document/email': True,
     'document/pdf': True,
     'document/unknown': True,
     'executable/unknown': True,
