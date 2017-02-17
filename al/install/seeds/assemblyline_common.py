@@ -345,6 +345,14 @@ DEFAULT_SEED = {
                 'install_by_default': True,
                 'enabled': True
             },
+            'Eml': {
+                'class_name': 'Eml',
+                'repo': 'alsvc_eml',
+                'realm': 'bitbucket',
+                'config': {},
+                'install_by_default': True,
+                'enabled': True
+            },
             'Extract': {
                 'class_name': 'Extract',
                 'repo': 'alsvc_extract',
