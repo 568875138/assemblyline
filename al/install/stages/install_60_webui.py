@@ -48,9 +48,20 @@ def install(alsi):
         if not os.path.exists(d):
             os.makedirs(d)
 
-    alsi.sudo_install_file(
-        'assemblyline/al/install/etc/uwsgi/alui_uwsgi.ini',
-        '/opt/al/etc/uwsgi/vassals/alui_uwsgi.ini')
+    uwsgi_ini_path = os.path.join(alsi.alroot, 'pkg/assemblyline/al/install/etc/uwsgi/alui_uwsgi.ini')
+    with open(uwsgi_ini_path, 'rb') as uwsgi_ini_file:
+        uwsgi_ini = uwsgi_ini_file.read()
+
+    uwsgi_ini = uwsgi_ini.format(
+            start_workers=alsi['ui']['uwsgi']['start_workers'],
+            max_workers=alsi['ui']['uwsgi']['max_workers'],
+            max_requests_per_worker=alsi['ui']['uwsgi']['max_requests_per_worker'],
+            threads=alsi['ui']['uwsgi']['threads']
+        )
+    with open('/tmp/alui_uwsgi.ini', 'wb') as f:
+        f.write(uwsgi_ini)
+
+    alsi.runcmd('sudo cp /tmp/alui_uwsgi.ini /opt/al/etc/uwsgi/vassals/alui_uwsgi.ini')
 
     alsi.sudo_install_file(
             'assemblyline/al/install/etc/logrotate.d/uwsgi',

@@ -180,6 +180,72 @@ DEFAULT_SEED = {
         'urls': ['ftp://alftp:Ch@ang3thisPassword@localhost/opt/al/var/storage'],
     },
 
+    'installation': {
+        'docker': {
+            'apt_repo_info': 'deb https://apt.dockerproject.org/repo ubuntu-trusty main',
+            'apt_repo_key_url': 'https://apt.dockerproject.org/gpg',
+            'private_registry': 'localhost:5000'
+        },
+        'hooks': {
+            'ui_pre': [],
+            'riak_pre': [],
+            'core_pre': [],
+        },
+        'external_packages': {
+            'assemblyline': {
+                'transport': 's3',
+                'args': {
+                    'base': '/opt/al/var/support',
+                    'accesskey': 'AKIAIIESFCKMSXUP6KWQ',
+                    'secretkey': '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',
+                    's3_bucket': 'assemblyline-support',
+                    'aws_region': 'us-east-1'
+                }
+            }
+        },
+        'repositories': {
+            'realms': {
+                # This defines how the core server will connect to the different repos
+                #    Creds should be well defined in this section because updates will happen automatically
+                #    therefore we wont be able to ask for password for each repo.
+                #
+                #    When user/password is use, we will put that in directly inside the git remote
+                #    When public key is used, we will create an .ssh/config file for the
+                #        realm and write the key to a file
+                'bitbucket': {
+                    'url': 'git@bitbucket.org:cse-assemblyline/',
+                    'branch': 'master',
+                    'user': None,
+                    'password': None,
+                    'key': None
+                }
+            },
+            'repos': {
+                'al_ui': {
+                    'realm': 'bitbucket'
+                },
+                'assemblyline': {
+                    'realm': 'bitbucket'
+                }
+            }
+
+
+        },
+        # global apt or pip packages to install on every node that are not really
+        # dependencies but are useful to have.
+        'supplementary_packages': {
+            'apt': [
+                'iotop',
+                'sysstat',
+                'byobu',
+            ],
+            'pip': [
+                'ipython'
+            ],
+        },
+        'pip_index_url': ''
+    },
+
     'logging': {
         'directory': '/opt/al/var/log',
         'log_to_console': True,
@@ -532,6 +598,10 @@ DEFAULT_SEED = {
         },
     },
 
+    # any site specifc / custom config can be stored in this dictionary
+    # as long as it is json serializable
+    'sitespecific': {},
+
     'statistics': {
         'submission_meta_fields': [
             'submission.submitter'
@@ -645,7 +715,13 @@ DEFAULT_SEED = {
             }
         },
         'tos': None,
-        'tos_lockout': False
+        'tos_lockout': False,
+        'uwsgi': {
+            'max_requests_per_worker': 128,
+            'max_workers': 128,
+            'start_workers': 16,
+            'threads': 4
+        }
     },
 
     'workers': {
@@ -659,83 +735,13 @@ DEFAULT_SEED = {
             'use_parent_as_queue': False,
             'master_list': {
                 # 'BitDefender': make_vm_dict('BitDefender', 2048, 2, 43200,
-                #                             "mcafee.001.qcow2", 'linux', 'ubuntutrusty', 4),
+                #                             "bitdefender.001.qcow2", 'linux', 'ubuntutrusty', 4),
                 # 'McAfee': make_vm_dict('McAfee', 2048, 2, 86400,
                 #                        "mcafee.001.qcow2", 'linux', 'ubuntutrusty', 3),
             }
 
         },
-    },
-
-    'installation': {
-        'docker': {
-            'apt_repo_info': 'deb https://apt.dockerproject.org/repo ubuntu-trusty main',
-            'apt_repo_key_url': 'https://apt.dockerproject.org/gpg',
-            'private_registry': 'localhost:5000'
-        },
-        'hooks': {
-            'ui_pre': [],
-            'riak_pre': [],
-            'core_pre': [],
-        },
-        'external_packages': {
-            'assemblyline': {
-                'transport': 's3',
-                'args': {
-                    'base': '/opt/al/var/support',
-                    'accesskey': 'AKIAIIESFCKMSXUP6KWQ',
-                    'secretkey': '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',
-                    's3_bucket': 'assemblyline-support',
-                    'aws_region': 'us-east-1'
-                }
-            }
-        },
-        'repositories': {
-            'realms': {
-                # This defines how the core server will connect to the different repos
-                #    Creds should be well defined in this section because updates will happen automatically
-                #    therefore we wont be able to ask for password for each repo.
-                #
-                #    When user/password is use, we will put that in directly inside the git remote
-                #    When public key is used, we will create an .ssh/config file for the
-                #        realm and write the key to a file
-                'bitbucket': {
-                    'url': 'git@bitbucket.org:cse-assemblyline/',
-                    'branch': 'master',
-                    'user': None,
-                    'password': None,
-                    'key': None
-                }
-            },
-            'repos': {
-                'al_ui': {
-                    'realm': 'bitbucket'
-                },
-                'assemblyline': {
-                    'realm': 'bitbucket'
-                }
-            }
-
-
-        },
-        # global apt or pip packages to install on every node that are not really
-        # dependencies but are useful to have.
-        'supplementary_packages': {
-            'apt': [
-                'iotop',
-                'sysstat',
-                'byobu',
-            ],
-            'pip': [
-                'ipython'
-            ],
-        },
-        'pip_index_url': ''
-    },
-
-    # any site specifc / custom config can be stored in this dictionary
-    # as long as it is json serializable
-    'sitespecific': {},
+    }
 }
 
 seed = DEFAULT_SEED.copy()

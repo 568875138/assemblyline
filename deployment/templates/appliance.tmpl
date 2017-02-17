@@ -52,6 +52,9 @@ seed['ui']['context'] = "al_private.ui.site_specific.context"
 seed['ui']['debug'] = False
 seed['ui']['fqdn'] = '{fqdn}'
 seed['ui']['secret_key'] = "{secret_key}"
+seed['ui']['uwsgi']['max_workers'] = 16
+seed['ui']['uwsgi']['start_workers'] = 1
+seed['ui']['uwsgi']['threads'] = 1
 
 seed['workers']['install_kvm'] = {install_kvm}
 

@@ -52,6 +52,10 @@ seed['workers']['proxy_redis'] = False
 seed['workers']['virtualmachines']['use_parent_as_queue'] = True
 seed['workers']['virtualmachines']['use_parent_as_datastore'] = True
 
+seed['ui']['uwsgi']['max_workers'] = 16
+seed['ui']['uwsgi']['start_workers'] = 1
+seed['ui']['uwsgi']['threads'] = 1
+
 if __name__ == '__main__':
     import sys
 
