@@ -53,10 +53,10 @@ def install(alsi):
         uwsgi_ini = uwsgi_ini_file.read()
 
     uwsgi_ini = uwsgi_ini.format(
-            start_workers=alsi['ui']['uwsgi']['start_workers'],
-            max_workers=alsi['ui']['uwsgi']['max_workers'],
-            max_requests_per_worker=alsi['ui']['uwsgi']['max_requests_per_worker'],
-            threads=alsi['ui']['uwsgi']['threads']
+            start_workers=alsi.config['ui']['uwsgi']['start_workers'],
+            max_workers=alsi.config['ui']['uwsgi']['max_workers'],
+            max_requests_per_worker=alsi.config['ui']['uwsgi']['max_requests_per_worker'],
+            threads=alsi.config['ui']['uwsgi']['threads']
         )
     with open('/tmp/alui_uwsgi.ini', 'wb') as f:
         f.write(uwsgi_ini)
