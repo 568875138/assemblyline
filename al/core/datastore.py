@@ -3,8 +3,6 @@ import logging
 import re
 import requests
 
-import time
-
 from copy import copy
 from hashlib import md5
 from random import choice
@@ -34,7 +32,6 @@ try:
     import simplejson as json
 except ImportError:
     import json
-
 
 APPLICATION_JSON = 'application/json'
 EXTRA_SEARCH_FIELD = '__text__'
@@ -98,9 +95,10 @@ def is_emptyresult(raw):
     return False
 
 
+# noinspection PyBroadException
 def make_empty_result(key, fileinfo=None):
     if not fileinfo:
-        fileinfo={}
+        fileinfo = {}
 
     try:
         fields = key.split('.')
@@ -184,7 +182,7 @@ def sanitize_submission(data, key=None):
             t.metadata = {
                 k: v for k, v in metadata.iteritems()
                 if field_sanitizer.match(k) and k.find('.') == -1
-            }
+                }
     if t.priority:
         t.priority = int(t.priority)
     return data
@@ -216,6 +214,7 @@ class DataStoreBase(object):
         Service results will be stored via a ResultStore interface.
         The interface will also provide for cache lookups.
     """
+
     # Errors.
     @staticmethod
     def pre_save_error(task, srl, error):
@@ -652,7 +651,7 @@ class RiakStore(DataStoreBase):
         if rows > self.MAX_ROW_SIZE:
             raise SearchDepthException("Page size cannot be bigger than %s." % self.MAX_ROW_SIZE)
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if not sort:
@@ -724,7 +723,7 @@ class RiakStore(DataStoreBase):
     ########
     @staticmethod
     def valid_solr_param(k, v):
-        msg = "Invalid parameter (%s=%s). Should be between %d and %d" 
+        msg = "Invalid parameter (%s=%s). Should be between %d and %d"
 
         if k in ["q", "df", "wt"]:
             return False
@@ -1202,7 +1201,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def list_file_active_keys(self, srl, access_control=None):
         query = "_yz_rk:%s*" % srl
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         item_list = [x for x in self.stream_search("result", query, access_control=access_control)]
@@ -1227,7 +1226,7 @@ class RiakStore(DataStoreBase):
         output = []
         query = "_yz_rk:%s* AND response.extracted:*" % srl
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         args = [
@@ -1256,7 +1255,7 @@ class RiakStore(DataStoreBase):
         output = {}
 
         query = "files:%s OR results:%s" % (srl, srl)
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         args = [
@@ -1277,7 +1276,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def list_file_error_keys(self, srl, access_control=None):
         query = "_yz_rk:%s*" % srl
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         return list(set([x["_yz_rk"] for x in self.stream_search("error", query, fl="_yz_rk",
@@ -1286,7 +1285,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def list_file_parents(self, srl, access_control=None):
         query = "response.extracted:%s" % srl
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         processed_srl = []
@@ -1312,7 +1311,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def list_file_related_submissions_keys(self, srl, access_control=None):
         query = "files:%s OR results:%s" % (srl, srl)
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         return list(set([x["_yz_rk"] for x in self.stream_search("submission", query, fl="_yz_rk",
@@ -1321,7 +1320,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def list_file_result_keys(self, srl, access_control=None):
         query = "_yz_rk:%s*" % srl
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         return list(set([x["_yz_rk"] for x in self.stream_search("result", query, fl="_yz_rk",
@@ -1360,7 +1359,7 @@ class RiakStore(DataStoreBase):
                              time_slice="4DAY", field_list=None):
         output = {}
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -1417,7 +1416,7 @@ class RiakStore(DataStoreBase):
 
     def list_alerts(self, query="*:*", start=0, rows=100, access_control="", fq_list=None, start_time=None,
                     time_slice="4DAY"):
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -1462,7 +1461,7 @@ class RiakStore(DataStoreBase):
         if rows > self.MAX_ROW_SIZE:
             raise SearchDepthException("Page size cannot be bigger than %s." % self.MAX_ROW_SIZE)
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         args = [
@@ -1624,7 +1623,7 @@ class RiakStore(DataStoreBase):
 
     @RiakReconnect(wake_up_riak, log)
     def list_errors(self, query="*:*", start=0, rows=100, access_control=""):
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -1735,7 +1734,7 @@ class RiakStore(DataStoreBase):
     @RiakReconnect(wake_up_riak, log)
     def search_file(self, query, start=0, rows=100, access_control="", sort="seen_last desc"):
         output_res = {"items": [], "total": 0, "offset": start, "count": rows, 'bucket': "file"}
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -1884,7 +1883,7 @@ class RiakStore(DataStoreBase):
     def list_profiles(self, query="*", start=0, rows=100):
         out = []
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2014,7 +2013,7 @@ class RiakStore(DataStoreBase):
 
             empties = [
                 make_empty_result(x, fileinfo[x[:64]]) for x in empty_key_list
-            ]
+                ]
 
         results = self._get_bucket_items(self.results, result_key_list)
 
@@ -2032,8 +2031,8 @@ class RiakStore(DataStoreBase):
 
             d = {
                 x: make_empty_result(x, fileinfo[x[:64]])
-                    for x in empty_key_list
-            }
+                for x in empty_key_list
+                }
 
         d.update(self._get_bucket_items_dict(self.results, result_key_list))
 
@@ -2095,7 +2094,7 @@ class RiakStore(DataStoreBase):
             "count": rows,
             "bucket": "result"
         }
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2210,7 +2209,7 @@ class RiakStore(DataStoreBase):
 
     def get_last_rev_for_id(self, sid):
         query = "meta.id:%s" % sid
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
         results = self.signatures.search(query, start=0, rows=1,
                                          sort="_yz_rk desc")["docs"]
@@ -2230,7 +2229,7 @@ class RiakStore(DataStoreBase):
 
     @RiakReconnect(wake_up_riak, log)
     def list_signatures(self, query="meta.id:*", start=0, rows=100, access_control=""):
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2254,7 +2253,7 @@ class RiakStore(DataStoreBase):
         self.update_signatures_last_modified()
 
     def list_filtered_signature_keys(self, query="*", access_control=None):
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         return list(set([x["_yz_rk"] for x in self.stream_search("signature", query, fl="_yz_rk",
@@ -2268,7 +2267,7 @@ class RiakStore(DataStoreBase):
             "count": rows,
             "bucket": "signature"
         }
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2354,7 +2353,7 @@ class RiakStore(DataStoreBase):
                  'context': v['context'],
                  'usage': v['usage']}
                 for k, v in output['tags'][t_type].iteritems()
-            ]
+                ]
 
         return output
 
@@ -2544,7 +2543,7 @@ class RiakStore(DataStoreBase):
         if rows > self.MAX_ROW_SIZE:
             raise SearchDepthException("Page size cannot be bigger than %s." % self.MAX_ROW_SIZE)
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         results = self.submissions.search(query, df="text",
@@ -2564,7 +2563,7 @@ class RiakStore(DataStoreBase):
         else:
             query = "submission.groups:%s AND %s" % (group, qfilter)
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2601,7 +2600,7 @@ class RiakStore(DataStoreBase):
             "count": rows,
             "bucket": "submission"
         }
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
@@ -2659,7 +2658,7 @@ class RiakStore(DataStoreBase):
         else:
             query = "uname:* AND %s" % query
 
-        if type(query) == type(u""):
+        if isinstance(query, unicode):
             query = query.encode("utf-8")
 
         if start + rows > self.MAX_SEARCH_DEPTH:
