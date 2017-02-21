@@ -80,13 +80,20 @@ This is how the system bootstrap. Since your running on a system where "datastor
 #### Get an updated version of your code
 Update the assemblyline code to the latest version:
 
-    cd /opt/al/pkg/assemblyline && git pull
+    al_git_pull
 
 #### Perform service specific installation
 Run the following:
 
     #Linux
-    sudo su -c "PYTHONPATH=/opt/al/pkg AL_SEED=<python_classpath_to_your_seed>.seed AL_SEED_STATIC=<python_classpath_to_your_seed>.seed python /opt/al/pkg/al_services/alsvc_<service_name>/installer.py"
+    export SERVICE_REPO=alsvc_<rest of repo name>
+    export AL_SEED=<python_classpath_to_your_seed>.seed
+
+    sudo chown -R `whoami` /opt/al/
+    mkdir -p /opt/al/pkg/al_services
+    touch /opt/al/pkg/al_services/__init__.py
+    sudo su -c "PYTHONPATH=/opt/al/pkg AL_SEED=${AL_SEED} AL_SEED_STATIC=${AL_SEED} /opt/al/pkg/al_services/${SERVICE_REPO}/installer.py"
+    sudo chown -R al /opt/al/
 
     #Windows
     set AL_SEED=<path_to_your_seed>.seed

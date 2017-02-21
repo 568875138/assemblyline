@@ -4,7 +4,7 @@ This will install the bootstrap code for an assemblyline base VM image. All acti
 **Prerequisites:**
 
 * You have to install the Ubuntu base OS before. See [Install Ubuntu Server](install_ubuntu_server.md)
-* You have copied **install_seed.py** on the **~/** directory on your VM
+* You have saved your al_private directory onto your personal user on bitbucket
 
 ## Install bootstrap and source
 
@@ -28,22 +28,31 @@ This will install the bootstrap code for an assemblyline base VM image. All acti
     sudo chown -R `whoami`:`groups | awk '{print $1}'` ${PYTHONPATH}/.. &&
     cd ${PYTHONPATH}
 
-### Drop your install seed
-
-    mkdir $PYTHONPATH/settings
-    cp ~/install_seed.py $PYTHONPATH/settings
-    touch $PYTHONPATH/settings/__init__.py
-
 ### Clone/create main repos
 
-    # From bitbucket HTTPS
+    # Clone repos using ssh keys
+    export BB_USER=<your bitbucket user>
+
+    cd
+    ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
+
+    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
+    chmod 600 ~/.ssh/id_rs*
+    chmod 600 ~/.ssh/config
+    ssh -T git@bitbucket.org
+
+    mkdir $PYTHONPATH/../.ssh/
+    cp ~/.ssh/* $PYTHONPATH/../.ssh/
+    chmod 700 $PYTHONPATH/../.ssh/
+
     cd $PYTHONPATH
-    BB_USER=<your_bitbucket_username>
-    git clone https://${BB_USER}@bitbucket.org/cse-assemblyline/assemblyline.git
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
+    git clone git@bitbucket.org:${BB_USER}/al_private.git
 
 ### Install bootstrap code
     
-    export AL_SEED=<python-path-to-seed-module>.seed
+    export AL_SEED=al_private.seeds.deployment.seed
     /opt/al/pkg/assemblyline/al/install/install_linuxvm_bootstrap.py 
     
 ### Create a shrunken copy of the disk image.
