@@ -92,7 +92,8 @@ Run the following:
     sudo chown -R `whoami` /opt/al/
     mkdir -p /opt/al/pkg/al_services
     touch /opt/al/pkg/al_services/__init__.py
-    sudo su -c "PYTHONPATH=/opt/al/pkg AL_SEED=${AL_SEED} AL_SEED_STATIC=${AL_SEED} /opt/al/pkg/al_services/${SERVICE_REPO}/installer.py"
+    (cd /opt/al/pkg/al_services && git clone git@bitbucket.org:cse-assemblyline/${SERVICE_REPO}.git)
+    sudo su -c "PYTHONPATH=/opt/al/pkg AL_SEED=${AL_SEED} AL_SEED_STATIC=${AL_SEED} python /opt/al/pkg/al_services/${SERVICE_REPO}/installer.py"
     sudo chown -R al /opt/al/
 
     #Windows
