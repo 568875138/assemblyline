@@ -185,36 +185,36 @@ We need to temporarily attach a virtio disk to the virtual machine to kick windo
       Select Device model 'virtio'
       Click Apply
 
-  Insert VirtIO drvier CD
-    Click on IDE CDROM 1
-    Click Disconnect
-    Click Connect
-    Click Browse
-    Select 'virtio-win-0.1.126.iso'
-    Click OK
-    Click Boot Options
-    Uncheck CDROM
-    Click Apply
+    Insert VirtIO drvier CD
+      Click on IDE CDROM 1
+        Click Disconnect
+        Click Connect
+        Click Browse
+          Select 'virtio-win-0.1.126.iso'
+          Click OK
+        Click Boot Options
+          Uncheck CDROM
+          Click Apply
 
-  Boot the VM and log in
-    Windows -> Search the web and Windows
-      Type: 'Control Panel'
-        Device Manager
-          SCSI Controller -> Update Driver Software -> Browse My Computer
-            D:\
-            Click Next
-            Check 'Always trust software from Red Hat'
-            Click Install
+    Boot the VM and log in
+      Windows -> Search the web and Windows
+        Type: 'Control Panel'
+          Device Manager
+            SCSI Controller -> Update Driver Software -> Browse My Computer
+              D:\
+              Click Next
+              Check 'Always trust software from Red Hat'
+              Click Install
 
-          Ethernet Controller -> Update Driver Software -> Browse my Computer
-            D:\
-            Click Next
-            Click Close
+            Ethernet Controller -> Update Driver Software -> Browse my Computer
+              D:\
+              Click Next
+              Click Close
 
-          PCI Device -> Update Driver Software -> Browse my Computer
-            D:\
-            Click Next
-            Click Close
+            PCI Device -> Update Driver Software -> Browse my Computer
+              D:\
+              Click Next
+              Click Close
 
 ### Finalise and install Assemblyline
 
