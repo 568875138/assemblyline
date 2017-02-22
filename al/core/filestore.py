@@ -52,7 +52,10 @@ def create_transport(url):
 
     base = parsed.path or '/'
     host = parsed.hostname
-    password = unquote(parsed.password) or ''
+    if parsed.password:
+        password = unquote(parsed.password)
+    else:
+        password = ''
     user = parsed.username or ''
 
     scheme = parsed.scheme.lower()
