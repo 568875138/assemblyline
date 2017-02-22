@@ -80,14 +80,21 @@ This is how the system bootstrap. Since your running on a system where "datastor
 #### Get an updated version of your code
 Update the assemblyline code to the latest version:
 
+    #Linux
     al_git_pull
+
+    #Windows
+    cd C:\opt\al\pkg\assemblyline
+    git pull
+    cd C:\opt\al\pkg\al_private
+    git pull
 
 #### Perform service specific installation
 Run the following:
 
     #Linux
     export SERVICE_REPO=alsvc_<rest of repo name>
-    export AL_SEED=<python_classpath_to_your_seed>.seed
+    export AL_SEED=al_private.seeds.deployment.seed
 
     sudo chown -R `whoami` /opt/al/
     mkdir -p /opt/al/pkg/al_services
@@ -97,8 +104,15 @@ Run the following:
     sudo chown -R al /opt/al/
 
     #Windows
-    set AL_SEED=<path_to_your_seed>.seed
-    /opt/al/pkg/al_services/alsvc_<service_name>/installer.py
+    set SERVICE_REPO=alsvc_<rest of repo name>
+    set AL_SEED=al_private.seeds.deployment.seed
+
+    cd C:\opt\al\pkg
+    mkdir al_services
+    cd al_services
+    copy NUL __init__.py
+    git clone git@bitbucket.org:cse-assemblyline/%SERVICE_REPO%.git
+    c:\opt\al\pkg\al_services\%SERVICE_REPO%\installer.py
 
 Power off the VM completely
 
