@@ -4,6 +4,7 @@
 
 1. You have KVM and virtmanager installed on your Linux workstation.
 2. You have an ISO for windows 2k8 r2 SP1
+3. You have saved your al_private directory onto your personal user on bitbucket
 
 ### Create the (initially empty) base disk image:
 
@@ -243,9 +244,12 @@ Boot the machine then:
           mkdir pkg
           cd pkg
 
-          git clone https://bitbucket.org/cse-assemblyline/assemblyline.git
+          set BB_USER=<your_bb_user>
 
-          set AL_SEED=<python-path-to-seed-module>.seed
+          git clone https://bitbucket.org/cse-assemblyline/assemblyline.git
+          git clone https://bitbucket.org/%BB_USER%/al_private.git
+
+          set AL_SEED=al_private.seeds.deployment.seed
           set PYTHONPATH=\opt\al\pkg
 
           python /opt/al/pkg/assemblyline/al/install/install_windowsvm.py

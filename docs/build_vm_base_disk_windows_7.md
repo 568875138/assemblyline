@@ -4,6 +4,7 @@
 
 1. You have KVM and virtmanager installed on your Linux workstation.
 2. You have an ISO for windows 7 enterprise SP1
+3. You have saved your al_private directory onto your personal user on bitbucket
 
 ### Create the (initially empty) base disk image:
 
@@ -233,24 +234,27 @@ Boot the VM and log in
     NTFS Disable Last Access Updates, Install and Test Basic Assemblyline, defrag, ...
       Start -> All Programs -> Accessories -> Command Prompt
         Type
-        fsutil behvaior set DisableLastAccess 1
-        cd \
+          fsutil behvaior set DisableLastAccess 1
+          cd \
 
-        mkdir opt
-        cd opt
-        mkdir al
-        cd al
-        mkdir pkg
-        cd pkg
+          mkdir opt
+          cd opt
+          mkdir al
+          cd al
+          mkdir pkg
+          cd pkg
 
-        git clone https://bitbucket.org/cse-assemblyline/assemblyline.git
+          set BB_USER=<your_bb_user>
 
-        set AL_SEED=<python-path-to-seed-module>.seed
-        python /opt/al/pkg/assemblyline/al/install/install_windowsvm.py
+          git clone https://bitbucket.org/cse-assemblyline/assemblyline.git
+          git clone https://bitbucket.org/%BB_USER%/al_private.git
 
-        defrag C: /U /V /X
-        C:\SysinternalsSuite\sdelete.exe -z
-        defrag C: /U /V /X
+          set AL_SEED=al_private.seeds.deployment.seed
+          python /opt/al/pkg/assemblyline/al/install/install_windowsvm.py
+
+          defrag C: /U /V /X
+          C:\SysinternalsSuite\sdelete.exe -z
+          defrag C: /U /V /X
 
     Add startup script
       From the start menu choose:
