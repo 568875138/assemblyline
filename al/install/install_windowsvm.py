@@ -79,7 +79,7 @@ alsi.pip_install_all([
 
 alsi.pip_install_all([
     'boto3',
-    'setuptools==30.2.0',
+    'setuptools==24.0.2',
     'cryptography',
     'riak-pb',
     'pyOpenSSL',
