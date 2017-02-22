@@ -112,7 +112,8 @@ Run the following:
     cd al_services
     copy NUL __init__.py
     git clone git@bitbucket.org:cse-assemblyline/%SERVICE_REPO%.git
-    c:\opt\al\pkg\al_services\%SERVICE_REPO%\installer.py
+    cd %SERVICE_REPO%
+    python installer.py
 
 Power off the VM completely
 
