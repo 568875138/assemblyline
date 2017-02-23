@@ -250,6 +250,8 @@ Boot the VM and log in
           git clone https://bitbucket.org/%BB_USER%/al_private.git
 
           set AL_SEED=al_private.seeds.deployment.seed
+          set PYTHONPATH=\opt\al\pkg
+
           python /opt/al/pkg/assemblyline/al/install/install_windowsvm.py
 
           defrag C: /U /V /X
