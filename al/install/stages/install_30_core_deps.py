@@ -29,7 +29,6 @@ def install(alsi=None):
     # Install python pip packages. 
     alsi.info("Installing Python pip packages.")
     alsi.pip_install_all([
-        'distribute',
         'easydict',
         'pytz',
         'jinja2',

@@ -92,7 +92,6 @@ alsi.pip_install_all([
 
 # Install core deps pip packages
 alsi.pip_install_all([
-    'distribute',
     'easydict',
     'pytz',
     'versiontools',
