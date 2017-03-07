@@ -642,10 +642,21 @@ class SubmissionClient(object):
         successful, errors = \
             self.transfer_local_files(file_paths, location='near', **kw)
 
-        for k in successful.iterkeys():
+        for k in successful.keys():
             req = file_requests.get(k, {})
             ret = successful[k]
             ret.update(req)
+
+            # This prevents a badly written service to resubmit the file originally submitted
+            if successful[k].get('sha256', None) == kw.get('psrl', None):
+                path = successful[k]['path']
+                errors[k] = {
+                    'succeeded': False,
+                    'path': path,
+                    'error': "File submission was aborted for file '%s' because it the same as its parent." % path
+                }
+                log.warning("Service is trying to submit the parent file as an extracted file.")
+                del successful[k]
 
         # Send the submit requests.
         if successful:
@@ -688,10 +699,21 @@ class SubmissionClient(object):
         successful, errors = \
             self.transfer_local_files(file_paths, location=location, **kw)
 
-        for k in successful.iterkeys():
+        for k in successful.keys():
             req = file_requests.get(k, {})
             ret = successful[k]
             ret.update(req)
+
+            # This prevents a badly written service to resubmit the file originally submitted
+            if successful[k].get('sha256', None) == kw.get('psrl', None):
+                path = successful[k]['path']
+                errors[k] = {
+                    'succeeded': False,
+                    'path': path,
+                    'error': "File submission was aborted for file '%s' because it the same as its parent." % path
+                }
+                log.warning("Service is trying to submit the parent file as a supplementary file.")
+                del successful[k]
 
         # Send the submit requests.
         if successful:
