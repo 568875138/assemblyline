@@ -184,6 +184,7 @@ def _files(children):
         str(n): {
             'classification': c.classification,
             'path': c.path,
+            'display_name': c.display_name
         } for n, c in enumerate(children)
     }
 

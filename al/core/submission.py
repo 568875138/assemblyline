@@ -316,6 +316,7 @@ class SubmissionWrapper(object):
             task_args.update(kw)
             task_args['srl'] = sha256
             task_args['original_filename'] = file_name
+            task_args['path'] = file_name
 
             if 'metadata' in task_args:
                 task_args['metadata'].update(al_meta)
@@ -344,6 +345,7 @@ class SubmissionWrapper(object):
         for filename, result in file_result_tuples:
             finfo = result['fileinfo']
             finfo['original_filename'] = os.path.basename(filename)
+            finfo['path'] = finfo['original_filename']
             fileinfos.append(finfo)
         result['fileinfo'] = fileinfos
         return result
@@ -414,6 +416,7 @@ class SubmissionWrapper(object):
                 task_args['srl'] = sha256
                 task_args['original_filename'] = name
                 task_args['sid'] = sid
+                task_args['path'] = name
 
                 if 'metadata' in task_args:
                     task_args['metadata'].update(al_meta)
@@ -644,6 +647,8 @@ class SubmissionClient(object):
 
         for k in successful.keys():
             req = file_requests.get(k, {})
+            display_name = req.pop('display_name')
+            req['path'] = display_name
             ret = successful[k]
             ret.update(req)
 
