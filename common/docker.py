@@ -30,8 +30,8 @@ class DockerManager(object):
                 "image": <image name>[:tag],
                 "commandline": [container argument list],
                 "detatch": True/False,
-                "priviledged": True/False,
-                "Volumes: [list of (source, dest, access) tuples],
+                "privileged": True/False,
+                "volumes: [list of (source, dest, access) tuples],
                 "caps": [list of container capabilities],
                 "ram": max memory usage
             }
@@ -88,6 +88,7 @@ class DockerManager(object):
             run_args.append("--memory %s" % ctx["ram"])
         for volume in ctx.get("volumes", []):
             run_args.append("--volume %s:%s:%s" % volume)
+        run_args.append(image_name)
         for command in ctx.get("commandline", []):
             run_args.append(command)
 
@@ -136,5 +137,5 @@ class DockerManager(object):
             for container_name in self.docker_contexts.keys():
                 self._run_cmd("docker rm --force %s" % container_name)
         else:
-            self._run_cmd("docker rm --force %s" %  name)
+            self._run_cmd("docker rm --force %s" % name)
 
