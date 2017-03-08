@@ -155,7 +155,7 @@ class ServiceRequest(object):
         self.deep_scan = task.deep_scan
         self.extracted = task.extracted
         self.max_extracted = task.max_extracted
-        self.path = task.path
+        self.path = task.path or task.sha256
 
         self._svc = service
 
