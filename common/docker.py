@@ -75,7 +75,7 @@ class DockerManager(object):
         self._run_cmd("docker pull %s" % image_name, raise_on_error=False)
 
         # Run the image
-        run_args = ["--rm=true"]
+        run_args = ["--rm=true", "--name=%s" % name]
         detatch = False
         if ctx.get("detatch", False):
             detatch = True
