@@ -39,4 +39,3 @@ def init_logging(name='al'):
         syslog_handler = logging.handlers.SysLogHandler(address=(config.logging.logserver.node, 514))
         syslog_handler.formatter = logging.Formatter(AL_SYSLOG_FORMAT)
         logger.addHandler(syslog_handler)
-
