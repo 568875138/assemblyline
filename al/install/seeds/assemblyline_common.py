@@ -282,6 +282,7 @@ DEFAULT_SEED = {
                 'key': None
             }
         },
+        'syslog_ip': None
     },
 
     'monitoring': {

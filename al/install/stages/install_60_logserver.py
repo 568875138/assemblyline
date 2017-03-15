@@ -98,50 +98,50 @@ def install_kibana4(alsi):
 
     alsi.info("Creating index patterns")
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/audit-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/audit.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/audit.json')
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/logs-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/logs.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/logs.json')
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/riak-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/riak.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/riak.json')
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/solr-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/solr.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/solr.json')
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/al_metrics-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/al_metrics.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/al_metrics.json')
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/system_metrics-* '
-               '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/system_metrics.json')
+                '-d @/opt/al/pkg/assemblyline/al/install/etc/kibana/system_metrics.json')
 
     alsi.info("Creating extra index patterns")
     extra_indices = alsi.config.get('logging', {}).get('logserver', {}).get('kibana', {}).get('extra_indices', [])
     for index in extra_indices:
         title = json.load(open(index, "rb"))['title']
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/{title} -d @{index}'.format(title=title,
-                                                                                                       index=index))
+                                                                                                        index=index))
 
     alsi.info("Editting default config")
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/config/4.5.1 '
-               '-d \'{"defaultIndex":"logs-*","format:number:defaultPattern":"0,0.[00]",'
-               '"format:bytes:defaultPattern":"0,0.[00]b","format:percent:defaultPattern":"0,0.[00]%"}\'')
+                '-d \'{"defaultIndex":"logs-*","format:number:defaultPattern":"0,0.[00]",'
+                '"format:bytes:defaultPattern":"0,0.[00]b","format:percent:defaultPattern":"0,0.[00]%"}\'')
 
     alsi.info("Loading default dashboard objects")
     dashboards = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Dashboards.json", "rb"))
     for obj in dashboards:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                 obj["_id"],
-                                                                                 json.dumps(obj['_source'])))
+                                                                                  obj["_id"],
+                                                                                  json.dumps(obj['_source'])))
 
     alsi.info("Loading default search objects")
     searches = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Searches.json", "rb"))
     for obj in searches:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                 obj["_id"],
-                                                                                 json.dumps(obj['_source'])))
+                                                                                  obj["_id"],
+                                                                                  json.dumps(obj['_source'])))
 
     alsi.info("Loading default visualization objects")
     visualizations = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Visualizations.json", "rb"))
     for obj in visualizations:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                 obj["_id"],
-                                                                                 json.dumps(obj['_source'])))
+                                                                                  obj["_id"],
+                                                                                  json.dumps(obj['_source'])))
 
     alsi.info("Loading extra objects")
     extra_viz = alsi.config.get('logging', {}).get('logserver', {}).get('kibana', {}).get('extra_viz', [])
@@ -149,17 +149,17 @@ def install_kibana4(alsi):
         objects = json.load(open(viz, "rb"))
         for obj in objects:
             alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                     obj["_id"],
-                                                                                     json.dumps(obj['_source'])))
+                                                                                      obj["_id"],
+                                                                                      json.dumps(obj['_source'])))
 
 
 def install_nginx(alsi):
     alsi.milestone("Installing nginx")
     kibana_pw = alsi.config['logging']['logserver']['kibana']['password']
-    alsi.runcmd("sudo htpasswd -bc /etc/nginx/htpasswd.users kibanaadmin '" + kibana_pw+ "'")
+    alsi.runcmd("sudo htpasswd -bc /etc/nginx/htpasswd.users kibanaadmin '" + kibana_pw + "'")
     alsi.runcmd('sudo rm -f /etc/nginx/sites-enabled/default')
     alsi.sudo_install_file('assemblyline/al/install/etc/nginx/conf.d/kibana_https.conf',
-                          '/etc/nginx/sites-available/kibana')
+                           '/etc/nginx/sites-available/kibana')
     alsi.sudo_sed_inline('/etc/nginx/sites-available/kibana', [
         's/___LOGGER_IP___/%s/' % alsi.get_hostname()
     ])
@@ -205,7 +205,7 @@ def install_elasticsearch(alsi):
 
     for k, v in templates.iteritems():
         alsi.sudo_install_file('assemblyline/al/install/etc/cron/al-cleanup-indexes',
-                              '/etc/cron.daily/al-cleanup-indexes-%s' % k)
+                               '/etc/cron.daily/al-cleanup-indexes-%s' % k)
         alsi.sudo_sed_inline('/etc/cron.daily/al-cleanup-indexes-%s' % k, [
             's/__DAYS__/%s/' % k,
             's/__PATTERNS__/%s/' % "|".join(v)

@@ -35,7 +35,7 @@ def init_logging(name='al'):
         console.setFormatter(logging.Formatter(AL_LOG_FORMAT))
         logger.addHandler(console)
 
-    if config.logging.log_to_syslog:
-        syslog_handler = logging.handlers.SysLogHandler(address=(config.logging.logserver.node, 514))
+    if config.logging.log_to_syslog and config.logging.syslog_ip:
+        syslog_handler = logging.handlers.SysLogHandler(address=(config.logging.syslog_ip, 514))
         syslog_handler.formatter = logging.Formatter(AL_SYSLOG_FORMAT)
         logger.addHandler(syslog_handler)

@@ -57,6 +57,7 @@ seed['logging']['logserver']['kibana']['url'] = 'https://kibanaadmin:{password}@
     password=LOGGER_PASS)
 seed['logging']['logserver']['kibana']['password'] = LOGGER_PASS
 seed['logging']['logserver']['node'] = IP_LOGGER
+seed['logging']['syslog_ip'] = IP_LOGGER
 
 seed['submissions']['url'] = "https://%s:443" % IP_CORE
 
