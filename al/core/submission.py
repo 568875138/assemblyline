@@ -564,27 +564,26 @@ class SubmissionClient(object):
         max_size = config.submissions.max.size
 
         # Prepare the batch presubmit.
-        rid = -1
         rid_map = {}
-        for local_path in file_paths:
-            rid += 1
-            rid_map[str(rid)] = local_path
+        for rid, local_path in enumerate(file_paths):
+            rid = str(rid)
+            rid_map[rid] = local_path
             try:
                 assert_valid_file(local_path)
                 d = digests.get_digests_for_file(local_path,
                                                  calculate_entropy=False)
                 if d['size'] > max_size and not ignore_size:
-                    presubmit_results[str(rid)] = {
+                    presubmit_results[rid] = {
                         'succeeded': False,
                         'error': 'file too large (%d > %d). Skipping' % (d['size'], max_size),
                     }
                     continue
-                presubmit_requests[str(rid)] = d
+                presubmit_requests[rid] = d
                 # Set a default error. Overwritten on success.
-                presubmit_results[str(rid)] = default_error.copy()
+                presubmit_results[rid] = default_error.copy()
             except Exception as ex:  # pylint: disable=W0703
                 log.error("Exception processing local file: %s. Skipping", ex)
-                presubmit_results[str(rid)] = {
+                presubmit_results[rid] = {
                     'succeeded': False,
                     'error': 'local failure before presubmit: {0}'.format(ex),
                 }

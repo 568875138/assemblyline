@@ -162,17 +162,18 @@ def get_submission_overrides(getter, field_list=submission_overrides):
     return d
 
 class Child(object):
-    def __init__(self, path, text, display_name=None, classification=None):
+    def __init__(self, path, text, display_name=None, classification=None, submission_tag=None):
         self.classification = classification
         self.display_name = display_name
         self.path = path
         self.text = text
+        self.submission_tag = submission_tag
 
     def as_tuple(self, srl, normalize=lambda x: x):
         display_name = self.display_name
         if not display_name:
             display_name = normalize(self.path)
-        return (display_name, srl, self.text, self.classification)
+        return display_name, srl, self.text, self.classification
 
 def _classification(e, default_classification):
     if len(e) >= 4:
@@ -184,7 +185,8 @@ def _files(children):
         str(n): {
             'classification': c.classification,
             'path': c.path,
-            'display_name': c.display_name
+            'display_name': c.display_name,
+            'submission_tag': c.submission_tag
         } for n, c in enumerate(children)
     }
 
@@ -232,7 +234,7 @@ class Task(object):
 
         return container
 
-    def add_extracted(self, name, text, display_name=None, classification=None):
+    def add_extracted(self, name, text, display_name=None, classification=None, submission_tag=None):
         if name is None:
             return False
         if self.extracted is None:
@@ -242,7 +244,7 @@ class Task(object):
             return False
         if not classification:
             classification = self.classification
-        self.extracted.append(Child(name, text, display_name, classification))
+        self.extracted.append(Child(name, text, display_name, classification, submission_tag))
         return True
 
     def add_supplementary(self, name, text, display_name=None, classification=None):
