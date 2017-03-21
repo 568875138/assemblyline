@@ -215,6 +215,9 @@ class Hash(object):
     def length(self):
         return retry_call(self.c.hlen, self.name)
 
+    def items(self):
+        return retry_call(self.c.hgetall, self.name)
+
     def pop(self, key):
         item = retry_call(self._pop, args=[self.name, key])
         if not item:
@@ -225,3 +228,13 @@ class Hash(object):
         retry_call(self.c.delete, self.name)
 
 
+# noinspection PyProtectedMember pylint: disable=W0212
+class ExpiringHash(Hash):
+    def __init__(self, name, ttl=86400, host=None, port=None, db=None):
+        super(ExpiringHash, self).__init__(name, host, port, db)
+        self.ttl = ttl
+
+    def add(self, key, value):
+        rval = super(ExpiringHash, self).add(key, value)
+        retry_call(self.c.expire, self.name, self.ttl)
+        return rval

@@ -33,6 +33,7 @@ from assemblyline.common.charset import safe_str
 from assemblyline.common.isotime import now_as_iso
 from assemblyline.al.common import forge
 from assemblyline.al.common.task import Task
+from assemblyline.al.common.remote_datatypes import ExpiringHash
 
 log = logging.getLogger('assemblyline.submission')
 
@@ -661,6 +662,12 @@ class SubmissionClient(object):
                 }
                 log.warning("Service is trying to submit the parent file as an extracted file.")
                 del successful[k]
+            elif req.get('submission_tag') is not None:
+                # Save off any submission tags
+                st_name = "st/%s/%s" % (kw.get('psrl', None), successful[k].get('sha256', None))
+                with ExpiringHash(st_name, ttl=900) as eh:
+                    for st_name, st_val in req['submission_tag'].items():
+                        eh.add(st_name, st_val)
 
         # Send the submit requests.
         if successful:

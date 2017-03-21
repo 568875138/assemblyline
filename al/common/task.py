@@ -244,6 +244,8 @@ class Task(object):
             return False
         if not classification:
             classification = self.classification
+        if not isinstance(submission_tag, dict):
+            submission_tag = None
         self.extracted.append(Child(name, text, display_name, classification, submission_tag))
         return True
 
