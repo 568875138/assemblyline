@@ -338,6 +338,9 @@ class Task(object):
     def get_tag_set_name(self):
         return '/'.join((self.sid, self.srl, 'tags'))
 
+    def get_submission_tags_name(self):
+        return "st/%s/%s" % (self.psrl, self.sha256)
+
     def is_complete(self):
         return self.state == 'completed'
 

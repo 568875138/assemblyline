@@ -21,7 +21,7 @@ from assemblyline.al.common import forge
 from assemblyline.al.common import counter
 from assemblyline.al.common import message
 from assemblyline.al.common.queue import CommsQueue, DispatchQueue, LocalQueue, NamedQueue, reply_queue_name
-from assemblyline.al.common.remote_datatypes import ExpiringSet, Hash
+from assemblyline.al.common.remote_datatypes import ExpiringSet, Hash, ExpiringHash
 from assemblyline.al.common.task import Task
 from assemblyline.al.core.datastore import compress_riak_key
 config = forge.get_config()
@@ -226,6 +226,7 @@ def UpdateEntry(entry, now):
         counts.increment('dispatch.files_completed')
 
         ExpiringSet(task.get_tag_set_name()).delete()
+        ExpiringHash(task.get_submission_tags_name()).delete()
 
         if entry.outstanding_children or entry.extracted_children:
             return False
