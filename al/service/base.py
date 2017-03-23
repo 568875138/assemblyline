@@ -846,6 +846,7 @@ class ServiceBase(object):  # pylint:disable=R0922
                     self.submission_tags = {}
                 else:
                     self.submission_tags = ExpiringHash(task.get_submission_tags_name()).items()
+
                 old_result = self.execute(request)
                 if old_result:
                     self.log.warning("Service %s is using old convention "

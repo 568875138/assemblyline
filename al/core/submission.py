@@ -665,9 +665,9 @@ class SubmissionClient(object):
             elif req.get('submission_tag') is not None:
                 # Save off any submission tags
                 st_name = "st/%s/%s" % (kw.get('psrl', None), successful[k].get('sha256', None))
-                with ExpiringHash(st_name, ttl=900) as eh:
-                    for st_name, st_val in req['submission_tag'].items():
-                        eh.add(st_name, st_val)
+                eh = ExpiringHash(st_name, ttl=900)
+                for st_name, st_val in req['submission_tag'].iteritems():
+                    eh.add(st_name, st_val)
 
         # Send the submit requests.
         if successful:

@@ -216,7 +216,12 @@ class Hash(object):
         return retry_call(self.c.hlen, self.name)
 
     def items(self):
-        return retry_call(self.c.hgetall, self.name)
+        items = retry_call(self.c.hgetall, self.name)
+        if not isinstance(items, dict):
+            return {}
+        for k in items.keys():
+            items[k] = json.loads(items[k])
+        return items
 
     def pop(self, key):
         item = retry_call(self._pop, args=[self.name, key])
