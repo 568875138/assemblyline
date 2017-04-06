@@ -581,7 +581,7 @@ def zip_ident(path):
         return 'android/apk'
     elif is_jar:
         return 'java/jar'
-    elif doc_props and doc_rels and doc_types:
+    elif (doc_props or doc_rels) and doc_types:
         if is_word:
             return 'document/office/word'
         elif is_excel:
