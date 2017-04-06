@@ -33,6 +33,7 @@ from assemblyline.common.charset import safe_str
 from assemblyline.common.isotime import now_as_iso
 from assemblyline.al.common import forge
 from assemblyline.al.common.task import Task
+from assemblyline.al.common.remote_datatypes import ExpiringHash
 
 log = logging.getLogger('assemblyline.submission')
 
@@ -564,27 +565,26 @@ class SubmissionClient(object):
         max_size = config.submissions.max.size
 
         # Prepare the batch presubmit.
-        rid = -1
         rid_map = {}
-        for local_path in file_paths:
-            rid += 1
-            rid_map[str(rid)] = local_path
+        for rid, local_path in enumerate(file_paths):
+            rid = str(rid)
+            rid_map[rid] = local_path
             try:
                 assert_valid_file(local_path)
                 d = digests.get_digests_for_file(local_path,
                                                  calculate_entropy=False)
                 if d['size'] > max_size and not ignore_size:
-                    presubmit_results[str(rid)] = {
+                    presubmit_results[rid] = {
                         'succeeded': False,
                         'error': 'file too large (%d > %d). Skipping' % (d['size'], max_size),
                     }
                     continue
-                presubmit_requests[str(rid)] = d
+                presubmit_requests[rid] = d
                 # Set a default error. Overwritten on success.
-                presubmit_results[str(rid)] = default_error.copy()
+                presubmit_results[rid] = default_error.copy()
             except Exception as ex:  # pylint: disable=W0703
                 log.error("Exception processing local file: %s. Skipping", ex)
-                presubmit_results[str(rid)] = {
+                presubmit_results[rid] = {
                     'succeeded': False,
                     'error': 'local failure before presubmit: {0}'.format(ex),
                 }
@@ -662,6 +662,12 @@ class SubmissionClient(object):
                 }
                 log.warning("Service is trying to submit the parent file as an extracted file.")
                 del successful[k]
+            elif req.get('submission_tag') is not None:
+                # Save off any submission tags
+                st_name = "st/%s/%s" % (kw.get('psrl', None), successful[k].get('sha256', None))
+                eh = ExpiringHash(st_name, ttl=900)
+                for st_name, st_val in req['submission_tag'].iteritems():
+                    eh.add(st_name, st_val)
 
         # Send the submit requests.
         if successful:

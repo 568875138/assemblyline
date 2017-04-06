@@ -22,7 +22,7 @@ from assemblyline.al.common import forge, version
 from assemblyline.al.common.counter import Counters
 from assemblyline.al.common.heuristics import get_heuristics_form_class
 from assemblyline.al.common.queue import NamedQueue
-from assemblyline.al.common.remote_datatypes import ExpiringSet
+from assemblyline.al.common.remote_datatypes import ExpiringSet, ExpiringHash
 from assemblyline.al.common.result import Result, ResultSection
 from assemblyline.al.common.task import Child, Task, get_service_overrides
 from assemblyline.al.core.datastore import uncompress_riak_key
@@ -167,9 +167,9 @@ class ServiceRequest(object):
     def result(self, value):
         self.task.result = value
 
-    def add_extracted(self, name, text, display_name=None, classification=None):
+    def add_extracted(self, name, text, display_name=None, classification=None, submission_tag=None):
         return self.task.add_extracted(
-            name, text, display_name, classification or self._svc.SERVICE_CLASSIFICATION
+            name, text, display_name, classification or self._svc.SERVICE_CLASSIFICATION, submission_tag
         )
 
     def add_supplementary(self, name, text, display_name=None, classification=None):
@@ -365,6 +365,7 @@ class ServiceBase(object):  # pylint:disable=R0922
         self.mac = net.get_mac_for_ip(net.get_hostip())
         self._updater = None
         self._updater_id = None
+        self.submission_tags = {}
 
     @classmethod
     def list_heuristics(cls):
@@ -839,6 +840,13 @@ class ServiceBase(object):  # pylint:disable=R0922
                 # Pass it to the service for processing. Wrap it in ServiceRequest
                 # facade so service writers don't see a request interface with 80 members.
                 request = ServiceRequest(self, task)
+
+                # Collect submission_tags
+                if task.is_initial():
+                    self.submission_tags = {}
+                else:
+                    self.submission_tags = ExpiringHash(task.get_submission_tags_name()).items()
+
                 old_result = self.execute(request)
                 if old_result:
                     self.log.warning("Service %s is using old convention "
