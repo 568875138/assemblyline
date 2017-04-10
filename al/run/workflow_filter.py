@@ -4,6 +4,7 @@ import logging
 
 from assemblyline.al.common import forge, log as al_log, queue
 from assemblyline.al.core.datastore import SearchException
+from assemblyline.common.charset import safe_str
 
 ds = forge.get_datastore()
 
@@ -83,7 +84,7 @@ while True:
                     action_queue.push(QUEUE_PRIORITY, msg)
             except SearchException:
                 log.warning("Invalid query '{query}' in "
-                            "workflow filter '{name}' by '{user}'".format(query=aq['query'],
+                            "workflow filter '{name}' by '{user}'".format(query=safe_str(aq['query']),
                                                                           name=aq['name'],
                                                                           user=aq['created_by']))
                 continue
