@@ -746,7 +746,10 @@ class RiakStore(DataStoreBase):
 
         host_list = copy(_hosts_)
 
-        query = quote(query)
+        try:
+            query = quote(query)
+        except:
+            raise SearchException("Unable to URL quote query: %s" % safe_str(query))
 
         while True:
             if len(host_list) == 0:
@@ -867,7 +870,10 @@ class RiakStore(DataStoreBase):
 
         host_list = copy(_hosts_)
 
-        query = quote(query)
+        try:
+            query = quote(query)
+        except:
+            raise SearchException("Unable to URL quote query: %s" % safe_str(query))
 
         if len(host_list) == 0:
             host_list = copy(_hosts_)
@@ -1042,7 +1048,10 @@ class RiakStore(DataStoreBase):
         for field in stats_fields:
             stats_query += "stats.field=%s" % field
 
-        query = quote(query)
+        try:
+            query = quote(query)
+        except:
+            raise SearchException("Unable to URL quote query: %s" % safe_str(query))
 
         while True:
             if len(host_list) == 0:
