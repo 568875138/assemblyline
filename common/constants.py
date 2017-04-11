@@ -118,6 +118,7 @@ RECOGNIZED_TAGS = {
     'resource/sbr': True,
     'resource/sc': True,
     'resource/unity': True,
+    'metadata/shortcut/windows': True,
     'unknown': True,
 }
 
