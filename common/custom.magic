@@ -98,7 +98,7 @@
 >16     string  MRAH     custom: resource/sbr
 
 0   string
->&0     regex/40        [0-9]\.[0-9]\.[0-9][a-zA-Z][0-9]     custom: resource/unity
+>&0     regex/40        [0-9]\\.[0-9]\\.[0-9][a-zA-Z][0-9]     custom: resource/unity
 
 0   string  DBPF\002\000\000\000\001    custom: db/dbf
 
