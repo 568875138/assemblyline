@@ -253,11 +253,14 @@ class VmManager(object):
 
         self.log.warn("DOWNLOADING LARGE DISK (%s). THIS MAY TAKE A WHILE", local_disk_path)
         try:
-
             transport.download(os.path.join(VM_DISK_PATH_PREFIX, disk_url), local_disk_path)
         except Exception, e:  # pylint: disable=W0703
             self.log.error("Could not download disk: %s (%s)", disk_url, str(e))
-            os.unlink(local_disk_path)
+            # noinspection PyBroadException
+            try:
+                os.unlink(local_disk_path)
+            except:
+                pass
 
         return local_disk_path
 
