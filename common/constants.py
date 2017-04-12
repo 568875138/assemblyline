@@ -106,6 +106,7 @@ RECOGNIZED_TAGS = {
     'java/signature': True,
     'java/unknown': True,
     'meta/torrent': True,
+    'meta/shortcut/windows': True,
     'network/tcpdump': True,
     'network/unknown': True,
     'resource/big': True,
@@ -118,7 +119,6 @@ RECOGNIZED_TAGS = {
     'resource/sbr': True,
     'resource/sc': True,
     'resource/unity': True,
-    'metadata/shortcut/windows': True,
     'unknown': True,
 }
 
