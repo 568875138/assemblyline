@@ -1,5 +1,4 @@
 import datetime
-import linecache
 import logging
 import os
 import re
@@ -21,20 +20,56 @@ class YaraValidator(object):
         self.log = logger
         self.data = data
         self.externals = externals
+        self.rulestart = re.compile(r'^(?:global )?(?:private )?(?:private )?rule ', re.MULTILINE)
+        self.rulename = re.compile('rule ([^{^:]+)')
 
-    def _clean(self, rule_file, line, message):
+    def _clean(self, rule_file, eline, message):
+
+        with open(rule_file, 'r') as f:
+            f_lines = f.readlines()
+        # List will start at 0 not 1
+        error_line = eline - 1
+
+        # First loop to find start of rule
+        start_idx = 0
         while True:
-            rule_start = re.compile(r'^(global|private|"")[ ]?(private|"")[ ]? rule \{')
-            line = linecache.getline(rule_file, line)
+            find_start = error_line - start_idx
+            if find_start == -1:
+                raise Exception("Yara Validator failed to find invalid rule start. "
+                                "Yara Error: {0} Line: {1}" .format(message, eline))
+            line = f_lines[find_start]
+            if re.match(self.rulestart, line):
+                # Add extra '1' so that rule starts at line 1 and not 0
+                rule_error_line = error_line - find_start + 1
 
-            invalid_rule = ''
-            rule_line = 0
-            error_message = "Yara rule '{0}' removed because of an error at line {1} [{2}]." \
-                .format(invalid_rule, rule_line, message)
-            self.log(error_message)
-            break
+                rule_start = find_start - 1
+                invalid_rule_name = re.search(self.rulename, line).group(1).strip()
+                end_idx = 0
+                # Second loop to find end of rule
+                while True:
+                    find_end = error_line + end_idx
+                    if line > len(f_lines):
+                        raise Exception("Yara Validator failed to find invalid rule end. "
+                                        "Yara Error: {0} Line: {1}" .format(message, eline))
+                    line = f_lines[find_end]
+                    if re.match(self.rulestart, line):
+                        rule_end = find_end - 1
+                        # Now we have the start and end, strip from file
+                        rule_file_lines = []
+                        rule_file_lines.extend(f_lines[0:rule_start])
+                        rule_file_lines.extend(f_lines[rule_end:])
+                        with open(rule_file, 'w') as f:
+                            f.writelines(rule_file_lines)
+                        break
+                    end_idx += 1
+                # Send the error output to AL server
+                error_message = "Yara rule '{0}' removed because of an error at line {1} [{2}]." \
+                    .format(invalid_rule_name, rule_error_line, message)
+                self.log(error_message)
+                break
+            start_idx += 1
 
-        return rule_file, invalid_rule
+        return invalid_rule_name
 
     def paranoid_rule_check(self, rule_path):
         # Run rules seperately on command line to ensure there are no errors
@@ -74,7 +109,10 @@ class YaraValidator(object):
 
                         e_line = int(e.message.split('):', 1)[0].split("(", -1)[1])
                         e_message = e.message.split("): ", 1)[1]
-                        rules_txt, invalid_rule = self._clean(rules_txt, e_line, e_message)
+                        try:
+                            invalid_rule = self._clean(rules_txt, e_line, e_message)
+                        except Exception as ve:
+                            raise ve
 
                         # If datastore object given, change status of signature to INVALID in Riak
                         if datastore:
@@ -104,53 +142,8 @@ class YaraValidator(object):
 
                     continue
 
-
-                    # lines = rules_txt.split("\n")
-                    #
-                    # original_idx = int(e.message.split("(")[1].split(")")[0])
-                    # idx = original_idx
-                    # while idx != -1:
-                    #     idx -= 1
-                    #     line = lines[idx]
-                    #
-                    #     parts = line.split("rule ", 1)
-                    #     if len(parts) < 2:
-                    #         continue
-                    #
-                    #     if parts[0] in ('', 'global ', 'global private ', 'private '):
-                    #         offending_rule = parts[1].split(":")[0].replace(" ", "").replace("{", "")
-                    #         error_message = "Yara rule '{0}' could not be loaded because of an error at line {1} [{2}]." \
-                    #             .format(offending_rule, original_idx - idx, e.message.split(": ")[1])
-                    #         self.log.error("{}. Marking rule as INVALID.".format(error_message))
-                    #
-                    #         # If datastore passed, mark the signature as INVALID in database
-                    #         if datastore:
-                    #             try:
-                    #                 # Get the offending sig ID
-                    #                 update_client = Client(self.signature_url, auth=(self.signature_user, self.signature_pass))
-                    #                 sig_query = "name:{} AND meta.al_status:(DEPLOYED OR NOISY)".format(offending_rule)
-                    #                 for sig in update_client.search.stream.signature(sig_query):
-                    #                     sigsid = sig['_yz_rk']
-                    #                     print sigsid
-                    #                     # Change status to INVALID in Riak and append error message to comments
-                    #                     sigdata = datastore.get_signature(sigsid)
-                    #                     # Check this in case another worker already marked rule
-                    #                     if sigdata['meta']['al_status'] == 'INVALID':
-                    #                         continue
-                    #                     sigdata['meta']['al_status'] = 'INVALID'
-                    #                     today = datetime.date.today().isoformat()
-                    #                     sigdata['meta']['al_state_change_date'] = today
-                    #                     sigdata['meta']['al_state_change_user'] = self.signature_user
-                    #                     sigdata['comments'].append("AL ERROR MSG:{}".format(error_message))
-                    #                     ds.save_signature(sigsid, sigdata)
-                    #             except Exception as e:
-                    #                 self.log.warning(e)
-
             finally:
                 if tmp_dir:
                     shutil.rmtree(tmp_dir)
                 return rules_txt
 
-from assemblyline.common.yara.YaraParser import YaraParser
-from assemblyline.common.yara.yara_importer import YaraImporter
-from assemblyline.common.yara.YaraValidator import YaraValidator
