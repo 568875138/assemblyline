@@ -326,7 +326,7 @@ class YaraParser(object):
                     continue
 
                 # Filter out Strings
-                if item.startswith("$") or item.startswith("#") or item.startswith("@"):
+                if item.startswith("$") or item.startswith("#") or item.startswith("@") or item.startswith("!"):
                     continue
                 
                 # Filter out empties
