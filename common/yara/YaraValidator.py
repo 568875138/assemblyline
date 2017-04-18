@@ -1,3 +1,15 @@
+import datetime
+import linecache
+import logging
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+
+from assemblyline_client import Client
+
+
 class YaraValidator(object):
 
     def __init__(self, data, externals=None, logger=None):
