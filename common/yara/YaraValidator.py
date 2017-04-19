@@ -37,8 +37,7 @@ class YaraValidator(object):
                                 "Yara Error: {0} Line: {1}" .format(message, eline))
             line = f_lines[find_start]
             if re.match(self.rulestart, line):
-                # Add extra '1' so that rule starts at line 1 and not 0
-                rule_error_line = (error_line - find_start) + 1
+                rule_error_line = (error_line - find_start)
                 rule_start = find_start - 1
                 invalid_rule_name = re.search(self.rulename, line).group(1).strip()
 
@@ -131,7 +130,8 @@ class YaraValidator(object):
                             today = datetime.date.today().isoformat()
                             sigdata['meta']['al_state_change_date'] = today
                             sigdata['meta']['al_state_change_user'] = signature_user
-                            sigdata['comments'].append("AL ERROR MSG:{0}. Line:{1}".format(e_message, reline+1))
+                            sigdata['comments'].append("AL ERROR MSG:{0}. Line:{1}".format(e_message.rstrip().strip(),
+                                                                                           reline))
                             store.save_signature(sigsid, sigdata)
 
                 else:
