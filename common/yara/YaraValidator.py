@@ -38,7 +38,7 @@ class YaraValidator(object):
             line = f_lines[find_start]
             if re.match(self.rulestart, line):
                 # Add extra '1' so that rule starts at line 1 and not 0
-                rule_error_line = error_line - find_start + 1
+                rule_error_line = (error_line - find_start) + 1
                 rule_start = find_start - 1
                 invalid_rule_name = re.search(self.rulename, line).group(1).strip()
 
@@ -46,7 +46,7 @@ class YaraValidator(object):
                 end_idx = 0
                 while True:
                     find_end = error_line + end_idx
-                    if line > len(f_lines):
+                    if find_end > len(f_lines):
                         raise Exception("Yara Validator failed to find invalid rule end. "
                                         "Yara Error: {0} Line: {1}" .format(message, eline))
                     line = f_lines[find_end]
@@ -63,11 +63,11 @@ class YaraValidator(object):
                 # Send the error output to AL logs
                 error_message = "Yara rule '{0}' removed from rules file because of an error at line {1} [{2}]." \
                     .format(invalid_rule_name, rule_error_line, message)
-                self.log(error_message)
+                self.log.warning(error_message)
                 break
             start_idx += 1
 
-        return invalid_rule_name
+        return invalid_rule_name, rule_error_line
 
     def paranoid_rule_check(self):
         # Run rules separately on command line to ensure there are no errors
@@ -91,11 +91,10 @@ class YaraValidator(object):
                 raise Exception("YaraValidator has failed! " + stderr)
 
     def validate_rules(self, datastore=False):
-        valid_file = False
-        while not valid_file:
+        while True:
             try:
                 self.paranoid_rule_check()
-                valid_file = True
+                return
             # If something goes wrong, clean rules until valid file given
             except Exception as e:
                 if e.message.startswith('yara.SyntaxError'):
@@ -103,7 +102,7 @@ class YaraValidator(object):
                     e_line = int(e.message.split('):', 1)[0].split("(", -1)[1])
                     e_message = e.message.split("): ", 1)[1]
                     try:
-                        invalid_rule = self.clean(e_line, e_message)
+                        invalid_rule, reline = self.clean(e_line, e_message)
                     except Exception as ve:
                         raise ve
 
@@ -111,9 +110,9 @@ class YaraValidator(object):
                     if datastore:
                         from assemblyline.al.common import forge
                         config = forge.get_config()
-                        signature_url = config.services.masterlist.Yara.config.SIGNATURE_URL
-                        signature_user = config.services.masterlist.Yara.config.SIGNATURE_USER
-                        signature_pass = config.services.masterlist.Yara.config.SIGNATURE_PASS
+                        signature_url = config.services.master_list.Yara.config.SIGNATURE_URL
+                        signature_user = config.services.master_list.Yara.config.SIGNATURE_USER
+                        signature_pass = config.services.master_list.Yara.config.SIGNATURE_PASS
                         # Get the offending sig ID
                         update_client = Client(signature_url, auth=(signature_user, signature_pass))
                         sig_query = "name:{} AND meta.al_status:(DEPLOYED OR NOISY)".format(invalid_rule)
@@ -132,13 +131,11 @@ class YaraValidator(object):
                             today = datetime.date.today().isoformat()
                             sigdata['meta']['al_state_change_date'] = today
                             sigdata['meta']['al_state_change_user'] = signature_user
-                            sigdata['comments'].append("AL ERROR MSG:{}".format(e_message))
+                            sigdata['comments'].append("AL ERROR MSG:{0}. Line:{1}".format(e_message, reline+1))
                             store.save_signature(sigsid, sigdata)
 
                 else:
                     raise e
 
                 continue
-
-
 
