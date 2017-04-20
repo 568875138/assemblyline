@@ -4,6 +4,7 @@ import json
 import os
 import requests
 import time
+import urllib
 
 # noinspection PyBroadException
 try:
@@ -114,8 +115,8 @@ def install_kibana4(alsi):
     extra_indices = alsi.config.get('logging', {}).get('logserver', {}).get('kibana', {}).get('extra_indices', [])
     for index in extra_indices:
         title = json.load(open(index, "rb"))['title']
-        alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/index-pattern/{title} -d @{index}'.format(title=title,
-                                                                                                        index=index))
+        alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/'
+                    'index-pattern/{title} -d @{index}'.format(title=urllib.quote(title), index=index))
 
     alsi.info("Editting default config")
     alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/config/4.5.1 '
