@@ -200,6 +200,7 @@ tag_to_extension = {
     'executable/linux/so64': '.so',
     'java/jar': '.jar',
     'silverlight/xap': '.xap',
+    'meta/shortcut/windows': '.lnk',
 }
 
 sl_patterns = [
@@ -259,7 +260,8 @@ sl_patterns = [
     ['html', r'html'],
     ['sgml', r'sgml'],
     ['xml', r'xml'],
-    ['sff', r'Frame Format']
+    ['sff', r'Frame Format'],
+    ['shortcut/windows', r'^MS Windows shortcut']
 ]
 
 for x in sl_patterns:
@@ -290,6 +292,7 @@ sl_to_tl = {
     'gif': 'image',
     'jpg': 'image',
     'png': 'image',
+    'shortcut/windows': 'meta',
 }
 
 # pylint:disable=C0301
@@ -314,6 +317,7 @@ tl_patterns = [
     ['archive',
      r'BinHex|InstallShield CAB|Transport Neutral Encapsulation Format|archive data|compress|mcrypt'
      r'|MS Windows HtmlHelp Data|current ar archive|cpio archive|ISO 9660'],
+    ['meta', '^MS Windows shortcut'],
     ['unknown', r'.*'],
 ]
 
