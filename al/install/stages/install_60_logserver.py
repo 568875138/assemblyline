@@ -127,21 +127,21 @@ def install_kibana4(alsi):
     dashboards = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Dashboards.json", "rb"))
     for obj in dashboards:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                  obj["_id"],
+                                                                                  urllib.quote(obj["_id"]),
                                                                                   json.dumps(obj['_source'])))
 
     alsi.info("Loading default search objects")
     searches = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Searches.json", "rb"))
     for obj in searches:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                  obj["_id"],
+                                                                                  urllib.quote(obj["_id"]),
                                                                                   json.dumps(obj['_source'])))
 
     alsi.info("Loading default visualization objects")
     visualizations = json.load(open("/opt/al/pkg/assemblyline/al/install/etc/kibana/objects/Visualizations.json", "rb"))
     for obj in visualizations:
         alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                  obj["_id"],
+                                                                                  urllib.quote(obj["_id"]),
                                                                                   json.dumps(obj['_source'])))
 
     alsi.info("Loading extra objects")
@@ -150,7 +150,7 @@ def install_kibana4(alsi):
         objects = json.load(open(viz, "rb"))
         for obj in objects:
             alsi.runcmd('curl -XPUT http://localhost:9200/.kibana/%s/%s -d \'%s\'' % (obj["_type"],
-                                                                                      obj["_id"],
+                                                                                      urllib.quote(obj["_id"]),
                                                                                       json.dumps(obj['_source'])))
 
 
