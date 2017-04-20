@@ -9,8 +9,8 @@ import time
 from urllib import quote
 from urlparse import urlparse
 
+from assemblyline.al.common.service_utils import get_merged_svc_config
 from assemblyline.al.common.transport import ftp, local, http
-from assemblyline.al.service import register_service
 from assemblyline.common.importing import module_attribute_by_name
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
@@ -140,16 +140,7 @@ class SiteInstaller(object):
             services_to_register = self.config['services']['master_list']
 
             for service, svc_detail in services_to_register.iteritems():
-                classpath = svc_detail.get('classpath',
-                                           "al_services.%s.%s" % (svc_detail['repo'], svc_detail['class_name']))
-                config_overrides = svc_detail.get('config', {})
-
-                service_defaults = register_service.register(classpath,
-                                                             config_overrides=config_overrides,
-                                                             store_config=False,
-                                                             enabled=svc_detail.get('enabled', True))
-                self.config['services']['master_list'][service].update(service_defaults)
-
+                self.config['services']['master_list'][service] = get_merged_svc_config(service, svc_detail, self.log)
         else:
             from assemblyline.al.common import config_riak
             self.config = config_riak.load_seed()
