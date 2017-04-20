@@ -2,7 +2,6 @@
 
 import os
 import sys
-import getpass
 
 
 def _install_kvm_libvirt(alsi):
@@ -10,7 +9,7 @@ def _install_kvm_libvirt(alsi):
     rc, _, _ = alsi.runcmd('kvm-ok', raise_on_error=False)
     if not rc == 0:
         alsi.fatal("You are attempting to install hostagent with virtual machine support however "
-                  "your BIOS does not have VX extensions enabled. Enable VT-x in bios or run again with novirt option")
+                   "your BIOS does not have VX extensions enabled. Enable VT-x in bios or run again with novirt option")
         exit(1)
 
     alsi.sudo_apt_install(['kvm', 'libvirt-bin', 'virt-manager', 'pkg-config', 'libvirt-dev', 'libxml2-dev',
@@ -27,11 +26,10 @@ def _install_kvm_libvirt(alsi):
     sys_user = alsi.config['system']['user']
     alsi.runcmd("sudo usermod -G libvirtd -a {user}".format(user=sys_user))
 
-    cur_user = getpass.getuser()
     script = os.path.join(alsi.alroot, 'pkg', 'assemblyline', 'al', 'install', 'helpers', 'update_libvirt_dns_ip.py')
     alsi.runcmd('sudo su -c "{script} {datastore_ip}" {user}'.format(script=script,
                                                                      datastore_ip=alsi.get_ipaddress(),
-                                                                     user=cur_user))
+                                                                     user=sys_user))
 
     alsi.runcmd('sudo service libvirt-bin restart')
 
