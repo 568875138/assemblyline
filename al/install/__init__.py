@@ -137,7 +137,7 @@ class SiteInstaller(object):
         elif seed:
             self.config = module_attribute_by_name(seed)
             self.seed_module = seed
-            services_to_register = seed['services']['master_list']
+            services_to_register = self.config['services']['master_list']
 
             for service, svc_detail in services_to_register.iteritems():
                 classpath = svc_detail.get('classpath',
@@ -148,7 +148,7 @@ class SiteInstaller(object):
                                                              config_overrides=config_overrides,
                                                              store_config=False,
                                                              enabled=svc_detail.get('enabled', True))
-                seed['services']['master_list'][service].update(service_defaults)
+                self.config['services']['master_list'][service].update(service_defaults)
 
         else:
             from assemblyline.al.common import config_riak
