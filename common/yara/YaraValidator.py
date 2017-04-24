@@ -7,7 +7,7 @@ from assemblyline_client import Client
 
 class YaraValidator(object):
 
-    def __init__(self, rulefile, externals=None, logger=None):
+    def __init__(self, externals=None, logger=None):
         if not logger:
             from assemblyline.al.common import log as al_log
             al_log.init_logging('YaraValidator')
@@ -16,14 +16,13 @@ class YaraValidator(object):
         if not externals:
             externals = {'dummy': ''}
         self.log = logger
-        self.rulefile = rulefile
         self.externals = externals
         self.rulestart = re.compile(r'^(?:global )?(?:private )?(?:private )?rule ', re.MULTILINE)
         self.rulename = re.compile('rule ([^{^:]+)')
 
-    def clean(self, eline, message):
+    def clean(self, rulefile, eline, message):
 
-        with open(self.rulefile, 'r') as f:
+        with open(rulefile, 'r') as f:
             f_lines = f.readlines()
         # List will start at 0 not 1
         error_line = eline - 1
@@ -55,7 +54,7 @@ class YaraValidator(object):
                         rule_file_lines = []
                         rule_file_lines.extend(f_lines[0:rule_start])
                         rule_file_lines.extend(f_lines[rule_end:])
-                        with open(self.rulefile, 'w') as f:
+                        with open(rulefile, 'w') as f:
                             f.writelines(rule_file_lines)
                         break
                     end_idx += 1
@@ -68,7 +67,7 @@ class YaraValidator(object):
 
         return invalid_rule_name, rule_error_line
 
-    def paranoid_rule_check(self):
+    def paranoid_rule_check(self, rulefile):
         # Run rules separately on command line to ensure there are no errors
         print_val = "--==Rules_validated++__"
         cmd = "python -c " \
@@ -78,7 +77,7 @@ class YaraValidator(object):
               "print '%s'\n" \
               "except yara.SyntaxError as e:" \
               "print 'yara.SyntaxError.{}' .format(e)\""
-        p = subprocess.Popen(cmd % (self.rulefile, self.externals, print_val), stdout=subprocess.PIPE,
+        p = subprocess.Popen(cmd % (rulefile, self.externals, print_val), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True, cwd="/tmp")
 
         stdout, stderr = p.communicate()
@@ -89,10 +88,10 @@ class YaraValidator(object):
             else:
                 raise Exception("YaraValidator has failed! " + stderr)
 
-    def validate_rules(self, datastore=False):
+    def validate_rules(self, rulefile, datastore=False):
         while True:
             try:
-                self.paranoid_rule_check()
+                self.paranoid_rule_check(rulefile)
                 return
             # If something goes wrong, clean rules until valid file given
             except Exception as e:
@@ -101,7 +100,7 @@ class YaraValidator(object):
                     e_line = int(e.message.split('):', 1)[0].split("(", -1)[1])
                     e_message = e.message.split("): ", 1)[1]
                     try:
-                        invalid_rule, reline = self.clean(e_line, e_message)
+                        invalid_rule, reline = self.clean(rulefile, e_line, e_message)
                     except Exception as ve:
                         raise ve
 
