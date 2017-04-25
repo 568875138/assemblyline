@@ -15,7 +15,7 @@ class YaraCharsetValidationException(Exception):
 
 # noinspection PyUnresolvedReferences
 class YaraParser(object):
-    STATUSES = ["DEPLOYED", "TESTING", "NOISY", "DISABLED", "STAGING"]
+    STATUSES = ["DEPLOYED", "TESTING", "NOISY", "DISABLED", "STAGING", "INVALID"]
     VALID_YARA_VERSION = ["1.6", "1.7", "2.0", "2.1", "3.0", "3.1", "3.2", "3.3", "3.4"]
     RULE_TYPE = ["rule", "private rule", "global private rule", "global rule"]
     RULE_GROUPS = ['exploit', 'implant', 'info', 'technique', 'tool']
@@ -120,7 +120,7 @@ class YaraParser(object):
     
     @classmethod
     def require_bump(cls, rule, old_rule):
-        if old_rule['meta']['al_status'] in ['TESTING', 'STAGING']:
+        if old_rule['meta']['al_status'] in ['TESTING', 'STAGING', 'INVALID']:
             return False
         
         if rule['name'] != old_rule['name']:
@@ -326,7 +326,7 @@ class YaraParser(object):
                     continue
 
                 # Filter out Strings
-                if item.startswith("$") or item.startswith("#") or item.startswith("@"):
+                if item.startswith("$") or item.startswith("#") or item.startswith("@") or item.startswith("!"):
                     continue
                 
                 # Filter out empties
