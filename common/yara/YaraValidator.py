@@ -107,18 +107,16 @@ class YaraValidator(object):
                     # If datastore object given, change status of signature to INVALID in Riak
                     if datastore:
                         from assemblyline.al.common import forge
+                        store = forge.get_datastore()
                         config = forge.get_config()
-                        signature_url = config.services.master_list.Yara.config.SIGNATURE_URL
                         signature_user = config.services.master_list.Yara.config.SIGNATURE_USER
-                        signature_pass = config.services.master_list.Yara.config.SIGNATURE_PASS
                         # Get the offending sig ID
-                        update_client = Client(signature_url, auth=(signature_user, signature_pass))
                         sig_query = "name:{} AND meta.al_status:(DEPLOYED OR NOISY)".format(invalid_rule)
+                        sigl = store.list_filtered_signature_keys(sig_query)
                         # Mark and update Riak
                         store = forge.get_datastore()
-                        for sig in update_client.search.stream.signature(sig_query):
-                            sigsid = sig['_yz_rk']
-                            sigdata = store.get_signature(sigsid)
+                        for sig in sigl:
+                            sigdata = store.get_signature(sig)
                             # Check this in case someone already marked it as invalid
                             try:
                                 if sigdata['meta']['al_status'] == 'INVALID':
@@ -131,7 +129,7 @@ class YaraValidator(object):
                             sigdata['meta']['al_state_change_user'] = signature_user
                             sigdata['comments'].append("AL ERROR MSG:{0}. Line:{1}".format(e_message.rstrip().strip(),
                                                                                            reline))
-                            store.save_signature(sigsid, sigdata)
+                            store.save_signature(sig, sigdata)
 
                 else:
                     raise e
