@@ -2,7 +2,6 @@ import datetime
 import logging
 import re
 import subprocess
-from assemblyline_client import Client
 
 
 class YaraValidator(object):
