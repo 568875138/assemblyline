@@ -5,7 +5,11 @@ from assemblyline.common.importing import class_by_name
 def get_merged_svc_config(name, configuration, log):
     classpath = configuration.get('classpath',
                                   "al_services.%s.%s" % (configuration['repo'], configuration['class_name']))
-    config_overrides = configuration.get('config', {})
+    if 'config' in configuration:
+        config_overrides = configuration.pop('config')
+    else:
+        config_overrides = {}
+
     if 'classpath' not in configuration:
         configuration['classpath'] = classpath
 
