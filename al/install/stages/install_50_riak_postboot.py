@@ -78,6 +78,7 @@ def _ensure_transfer_completion(alsi, master_ip):
     alsi.milestone("Updating master installstate in riak (transfers).")
 
     client = riak.RiakClient(protocol='pbc', nodes=[{'host': master_ip}])
+    # noinspection PyUnresolvedReferences
     client.resolver = riak.resolver.last_written_resolver
     b = client.bucket(INSTALLSTATE_BUCKET)
     completion_value = b.new(key=TRANSFERS_COMPLETE_KEY, data=time.asctime())
@@ -89,6 +90,7 @@ def _mark_master_up(alsi, master_ip):
     alsi.milestone("Updating master with 'up' status in riak.")
 
     client = riak.RiakClient(protocol='pbc', nodes=[{'host': master_ip}])
+    # noinspection PyUnresolvedReferences
     client.resolver = riak.resolver.last_written_resolver
     b = client.bucket(INSTALLSTATE_BUCKET)
     completion_value = b.new(key=MASTER_UP_KEY, data=time.asctime())
@@ -122,6 +124,7 @@ def install_slave(alsi, master_ip, our_ip):
 
     alsi.milestone("Updating install state in riak for ourselves (%s)" % our_ip)
     client = riak.RiakClient(protocol='pbc', nodes=[{'host': master_ip}])
+    # noinspection PyUnresolvedReferences
     client.resolver = riak.resolver.last_written_resolver
 
     b = client.bucket(INSTALLSTATE_BUCKET)
@@ -157,6 +160,7 @@ def _block_for_key_existence(alsi, master_ip, bucket, key):
     while True:
         try:
             client = riak.RiakClient(protocol='pbc', nodes=[{'host': master_ip}])
+            # noinspection PyUnresolvedReferences
             client.resolver = riak.resolver.last_written_resolver
             if not client.is_alive():
                 alsi.info("Riak not yet alive.")
@@ -221,12 +225,13 @@ def _install_master_datamodel(alsi, master_ip):
         alsi.runcmd('cp -f {src} {dst}'.format(src=src, dst=dst))
               
     alsi.runcmd('sudo riak-admin bucket-type create '
-               'data \'{"props": {"allow_mult": false, "dvv_enabled": false, "last_write_wins": true}}\'',
-               raise_on_error=False)
+                'data \'{"props": {"allow_mult": false, "dvv_enabled": false, "last_write_wins": true}}\'',
+                raise_on_error=False)
     alsi.runcmd('sudo riak-admin bucket-type activate data',
-               raise_on_error=False)
+                raise_on_error=False)
 
     client = riak.RiakClient(protocol='pbc', nodes=[{'host': master_ip}])
+    # noinspection PyUnresolvedReferences
     client.resolver = riak.resolver.last_written_resolver
 
     # execute any optional riak preinstall hook
