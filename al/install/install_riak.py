@@ -7,7 +7,7 @@ from assemblyline.al.install import SiteInstaller
 from assemblyline.al.install.stages import install_20_bootstrap
 from assemblyline.al.install.stages import install_30_core_deps
 
-STATUS_FILE = os.path.expanduser('~/install.status')
+STATUS_FILE = os.path.expanduser('/opt/al/.install_status')
 STATUS_INITIAL_COMPLETE = 'INITIAL_COMPLETE'
 
 
