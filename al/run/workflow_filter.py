@@ -16,21 +16,13 @@ action_queue = queue.PriorityQueue('alert-actions', db=DATABASE_NUM)
 QUEUE_PRIORITY = -1
 
 
-def status_sorter(a, b):
-    ordered_list = ['MALICIOUS', 'NON-MALICIOUS', 'ASSESS', None]
-    return ordered_list.index(a.get('status', None)) - ordered_list.index(b.get('status', None))
-
-
 def get_last_reporting_ts(p_start_ts):
     log.info("Finding reporting timestamp for the last alert since {start_ts}...".format(start_ts=p_start_ts))
     args = [('sort', 'reporting_ts desc'), ('rows', '1'), ('fl', 'reporting_ts')]
     result = ds.direct_search("alert", "reporting_ts:[{start_ts} TO *]".format(start_ts=p_start_ts), args=args)
     docs = result.get('response', {}).get('docs', [{}]) or [{}]
     ret_ts = docs[0].get("reporting_ts", p_start_ts)
-    if ret_ts == start_ts:
-        return ret_ts
-    return "%s-1MINUTE" % ret_ts
-
+    return ret_ts
 
 # Do not alter alerts older then the beginning of the previous day.
 start_ts = "NOW/DAY-1DAY"
@@ -38,19 +30,31 @@ start_ts = "NOW/DAY-1DAY"
 while True:
     end_ts = get_last_reporting_ts(start_ts)
     if start_ts != end_ts:
-        favs = ds.get_user_favorites("__workflow__") or {}
-        workflow_queries = sorted(favs.get('alert', []), cmp=status_sorter)
-        workflow_queries.insert(0, {
+        workflow_queries = [{
             'status': "TRIAGE",
             'name': "Triage all with no status",
             'created_by': "SYSTEM",
-            'query': "NOT status:*"})
+            'query': "NOT status:*"
+        }]
+
+        for item in ds.stream_search("workflow", "status:MALICIOUS"):
+            workflow_queries.append(item)
+
+        for item in ds.stream_search("workflow", "status:NON-MALICIOUS"):
+            workflow_queries.append(item)
+
+        for item in ds.stream_search("workflow", "status:ASSESS"):
+            workflow_queries.append(item)
+
+        for item in ds.stream_search("workflow", '-status:["" TO *]'):
+            workflow_queries.append(item)
 
         for aq in workflow_queries:
             log.info('Executing workflow filter: {name}'.format(name=aq['name']))
-            labels = aq.get('label', None)
+            labels = aq.get('label', [])
             status = aq.get('status', None)
             priority = aq.get('priority', None)
+
             if not status and not labels and not priority:
                 continue
 
@@ -91,6 +95,9 @@ while True:
 
             if count:
                 log.info("{count} Alert(s) were affected by this filter.".format(count=count))
+                if 'id' in aq:
+                    ds.increment_workflow_counter(aq['id'], count)
+
     else:
         log.info("Skipping all workflow filter since there where no alerts created in the specified time period.")
 

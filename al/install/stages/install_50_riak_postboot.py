@@ -208,11 +208,11 @@ def _install_master_datamodel(alsi, master_ip):
         'result',
         'signature',
         'submission',
-        'user'
+        'user',
+        'workflow'
     )
 
-    schema_src_root = os.path.join(alsi.alroot,
-                                   'pkg/assemblyline/al/install/etc/riak/schema')
+    schema_src_root = os.path.join(alsi.alroot, 'pkg/assemblyline/al/install/etc/riak/schema')
 
     # Copy schemas to a temporary location for the install.
     schema_dst_root = alsi.install_temp
@@ -256,6 +256,7 @@ def _install_master_datamodel(alsi, master_ip):
         {'name': 'signature', 'nval': nval_high, 'index': 'signature'},
         {'name': 'submission', 'nval': nval_med, 'index': 'submission'},
         {'name': 'user', 'nval': nval_high, 'index': 'user'},
+        {'name': 'workflow', 'nval': nval_high, 'index': 'workflow'}
     )
 
     for bucket_data in buckets:

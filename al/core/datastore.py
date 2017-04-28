@@ -242,6 +242,23 @@ class DataStoreBase(object):
         parts = Classification.get_access_control_parts(classification)
         signature.update(parts)
 
+    # Signatures.
+    @staticmethod
+    def pre_save_workflow(wf_id, workflow):
+        cur_wf_id = workflow.get('id', wf_id)
+
+        if cur_wf_id != wf_id:
+            raise DataStoreException("You cannot change the ID of a workflow")
+
+        workflow['id'] = cur_wf_id
+        classification = workflow.get('classification', None)
+        if not classification:
+            classification = Classification.UNRESTRICTED
+        classification = Classification.normalize_classification(classification)
+        workflow['classification'] = classification
+        parts = Classification.get_access_control_parts(classification)
+        workflow.update(parts)
+
     # Files.
     def get_file(self, srl):
         raise NotImplementedError()
@@ -367,7 +384,8 @@ class RiakStore(DataStoreBase):
         "file",
         "result",
         "signature",
-        "submission"]
+        "submission",
+        "workflow"]
     ADMIN_INDEXED_BUCKET_LIST = [
         "filescore",
         "node",
@@ -409,6 +427,7 @@ class RiakStore(DataStoreBase):
         self._signatures = self._create_monkey_bucket("signature")
         self._submissions = self._create_monkey_bucket("submission")
         self._users = self._create_monkey_bucket("user")
+        self._workflows = self._create_monkey_bucket("workflow")
 
     ################################################################
     # Control Functions
@@ -462,7 +481,8 @@ class RiakStore(DataStoreBase):
             "result": self.results,
             "signature": self.signatures,
             "submission": self.submissions,
-            "user": self.users
+            "user": self.users,
+            "workflow": self.workflows
         }
 
         if name in bucket_map:
@@ -606,7 +626,7 @@ class RiakStore(DataStoreBase):
         if conf_key:
             l.append('c' + conf_key.replace('.', '_'))
         key = '.'.join(l)
-        if len(key) < self.MIN_KEY_LEN:  # TODO: Validate key.
+        if len(key) < self.MIN_KEY_LEN:
             raise DataStoreException('Invalid riak key: %s', key)
         return key
 
@@ -718,6 +738,10 @@ class RiakStore(DataStoreBase):
     def users(self):
         return self._users
 
+    @property
+    def workflows(self):
+        return self._workflows
+
     ################################################################
     # Static Functions
     ########
@@ -774,7 +798,7 @@ class RiakStore(DataStoreBase):
                     qp_fields = {}
                     params = [k for k in solr_out.get("responseHeader", {}).get("params", {}).keys()]
                     for k in params:
-                        if ":%s" % DATASTORE_SOLR_PORT in k or k == "shards":
+                        if ":%s" % DATASTORE_SOLR_PORT in k or ":8093" in k or k == "shards":
                             if save_qp:
                                 qp_fields[k] = solr_out["responseHeader"]["params"][k]
                             del solr_out["responseHeader"]["params"][k]
@@ -796,7 +820,7 @@ class RiakStore(DataStoreBase):
                                 qp_fields = {}
                                 params = [k for k in solr_error.get("responseHeader", {}).get("params", {}).keys()]
                                 for k in params:
-                                    if ":%s" % DATASTORE_SOLR_PORT in k or k == "shards":
+                                    if ":%s" % DATASTORE_SOLR_PORT in k or ":8093" in k or k == "shards":
                                         if save_qp:
                                             qp_fields[k] = solr_error["responseHeader"]["params"][k]
                                         del solr_error["responseHeader"]["params"][k]
@@ -898,7 +922,7 @@ class RiakStore(DataStoreBase):
                 # Cleanup potential leak of information about our cluster
                 params = [k for k in solr_out.get("responseHeader", {}).get("params", {}).keys()]
                 for k in params:
-                    if ":%s" % DATASTORE_SOLR_PORT in k or k == "shards":
+                    if ":%s" % DATASTORE_SOLR_PORT in k or ":8093" in k or k == "shards":
                         del solr_out["responseHeader"]["params"][k]
 
                 solr_out['provider'] = "SOLR"
@@ -914,7 +938,7 @@ class RiakStore(DataStoreBase):
                             # Cleanup potential leak of information about our cluster
                             params = [k for k in solr_error.get("responseHeader", {}).get("params", {}).keys()]
                             for k in params:
-                                if ":%s" % DATASTORE_SOLR_PORT in k or k == "shards":
+                                if ":%s" % DATASTORE_SOLR_PORT in k or ":8093" in k or k == "shards":
                                     del solr_error["responseHeader"]["params"][k]
                             return solr_error
                         else:
@@ -1034,8 +1058,6 @@ class RiakStore(DataStoreBase):
 
     def stats_search(self, bucket, query, stats_fields, df="text", hosts=config.datastore.hosts,
                      port=DATASTORE_STREAM_PORT):
-        # Deprecated!!
-        # TODO: Remove this function since advance search can do this...
         host_list = copy(hosts)
 
         if query in ["*", "*:*"]:
@@ -2798,6 +2820,93 @@ class RiakStore(DataStoreBase):
         template['cfg'].update(virtualmachine)
         seed['workers']['virtualmachines']['master_list'][name] = template
         self.save_blob('seed', seed)
+
+    ################################################################
+    # Workflow Functions
+    ########
+    def delete_workflow(self, wf):
+        self._delete_bucket_item(self.workflows, wf)
+
+    def increment_workflow_counter(self, wf_id, count):
+        wf = self.get_workflow(wf_id)
+        if not wf:
+            return
+
+        if "hit_count" in wf:
+            wf['hit_count'] += count
+        else:
+            wf['hit_count'] = count
+
+        wf['last_seen'] = now_as_iso()
+        self.save_workflow(wf_id, wf)
+
+    def get_workflow(self, wf):
+        return self._get_bucket_item(self.workflows, wf)
+
+    def get_workflows(self, wf_list):
+        return self._get_bucket_items(self.workflows, wf_list)
+
+    @RiakReconnect(wake_up_riak, log)
+    def list_workflows(self, start=0, rows=100, query=None, access_control=""):
+        if not query:
+            query = "*:*"
+
+        if isinstance(query, unicode):
+            query = query.encode("utf-8")
+
+        if start + rows > self.MAX_SEARCH_DEPTH:
+            raise SearchDepthException(
+                "Cannot search deeper then %s items. Use stream searching instead..." % self.MAX_SEARCH_DEPTH)
+        if rows > self.MAX_ROW_SIZE:
+            raise SearchDepthException("Page size cannot be bigger than %s." % self.MAX_ROW_SIZE)
+
+        results = self.workflows.search(query, df="text", start=start, rows=rows,
+                                        sort="name asc", filter=access_control)
+        return {
+            "items": RiakStore.search_result_to_list_dict(results),
+            "total": results['num_found'],
+            "offset": start,
+            "count": rows,
+        }
+
+    def list_workflow_labels(self, access_control=""):
+        args = [
+            ("rows", "0"),
+            ("facet", "on"),
+            ("facet.field", "label"),
+        ]
+        res = self.direct_search('workflow', '*', args=args, __access_control__=access_control)
+        labels = res.get('facet_counts', {}).get('facet_fields', {}).get('label', [])
+
+        lbl_out = []
+        count = 0
+        for lbl in labels:
+            if count % 2 == 0:
+                lbl_out.append(lbl)
+            count += 1
+
+        return lbl_out
+
+    def list_workflow_keys(self):
+        return self._list_bucket_keys(self.workflows)
+
+    def list_workflow_debug_keys(self):
+        return self._list_bucket_debug_keys(self.workflows)
+
+    def save_workflow(self, wf, wf_data):
+        if wf_data is None:
+            return
+
+        self.pre_save_workflow(wf, wf_data)
+        self._save_bucket_item(self.workflows, wf, wf_data)
+
+    def search_workflow(self, query="*:*", start=0, rows=100, sort="name asc", access_control=""):
+        return self._search_bucket(self.workflows, query, start, rows, sort, filter=access_control)
+
+    def wipe_workflows(self):
+        for key in self.workflows.get_keys():
+            self._delete_bucket_item(self.workflows, key)
+            print 'Wiped: {0}'.format(key)
 
 
 def utf8safe_encoder(obj):
