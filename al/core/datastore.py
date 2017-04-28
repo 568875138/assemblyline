@@ -2827,6 +2827,19 @@ class RiakStore(DataStoreBase):
     def delete_workflow(self, wf):
         self._delete_bucket_item(self.workflows, wf)
 
+    def increment_workflow_counter(self, wf_id, count):
+        wf = self.get_workflow(wf_id)
+        if not wf:
+            return
+
+        if "hit_count" in wf:
+            wf['hit_count'] += count
+        else:
+            wf['hit_count'] = count
+
+        wf['last_seen'] = now_as_iso()
+        self.save_workflow(wf_id, wf)
+
     def get_workflow(self, wf):
         return self._get_bucket_item(self.workflows, wf)
 
@@ -2855,6 +2868,24 @@ class RiakStore(DataStoreBase):
             "offset": start,
             "count": rows,
         }
+
+    def list_workflow_labels(self, access_control=""):
+        args = [
+            ("rows", "0"),
+            ("facet", "on"),
+            ("facet.field", "label"),
+        ]
+        res = self.direct_search('workflow', '*', args=args, __access_control__=access_control)
+        labels = res.get('facet_counts', {}).get('facet_fields', {}).get('label', [])
+
+        lbl_out = []
+        count = 0
+        for lbl in labels:
+            if count % 2 == 0:
+                lbl_out.append(lbl)
+            count += 1
+
+        return lbl_out
 
     def list_workflow_keys(self):
         return self._list_bucket_keys(self.workflows)
