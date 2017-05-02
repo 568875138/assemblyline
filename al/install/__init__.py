@@ -263,6 +263,9 @@ class SiteInstaller(object):
                             self.runcmd('echo "' + config_block + '" >> ' + ssh_config)
 
                     realm_url = realm['url']
+                elif os.path.exists(realm['url']):
+                    # Local git path
+                    realm_url = realm['url']
                 else:
                     self.fatal("Invalid realm %s:\n%s" % (name, str(realm)))
                     exit(1)
