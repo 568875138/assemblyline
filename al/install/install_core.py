@@ -105,10 +105,6 @@ alsi.milestone("Registering services from the master list.")
 from assemblyline.al.install.stages import install_70_register_services
 install_70_register_services.install(alsi)
 
-alsi.milestone("Registering virtual machines from the master list.")
-from assemblyline.al.install.stages import install_70_register_vms
-install_70_register_vms.install(alsi)
-
 alsi.milestone("Registering core server to the machine list.")
 from assemblyline.al.install.stages import install_70_register_core
 install_70_register_core.install(alsi)
