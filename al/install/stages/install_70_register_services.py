@@ -19,7 +19,7 @@ def install(alsi=None):
         try:
             register_service.register(classpath, config_overrides=config_overrides,
                                       enabled=svc_detail.get('enabled', True))
-            if svc_detail['enabled']:
+            if svc_detail['enabled'] and svc_detail['install_by_default']:
                 alsi.milestone("Adding '%s' to profile '%s'" % (service, default_profile))
                 register_service.add_to_profile(alsi.config['workers']['default_profile'], service)
         except:
