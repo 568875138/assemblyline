@@ -68,6 +68,7 @@ def install(alsi):
     alsi.sudo_install_file(
             'assemblyline/al/install/etc/logrotate.d/uwsgi',
             '/etc/logrotate.d/uwsgi')
+    alsi.runcmd('sudo chmod 644 /etc/logrotate.d/uwsgi')
 
     # nginx configuration
     tmpl_path = os.path.join(alsi.alroot,

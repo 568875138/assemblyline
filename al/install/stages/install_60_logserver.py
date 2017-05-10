@@ -242,6 +242,7 @@ def setup_rsyslog(alsi):
     alsi.sudo_install_file(
         'assemblyline/al/install/etc/logrotate.d/al',
         '/etc/logrotate.d/al')
+    alsi.runcmd('sudo chmod 644 /etc/logrotate.d/al')
     alsi.runcmd('sudo restart rsyslog')
 
 
