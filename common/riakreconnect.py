@@ -17,7 +17,7 @@ class RiakReconnect(object):
                       "unknown msg code",
                       "key must be a string, instead got None",
                       "Tag had invalid wire type",
-                      "recv_into returned zero bytes unexpectedly",
+                      "returned zero bytes unexpectedly",
                       "unexpected message code:",
                       "Client is closed."]
     MAX_RETRY_BACKOFF = 10
