@@ -130,20 +130,11 @@ class SiteInstaller(object):
             seed = os.environ.get('AL_SEED', None)
 
         self.log = logging.getLogger('assemblyline.install')
+        self.initial_seed = seed
 
+        self.config = None
         self.seed_module = None
-        if isinstance(seed, dict):
-            self.config = seed
-        elif seed:
-            self.config = module_attribute_by_name(seed)
-            self.seed_module = seed
-            services_to_register = self.config['services']['master_list']
-
-            for service, svc_detail in services_to_register.iteritems():
-                self.config['services']['master_list'][service] = get_merged_svc_config(service, svc_detail, self.log)
-        else:
-            from assemblyline.al.common import config_riak
-            self.config = config_riak.load_seed()
+        self.reload_config()
 
         if self.config['system'].get('shell_bypass', False):
             SiteInstaller.runcmd("sudo ln -s /bin/sh /tmp/notashell", raise_on_error=False)
@@ -168,6 +159,21 @@ class SiteInstaller(object):
             self.install_temp = "/tmp"
             self._package_fetcher = None
             self._pipper = None
+
+    def reload_config(self):
+        self.seed_module = None
+        if isinstance(self.initial_seed, dict):
+            self.config = self.initial_seed
+        elif self.initial_seed:
+            self.config = module_attribute_by_name(self.initial_seed)
+            self.seed_module = self.initial_seed
+            services_to_register = self.config['services']['master_list']
+
+            for service, svc_detail in services_to_register.iteritems():
+                self.config['services']['master_list'][service] = get_merged_svc_config(service, svc_detail, self.log)
+        else:
+            from assemblyline.al.common import config_riak
+            self.config = config_riak.load_seed()
 
     def fatal(self, s):
         def red(st):

@@ -18,6 +18,9 @@ install_00_init.install(alsi)
 alsi.milestone("Setup and clone git repos")
 alsi.setup_git_repos()
 
+alsi.milestone("Reload configuration")
+alsi.reload_config()
+
 alsi.milestone("Installing Bootstrap")
 from assemblyline.al.install.stages import install_20_bootstrap
 install_20_bootstrap.install(alsi)

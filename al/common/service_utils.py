@@ -20,7 +20,7 @@ def get_merged_svc_config(name, configuration, log):
             log.error(name + " is not an AL service. Make sure the class path you've entered is valid.")
             return configuration
     except:
-        log.error(classpath + " could not be found. Make sure the class path you've entered is valid.")
+        # log.error(classpath + " could not be found. Make sure the class path you've entered is valid.")
         return configuration
 
     cfg = cls.get_default_config()
