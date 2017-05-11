@@ -20,7 +20,8 @@ class RiakReconnect(object):
                       "returned zero bytes unexpectedly",
                       "unexpected message code:",
                       "Client is closed.",
-                      "established connection was aborted"]
+                      "established connection was aborted",
+                      "existing connection was forcibly closed"]
     MAX_RETRY_BACKOFF = 10
 
     def __init__(self, reconnect_func, log=None):
