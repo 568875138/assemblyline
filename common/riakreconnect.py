@@ -19,7 +19,8 @@ class RiakReconnect(object):
                       "Tag had invalid wire type",
                       "returned zero bytes unexpectedly",
                       "unexpected message code:",
-                      "Client is closed."]
+                      "Client is closed.",
+                      "established connection was aborted"]
     MAX_RETRY_BACKOFF = 10
 
     def __init__(self, reconnect_func, log=None):
