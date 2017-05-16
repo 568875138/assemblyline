@@ -88,9 +88,9 @@ while True:
                     action_queue.push(QUEUE_PRIORITY, msg)
             except SearchException:
                 log.warning("Invalid query '{query}' in "
-                            "workflow filter '{name}' by '{user}'".format(query=safe_str(aq['query']),
-                                                                          name=aq['name'],
-                                                                          user=aq['created_by']))
+                            "workflow filter '{name}' by '{user}'".format(query=safe_str(aq.get('query', '')),
+                                                                          name=aq.get('name', 'unknown'),
+                                                                          user=aq.get('created_by', 'unknown')))
                 continue
 
             if count:
