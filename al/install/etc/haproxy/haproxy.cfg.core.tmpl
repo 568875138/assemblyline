@@ -83,8 +83,7 @@ frontend redis
     default_backend redis_backend
 
 backend redis_backend
-    server redis {{ redis_ip }}:6379 maxconn 1024 check inter 1s
-{% endif %}
+    server redis {{ redis_ip }}:6379 maxconn 1024 check inter 1s{% endif %}
 
 {% if worker_extensions %}{{ worker_extensions }}{% endif %}
 
