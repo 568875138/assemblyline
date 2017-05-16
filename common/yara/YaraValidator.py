@@ -88,12 +88,14 @@ class YaraValidator(object):
                 raise Exception("YaraValidator has failed! " + stderr)
 
     def validate_rules(self, rulefile, datastore=False):
+        change = False
         while True:
             try:
                 self.paranoid_rule_check(rulefile)
-                return
+                return change
             # If something goes wrong, clean rules until valid file given
             except Exception as e:
+                change = True
                 if e.message.startswith('yara.SyntaxError'):
 
                     e_line = int(e.message.split('):', 1)[0].split("(", -1)[1])
