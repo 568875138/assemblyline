@@ -33,6 +33,7 @@ class DockerManager(object):
                 "privileged": True/False,
                 "volumes: [list of (source, dest, access) tuples],
                 "caps": [list of container capabilities],
+                "user": Username or UID: (format: <name|uid>[:<group|gid>])
                 "ram": max memory usage
             }
         All keys default as empty or False if not included. Image is the only mandatory field.
@@ -86,6 +87,8 @@ class DockerManager(object):
             run_args.append("--cap-add=%s" % cap)
         if "ram" in ctx:
             run_args.append("--memory %s" % ctx["ram"])
+        if "user" in ctx:
+            run_args.append("--user %s" % ctx["user"])
         for volume in ctx.get("volumes", []):
             run_args.append("--volume %s:%s:%s" % volume)
         run_args.append(image_name)
