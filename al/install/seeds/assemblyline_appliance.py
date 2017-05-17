@@ -23,7 +23,6 @@ seed['datastore']['port'] = 9087
 seed['datastore']['stream_port'] = 9098
 seed['datastore']['solr_port'] = 9093
 
-seed['datastore']['hosts'] = [appliance_ip]
 seed['datastore']['riak']['solr']['heap_max_gb'] = 2
 seed['datastore']['riak']['nodes'] = [appliance_ip]
 seed['datastore']['riak']['ring_size'] = 32

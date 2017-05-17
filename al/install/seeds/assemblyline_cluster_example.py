@@ -39,7 +39,6 @@ seed['core']['nodes'] = [IP_CORE]
 seed['core']['redis']['nonpersistent']['host'] = IP_CORE
 seed['core']['redis']['persistent']['host'] = IP_CORE
 
-seed['datastore']['hosts'] = [IP_CORE]
 seed['datastore']['riak']['nodes'] = IP_RIAK_NODES
 
 seed['filestore']['ftp_password'] = FTP_PASS

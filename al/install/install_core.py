@@ -30,6 +30,10 @@ alsi.milestone("Installing Common Dependencies")
 from assemblyline.al.install.stages import install_30_core_deps
 install_30_core_deps.install(alsi)
 
+alsi.milestone("Patching /etc/hosts to route datastore.al to localhost")
+from assemblyline.al.install.stages import install_40_patch_hosts
+install_40_patch_hosts.install(alsi)
+
 alsi.milestone("Installing Harddrive monitor")
 from assemblyline.al.install.stages import install_40_harddrive_monitor
 install_40_harddrive_monitor.install(alsi)

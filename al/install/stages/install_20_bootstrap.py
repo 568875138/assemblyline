@@ -77,8 +77,8 @@ def install(alsi):
         os.environ['PYTHONPATH'] = alsi.alroot + '/pkg'
         defaults_tmp.write(pypath)
 
-        ssdatastore = 'export AL_DATASTORE=' + alsi.config['datastore']['hosts'][0] + '\n'
-        os.environ['AL_DATASTORE'] = alsi.config['datastore']['hosts'][0]
+        ssdatastore = 'export AL_DATASTORE=' + alsi.config['core']['nodes'][0] + '\n'
+        os.environ['AL_DATASTORE'] = alsi.config['core']['nodes'][0]
         defaults_tmp.write(ssdatastore)
 
         alroot = 'export AL_ROOT=' + alsi.alroot + '\n'

@@ -141,7 +141,7 @@ DEFAULT_SEED = {
     },
 
     'datastore': {
-        'hosts': ['localhost'],
+        'hosts': ['datastore.al'],  # datastore.al is patch during installation to resolv to localhost
         'port': 8087,
         'solr_port': 8093,
         'stream_port': 8098,
