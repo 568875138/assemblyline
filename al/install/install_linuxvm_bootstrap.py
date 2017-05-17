@@ -21,7 +21,7 @@ install_20_bootstrap.install(alsi)
 
 alsi.milestone("Fix default AL exports for VM based systems")
 alsi.sudo_sed_inline("/etc/default/al",
-                    ["s/{installer_host}/datastore.al/".format(installer_host=alsi.config['datastore']['hosts'][0])])
+                    ["s/{installer_host}/datastore.al/".format(installer_host=alsi.config['core']['nodes'][0])])
 
 alsi.milestone("Installing Core Dependancies")
 from assemblyline.al.install.stages import install_30_core_deps
