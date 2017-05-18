@@ -15,7 +15,7 @@ from assemblyline.common import exceptions
 from assemblyline.common import net
 from assemblyline.common.charset import safe_str
 from assemblyline.common.concurrency import execute_concurrently
-from assemblyline.common.isotime import now_as_iso
+from assemblyline.common.isotime import now_as_iso, now
 from assemblyline.common.path import modulepath
 from assemblyline.common.properties import classproperty
 from assemblyline.al.common import forge, version
@@ -499,11 +499,24 @@ class ServiceBase(object):  # pylint:disable=R0922
         NamedQueue(queue_name, **non_persistent_settings).delete()
 
     def _execute_update_callback(self, **kwargs):
+        cur_time = now()
+        blob_key = None
         update_type = kwargs.get('type', UpdaterType.NON_BLOCKING)
         blocking = kwargs.get('blocking', False)
         func = kwargs.get('func')
         update_execution_id = kwargs.get('id', uuid.uuid4().get_hex())
         ttl = kwargs.get('freq', UpdaterFrequency.MINUTE)
+        if update_type == UpdaterType.BOX or update_type == UpdaterType.CLUSTER:
+            blob_key = "UPD-%s" % self.SERVICE_NAME
+            if update_type == UpdaterType.BOX:
+                blob_key += "-%s" % self.mac.upper()
+            last_update_time = self.result_store.get_blob(blob_key) or 0
+            if cur_time < last_update_time + ttl:
+                self.log.info("Skipping the update because the current time < last update time + update frequency.")
+                return
+            else:
+                self.log.info("Service is ready to be updated (%s >= %s)" % (cur_time, last_update_time + ttl))
+
         if func is None:
             self.log.warning("_execute_update_callback was called with no callback function.")
             return
@@ -538,6 +551,9 @@ class ServiceBase(object):  # pylint:disable=R0922
                 self._release_box_updater()
             elif update_type == UpdaterType.CLUSTER:
                 self._release_cluster_updater()
+
+            if blob_key:
+                self.result_store.save_blob(blob_key, cur_time - 5)
 
             if blocking:
                 if update_type == UpdaterType.PROCESS:
