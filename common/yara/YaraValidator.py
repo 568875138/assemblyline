@@ -82,10 +82,10 @@ class YaraValidator(object):
         stdout, stderr = p.communicate()
 
         if print_val not in stdout:
-            if stdout.startswith('yara.SyntaxError'):
-                raise Exception(stdout)
+            if stdout.strip().startswith('yara.SyntaxError'):
+                raise Exception(stdout.strip())
             else:
-                raise Exception("YaraValidator has failed! " + stderr)
+                raise Exception("YaraValidator has failed!--+--" + stderr + "--:--" + stdout)
 
     def validate_rules(self, rulefile, datastore=False):
         change = False
