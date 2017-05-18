@@ -15,14 +15,14 @@ class DockerException(Exception):
 class DockerManager(object):
     def __init__(self, stub_name, log_name):
         config = forge.get_config()
-        self.registry_host = config.installation.docker.private_registry
+        self.registry_host = config.installation.docker.get('private_registry', None)
         self.log = logging.getLogger(log_name)
         self.docker_count = 0
         self.docker_contexts = {}
         self.project_id = str(uuid.uuid4()).replace("-", "")
         self.stub_name = "%s_%s_%%i" % (self.project_id, stub_name)
 
-    def add_container(self, ctx):
+    def add_container(self, ctx, name=None):
         """Add a container template to the list of contexts, returns the template name.
 
         ctx schema:
@@ -38,14 +38,16 @@ class DockerManager(object):
             }
         All keys default as empty or False if not included. Image is the only mandatory field.
         """
-        name = self.stub_name % self.docker_count
+        if name is None:
+            name = self.stub_name % self.docker_count
+
         self.docker_count += 1
         ctx['name'] = name
         ctx['started'] = False
         self.docker_contexts[name] = ctx
         return name
 
-    def remove_container(self, name):
+    def remove_container(self, name=None):
         """Remove one or more containers. If name is None, all containers are removed.
         If a container is started, it will be stopped."""
         if name is None:
