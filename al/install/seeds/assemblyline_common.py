@@ -396,6 +396,14 @@ DEFAULT_SEED = {
                 'install_by_default': True,
                 'enabled': True
             },
+            'CrowBar': {
+                'class_name': 'CrowBar',
+                'repo': 'alsvc_crowbar',
+                'realm': 'bitbucket',
+                'config': {},
+                'install_by_default': True,
+                'enabled': True
+            },
             'Cuckoo': {
                 'class_name': 'Cuckoo',
                 'repo': 'alsvc_cuckoo',
