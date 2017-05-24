@@ -372,13 +372,28 @@ class YaraParser(object):
             if self.in_comment:
                 if "*/" in line:
                     self.in_comment = False
-                continue
+                    # There might be data after the inline comment
+                    line = line.split('*/', 1)[1]
+                    if not line:
+                        continue
+                else:
+                    continue
             
             if not line.startswith("//") and not self.in_meta and not self.in_strings and not self.in_condition:
                 prev_bracket = self.open_bracket
                 self.open_bracket += line.count("{")
                 if prev_bracket == 0 and self.open_bracket == 1:
                     self.got_open = True
+
+                # Conditions may be on the same line as the curly bracket
+                temp_line = line.strip('{').strip()
+                if temp_line.startswith("meta"):
+                    self._switch_to("meta")
+                elif temp_line.startswith("strings"):
+                    self._switch_to("strings")
+                elif temp_line.startswith("condition"):
+                    self._switch_to("condition")
+
             if self.in_rule and not self.in_meta and not self.in_condition and not self.in_strings \
                     and line.startswith("//"):
                 line_data = line[2:].strip()
