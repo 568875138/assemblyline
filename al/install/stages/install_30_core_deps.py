@@ -58,6 +58,10 @@ def install(alsi=None):
     alsi.milestone("Importing protobuf library using instant_import monkey patch...")
     google = instant_import('protobuf', 'google')
 
+    # use the new six library
+    import six
+    reload(six)
+
     alsi.info("Download and install CaRT")
     cart_pkg = 'cart-1.0.8.tar.gz'
     remote_path = 'python/cart/' + cart_pkg
