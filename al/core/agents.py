@@ -141,7 +141,7 @@ class FlexManager(object):
 
     # Regardless of CPU/RAM requirements we limit
     # the number of worker instances to this.
-    WORKER_HARDCAP = 50
+    WORKER_HARDCAP = 60
 
     # Maximum number of times to requery the datastore on error
     DATASTORE_RETRY_LIMIT = 8
@@ -384,13 +384,14 @@ class FlexManager(object):
         ram_required = allocation.ram_mb
         self.log.info("Machine has %s cores and %sMB ram. Each service allocation requires %s cores and %sMB ram." %
                       (self.cores, self.ram_mb, cores_required, ram_required))
-        num_cores_can_accomodate = int(min(48, max((self.cores - 2), self.cores) / cores_required))
-        num_ram_can_accomodate = int(min(48, max((self.ram_mb - 2048), self.ram_mb) / ram_required))
+        num_cores_can_accomodate = int(max((self.cores - 2), self.cores) / cores_required)
+        num_ram_can_accomodate = int(max((self.ram_mb - 2048), self.ram_mb) / ram_required)
         num_to_allocate = min(num_cores_can_accomodate, num_ram_can_accomodate)
         limited_by = 'ram' if num_cores_can_accomodate > num_ram_can_accomodate else 'cores'
+        num_to_allocate = min(num_to_allocate, self.WORKER_HARDCAP)
+
         self.log.info("We will dynamically allocate %d instances of %s. limited by: %s",
                       num_to_allocate, busiest, limited_by)
-        num_to_allocate = min(num_to_allocate, self.WORKER_HARDCAP)
         for x in range(0, num_to_allocate):
             allocation.update_profile_for_allocation(profile)
 
