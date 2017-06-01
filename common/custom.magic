@@ -106,3 +106,6 @@
 
 0      string         \<job
 >&0    search/0x30    \<script\ language   custom: code/wsf
+
+0   short   0x3C4D
+>&0 short   0xA1B2        custom: network\tcpdump
