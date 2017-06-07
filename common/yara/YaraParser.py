@@ -39,7 +39,7 @@ class YaraParser(object):
                     "3.4": ["pe", "cuckoo", "magic", "math", "hash", "elf"],
                     "3.6": ["pe", "cuckoo", "magic", "math", "hash", "elf", "dotnet"]}
 
-    CURRENT_YARA_VERSION = "3.4"
+    CURRENT_YARA_VERSION = "3.6"
 
     FAKE_RULE = "rule %s { condition: \"THIS IS A FAKE RULE TO PASS VALIDATION TESTS. IGNORE!\"}"
         
@@ -467,7 +467,7 @@ class YaraParser(object):
                         print ""
                         print ""
 
-                    yara_version = self.cur_rule.get('meta', {}).get('yara_version', "3.4")
+                    yara_version = self.cur_rule.get('meta', {}).get('yara_version', "3.6")
                     modules = self.YARA_MODULES.get(yara_version, [])
                     self.cur_rule['depends'], self.cur_rule['modules'] = \
                         self.parse_dependencies(self.cur_rule['condition'], modules)
