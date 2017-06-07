@@ -16,7 +16,7 @@ class YaraCharsetValidationException(Exception):
 # noinspection PyUnresolvedReferences
 class YaraParser(object):
     STATUSES = ["DEPLOYED", "TESTING", "NOISY", "DISABLED", "STAGING", "INVALID"]
-    VALID_YARA_VERSION = ["1.6", "1.7", "2.0", "2.1", "3.0", "3.1", "3.2", "3.3", "3.4"]
+    VALID_YARA_VERSION = ["1.6", "1.7", "2.0", "2.1", "3.0", "3.1", "3.2", "3.3", "3.4", "3.6"]
     RULE_TYPE = ["rule", "private rule", "global private rule", "global rule"]
     RULE_GROUPS = ['exploit', 'implant', 'info', 'technique', 'tool']
     RULE_IMPORTANT = ['description', 'id', 'organisation', 'poc', 'rule_version', 'yara_version']
@@ -36,7 +36,8 @@ class YaraParser(object):
                     "3.1": ["pe", "cuckoo", "magic"],
                     "3.2": ["pe", "cuckoo", "magic", "math", "hash"],
                     "3.3": ["pe", "cuckoo", "magic", "math", "hash", "elf"],
-                    "3.4": ["pe", "cuckoo", "magic", "math", "hash", "elf"]}
+                    "3.4": ["pe", "cuckoo", "magic", "math", "hash", "elf"],
+                    "3.6": ["pe", "cuckoo", "magic", "math", "hash", "elf", "dotnet"]}
 
     CURRENT_YARA_VERSION = "3.4"
 
