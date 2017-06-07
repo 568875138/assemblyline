@@ -141,7 +141,7 @@ class FlexManager(object):
 
     # Regardless of CPU/RAM requirements we limit
     # the number of worker instances to this.
-    WORKER_HARDCAP = 50
+    MAX_WORKERS = 50
 
     # Maximum number of times to requery the datastore on error
     DATASTORE_RETRY_LIMIT = 8
@@ -154,52 +154,53 @@ class FlexManager(object):
     SECONDS_PER_TICKS = 5
 
     # Start/Stop Flexing threshold
-    START_FLEX = min(100, config.core.dispatcher.max.inflight * 5 / 100)
+    START_FLEX = max(100, config.core.dispatcher.max.inflight * 5 / 100)
     STOP_FLEX = 25
 
     # noinspection PyGlobalUndefined,PyUnresolvedReferences
-    def __init__(self, ordinal=0):
+    def __init__(self):
         # Delay these imports so most nodes don't import them.
         global Scheduler
         from apscheduler.scheduler import Scheduler
-        self.datastore = forge.get_datastore()
 
         self.bottleneck_queue_sizes = {}
-        self.safe_start_dict = {}
-        self.main_bottleneck = ''
-
-        self.ordinal = ordinal
-        self.blitz_tick = 0
-        self.blitz_scheduler = None
-        self.blitz_profile = None
-        self.scheduler_thread_lock = None
-        self.service_manager = None
-        self.vm_manager = None
-        self.log = logging.getLogger('assemblyline.flex')
         self.cores = None
-        self.ram_mb = None
+        self.datastore = forge.get_datastore()
+        self.flex_profile = None
+        self.flex_scheduler = None
+        self.log = logging.getLogger('assemblyline.flex')
         self.mac = net.get_mac_for_ip(net.get_hostip())
+        self.main_bottleneck = ''
+        self.needs_cleanup = True
+        self.previous_queue_sizes = {}
+        self.safe_start_dict = {}
         self.safeq = NamedQueue('safe-start-%s' % self.mac)
+        self.scheduler_lock = None
+        self.service_manager = None
+        self.ram_mb = None
+        self.tick_count = 0
+        self.vm_manager = None
 
     # noinspection PyUnresolvedReferences
     def start(self):
 
-        self.scheduler_thread_lock = threading.Lock()
-        self.blitz_scheduler = Scheduler()
         self.cores = psutil.NUM_CPUS
+        self.flex_scheduler = Scheduler()
+        self.scheduler_lock = threading.Lock()
         self.ram_mb = int(psutil.TOTAL_PHYMEM / (1024 * 1024))
 
         assert(self.cores > 0)
         assert(self.ram_mb > 256)
         assert((self.MAX_TICKS > 6) and (self.MAX_TICKS < 10000))
 
-        self.blitz_scheduler.add_interval_job(self._check_maybe_respawn_blitz,
-                                              seconds=self.SECONDS_PER_TICKS, kwargs={})
+        self.log.info('Blacklisted for Flex: %s', " ".join(config.services.flex_blacklist))
 
-        with self.scheduler_thread_lock:
-            self._respawn_blitz_for_cur_bottleneck()
+        self.flex_scheduler.add_interval_job(self._check_flexing_status,
+                                             seconds=self.SECONDS_PER_TICKS, kwargs={})
+        with self.scheduler_lock:
+            self._find_new_bottlenecks()
 
-        self.blitz_scheduler.start()
+        self.flex_scheduler.start()
 
     def heartbeat(self):
         heartbeat = {}
@@ -222,8 +223,8 @@ class FlexManager(object):
 
     def shutdown(self):
         self.log.info('shutting down flex manager.')
-        with self.scheduler_thread_lock:
-            self.blitz_scheduler.shutdown()
+        with self.scheduler_lock:
+            self.flex_scheduler.shutdown()
             if self.service_manager:
                 self.service_manager.shutdown()
                 self.service_manager = None
@@ -232,28 +233,23 @@ class FlexManager(object):
                 self.vm_manager = None
             self.datastore.close()
 
-    def _check_maybe_respawn_blitz(self):
-        with self.scheduler_thread_lock:
-            self.blitz_tick += 1
+    def _check_flexing_status(self):
+        with self.scheduler_lock:
+            self.tick_count += 1
 
-            if self.blitz_tick > self.MAX_TICKS:
+            if self.tick_count > self.MAX_TICKS:
                 self.log.info("flexnode has been running for max period. respawning.")
-                self.blitz_tick = 0
-                self._respawn_blitz_for_cur_bottleneck()
+                self._find_new_bottlenecks()
                 return
 
             if self.main_bottleneck:
                 service_queue_lengths = {x: get_service_queue_length(x) for x in self.bottleneck_queue_sizes.keys()}
                 if service_queue_lengths[self.main_bottleneck] < self.STOP_FLEX:
-                    if self.blitz_tick > self.MIN_TICKS:  # Ensure we don't thrash
-                        self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
-                                      "looking for new bottlenecks..." % self.main_bottleneck)
-                        for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                            self.log.info("%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
-                            self.blitz_tick = 0
-                        self._respawn_blitz_for_cur_bottleneck()
-                    else:
-                        self.log.info("Not respawning flex so soon to avoid thrashing.")
+                    self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
+                                  "looking for new bottlenecks..." % self.main_bottleneck)
+                    for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
+                        self.log.info("%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
+                    self._find_new_bottlenecks()
                     return
 
                 self.log.info("flexnode bottleneck progress:")
@@ -262,14 +258,13 @@ class FlexManager(object):
 
             else:
                 self.log.info("flexnode has no services up, checking for new job...")
-                self.blitz_tick = 0
-                self._respawn_blitz_for_cur_bottleneck()
+                self._find_new_bottlenecks()
 
     def _wait_for_safe_start(self):
 
         # If safe_start is enabled, we wait until the service has initialized (or timed out) before
         # respawning a new blitz.
-        if not self.bottleneck_queue_sizes or not self.blitz_profile or not self.safe_start_dict:
+        if not self.bottleneck_queue_sizes or not self.flex_profile or not self.safe_start_dict:
             # Nothing to wait on..
             self.log.info("Safe-start has nothing to wait for.")
             return
@@ -278,7 +273,7 @@ class FlexManager(object):
             self.log.info("Waiting on safe-start for service: %s", srv)
 
             # Before shutting down a service, make sure all of our spawned instances have come up
-            worker_count = int(self.blitz_profile.get("services", {}).get(srv, {}).get('workers', None) or 0)
+            worker_count = int(self.flex_profile.get("services", {}).get(srv, {}).get('workers', None) or 0)
             # Maximum 2 minute wait
             max_wait = 120
             while worker_count > 0 and max_wait > 0:
@@ -294,38 +289,43 @@ class FlexManager(object):
             self.log.info("Safe-start completed successfully for service: %s", srv)
 
     # precondition: holding scheduler_thread_lock
-    def _respawn_blitz_for_cur_bottleneck(self):
-        self.log.info("respawning new blitz")
-        self._wait_for_safe_start()
-        if self.service_manager:
-            self.service_manager.shutdown()
-            self.service_manager = None
+    def _find_new_bottlenecks(self):
+        self.log.info("Finding new bottlenecks...")
+        if self.needs_cleanup:
+            self.tick_count = 0
+            self._wait_for_safe_start()
+            if self.service_manager:
+                self.service_manager.shutdown()
+                self.service_manager = None
 
-        if self.vm_manager:
-            self.vm_manager.shutdown()
-            self.vm_manager = None
+            if self.vm_manager:
+                self.vm_manager.shutdown()
+                self.vm_manager = None
 
-        # Cleanup queue should also be handled here
-        worker_cleanup(self.mac, self.log)
+            # Cleanup queue should also be handled here
+            worker_cleanup(self.mac, self.log)
 
-        # Delete any lingering safe-start queue entries (timeout/restart)
-        self.safeq.delete()
+            # Delete any lingering safe-start queue entries (timeout/restart)
+            self.safeq.delete()
+            self.needs_cleanup = False
 
-        flexable_service, self.blitz_profile, self.safe_start_dict = self._create_profile_for_cur_bottleneck()
-        if flexable_service:
-            self.bottleneck_queue_sizes = {k: v for k, v in flexable_service}
-            self.main_bottleneck = flexable_service[0][0]
+        flexable_services, self.flex_profile, self.safe_start_dict = self._create_profile_for_cur_bottleneck()
+
+        if flexable_services:
+            self.bottleneck_queue_sizes = {k: v for k, v in flexable_services}
+            self.main_bottleneck = flexable_services[0][0]
             self.log.info("Starting Transient ServiceManager with profile: %s. TTL:%d secs.",
-                          str(self.blitz_profile), self.MAX_TICKS * self.SECONDS_PER_TICKS)
+                          str(self.flex_profile), self.MAX_TICKS * self.SECONDS_PER_TICKS)
 
-            self.service_manager = ServiceManager(self.blitz_profile.get('services'))
+            self.service_manager = ServiceManager(self.flex_profile.get('services'))
             self.service_manager.start()
 
             if config.workers.install_kvm:
                 from assemblyline.al.common.vm import VmManager
-                self.vm_manager = VmManager(self.blitz_profile.get('virtual_machines'))
+                self.vm_manager = VmManager(self.flex_profile.get('virtual_machines'))
                 self.vm_manager.sysprep()
                 self.vm_manager.start()
+            self.needs_cleanup = True
         else:
             self.main_bottleneck = ''
             self.bottleneck_queue_sizes = {}
@@ -333,7 +333,6 @@ class FlexManager(object):
     def _determine_busiest_services(self):
         queue_lengths = get_service_queue_lengths()
 
-        self.log.info('Blacklisted for Flex: %s', " ".join(config.services.flex_blacklist))
         for blacklisted_service in config.services.flex_blacklist:
             if blacklisted_service in queue_lengths:
                 try:
@@ -398,10 +397,19 @@ class FlexManager(object):
         ratio = {}
         allocation = {}
 
-        flexable_services = self._determine_busiest_services()
-        if not flexable_services:
+        temp_flexable_services = self._determine_busiest_services()
+
+        if not temp_flexable_services:
             self.log.info("There are no service that meet the minimum requirement for flexing...")
+            return temp_flexable_services, profile, safe_start_dict
+
+        flexable_services = [(k, v) for k, v in temp_flexable_services if k in self.previous_queue_sizes]
+
+        if not flexable_services:
+            self.previous_queue_sizes = {k: v for k, v in temp_flexable_services}
             return flexable_services, profile, safe_start_dict
+        else:
+            self.previous_queue_sizes = {}
 
         self.log.info("The following services are candidates for current flex node:")
         for srv, queue_size in flexable_services:
@@ -424,7 +432,7 @@ class FlexManager(object):
         while can_still_allocate:
             # Can I allocated the main service ?
             if main_resources.cores <= available_cpu and main_resources.ram_mb <= available_ram and \
-                    allocation[main_service] < self.WORKER_HARDCAP:
+                    allocation[main_service] < self.MAX_WORKERS:
                 available_cpu -= main_resources.cores
                 available_ram -= main_resources.ram_mb
                 allocation[main_service] += 1
@@ -437,7 +445,7 @@ class FlexManager(object):
                         srv not in failed_list:
                     res = resources[srv]
                     if res.cores <= available_cpu and res.ram_mb <= available_ram and \
-                            allocation[srv] < self.WORKER_HARDCAP:
+                            allocation[srv] < self.MAX_WORKERS:
                         available_cpu -= res.cores
                         available_ram -= res.ram_mb
                         allocation[srv] += 1
@@ -507,6 +515,7 @@ class HostAgent(object):
         # Fetch and update or host registration information in riak.
         # self._init_registration() defer registration until later
 
+    # noinspection PyUnresolvedReferences
     def register_host(self):
         if self.is_a_vm():
             return "This is a VM, no need to register."
@@ -540,6 +549,7 @@ class HostAgent(object):
             return True
         return False
 
+    # noinspection PyUnresolvedReferences
     def _init_registration(self):
         if self.is_a_vm():
             nq = NamedQueue('vm-%s' % self.mac, db=DATABASE_NUM)
@@ -882,14 +892,7 @@ class HostAgent(object):
 
             if profile_name.startswith('flex'):
                 self.log.info('We have been provisioned as a flex node. Starting FlexManager.')
-                ordinal = 0
-                try:
-                    ordinal = int(profile_name.split('.')[1])
-                    self.log.info('We have been assigned ordinal %d.', ordinal)
-                except:
-                    self.log.warn('Did not parse an ordinal from profile_name: %s.', profile_name)
-                    pass
-                self.flex_manager = FlexManager(ordinal)
+                self.flex_manager = FlexManager()
                 self.flex_manager.start()
                 return
         else:
