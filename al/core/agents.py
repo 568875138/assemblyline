@@ -247,13 +247,13 @@ class FlexManager(object):
                         self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
                                       "looking for new bottlenecks..." % self.main_bottleneck)
                         for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                            self.log.info("%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
+                            self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
                         self._find_new_bottlenecks()
                         return
 
                     self.log.info("flexnode bottleneck progress:")
                     for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                        self.log.info("\t%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
+                        self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
 
                 else:
                     self.log.info("flexnode has no services up, checking for new job...")
@@ -416,7 +416,7 @@ class FlexManager(object):
 
         self.log.info("The following services are candidates for current flex node:")
         for srv, queue_size in flexable_services:
-            self.log.info("\t%s: %d" % (srv, queue_size))
+            self.log.info("    %s: %d" % (srv, queue_size))
             res = self._load_allocation_for_service(srv)
             if not res:
                 raise ProvisioningError("No automatic provisioning profile for %s", srv)
