@@ -453,8 +453,7 @@ class SiteInstaller(object):
 
     @staticmethod
     def get_ipaddress(silent=False):
-        _, ip, _ = SiteInstaller.runcmd('ifconfig | grep -v Bcast:0.0.0.0 | grep Bcast | '
-                                        'sed "s/.*addr:\(.*\)  Bcast.*/\\1/" | head -n 1',
+        _, ip, _ = SiteInstaller.runcmd('ip route get to 255.255.255.255 | sed -e "s/.*src //" | head -n 1',
                                         silent=silent)
         return ip.strip()
 
