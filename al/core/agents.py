@@ -175,7 +175,6 @@ class FlexManager(object):
         self.previous_queue_sizes = {}
         self.safe_start_dict = {}
         self.safeq = NamedQueue('safe-start-%s' % self.mac)
-        self.scheduler_lock = None
         self.service_manager = None
         self.ram_mb = None
         self.tick_count = 0
@@ -186,7 +185,6 @@ class FlexManager(object):
 
         self.cores = psutil.NUM_CPUS
         self.flex_scheduler = Scheduler()
-        self.scheduler_lock = threading.Lock()
         self.ram_mb = int(psutil.TOTAL_PHYMEM / (1024 * 1024))
 
         assert(self.cores > 0)
@@ -197,8 +195,7 @@ class FlexManager(object):
 
         self.flex_scheduler.add_interval_job(self._check_flexing_status,
                                              seconds=self.SECONDS_PER_TICKS, kwargs={})
-        with self.scheduler_lock:
-            self._find_new_bottlenecks()
+        self._find_new_bottlenecks()
 
         self.flex_scheduler.start()
 
@@ -223,42 +220,40 @@ class FlexManager(object):
 
     def shutdown(self):
         self.log.info('shutting down flex manager.')
-        with self.scheduler_lock:
-            self.flex_scheduler.shutdown()
-            if self.service_manager:
-                self.service_manager.shutdown()
-                self.service_manager = None
-            if self.vm_manager:
-                self.vm_manager.shutdown()
-                self.vm_manager = None
-            self.datastore.close()
+        self.flex_scheduler.shutdown()
+        if self.service_manager:
+            self.service_manager.shutdown()
+            self.service_manager = None
+        if self.vm_manager:
+            self.vm_manager.shutdown()
+            self.vm_manager = None
+        self.datastore.close()
 
     def _check_flexing_status(self):
-        with self.scheduler_lock:
-            self.tick_count += 1
+        self.tick_count += 1
 
-            if self.tick_count > self.MAX_TICKS:
-                self.log.info("flexnode has been running for max period. respawning.")
+        if self.tick_count > self.MAX_TICKS:
+            self.log.info("flexnode has been running for max period. respawning.")
+            self._find_new_bottlenecks()
+            return
+
+        if self.main_bottleneck:
+            service_queue_lengths = {x: get_service_queue_length(x) for x in self.bottleneck_queue_sizes.keys()}
+            if service_queue_lengths[self.main_bottleneck] < self.STOP_FLEX:
+                self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
+                              "looking for new bottlenecks..." % self.main_bottleneck)
+                for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
+                    self.log.info("%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
                 self._find_new_bottlenecks()
                 return
 
-            if self.main_bottleneck:
-                service_queue_lengths = {x: get_service_queue_length(x) for x in self.bottleneck_queue_sizes.keys()}
-                if service_queue_lengths[self.main_bottleneck] < self.STOP_FLEX:
-                    self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
-                                  "looking for new bottlenecks..." % self.main_bottleneck)
-                    for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                        self.log.info("%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
-                    self._find_new_bottlenecks()
-                    return
+            self.log.info("flexnode bottleneck progress:")
+            for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
+                self.log.info("\t%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
 
-                self.log.info("flexnode bottleneck progress:")
-                for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                    self.log.info("\t%s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
-
-            else:
-                self.log.info("flexnode has no services up, checking for new job...")
-                self._find_new_bottlenecks()
+        else:
+            self.log.info("flexnode has no services up, checking for new job...")
+            self._find_new_bottlenecks()
 
     def _wait_for_safe_start(self):
 
