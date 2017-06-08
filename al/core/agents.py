@@ -175,7 +175,6 @@ class FlexManager(object):
         self.previous_queue_sizes = {}
         self.safe_start_dict = {}
         self.safeq = NamedQueue('safe-start-%s' % self.mac)
-        self.scheduler_lock = None
         self.service_manager = None
         self.ram_mb = None
         self.tick_count = 0
@@ -186,7 +185,6 @@ class FlexManager(object):
 
         self.cores = psutil.NUM_CPUS
         self.flex_scheduler = Scheduler()
-        self.scheduler_lock = threading.Lock()
         self.ram_mb = int(psutil.TOTAL_PHYMEM / (1024 * 1024))
 
         assert(self.cores > 0)
@@ -232,36 +230,30 @@ class FlexManager(object):
         self.datastore.close()
 
     def _check_flexing_status(self):
-        if self.scheduler_lock.acquire(0):
-            try:
-                self.tick_count += 1
+        self.tick_count += 1
 
-                if self.tick_count > self.MAX_TICKS:
-                    self.log.info("flexnode has been running for max period. respawning.")
-                    self._find_new_bottlenecks()
-                    return
+        if self.tick_count > self.MAX_TICKS:
+            self.log.info("flexnode has been running for max period. respawning.")
+            self._find_new_bottlenecks()
+            return
 
-                if self.main_bottleneck:
-                    service_queue_lengths = {x: get_service_queue_length(x) for x in self.bottleneck_queue_sizes.keys()}
-                    if service_queue_lengths[self.main_bottleneck] < self.STOP_FLEX:
-                        self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
-                                      "looking for new bottlenecks..." % self.main_bottleneck)
-                        for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                            self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
-                        self._find_new_bottlenecks()
-                        return
+        if self.main_bottleneck:
+            service_queue_lengths = {x: get_service_queue_length(x) for x in self.bottleneck_queue_sizes.keys()}
+            if service_queue_lengths[self.main_bottleneck] < self.STOP_FLEX:
+                self.log.info("flexnode main bottleneck (%s) has shrunk under minimum threshold, "
+                              "looking for new bottlenecks..." % self.main_bottleneck)
+                for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
+                    self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
+                self._find_new_bottlenecks()
+                return
 
-                    self.log.info("flexnode bottleneck progress:")
-                    for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
-                        self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
+            self.log.info("flexnode bottleneck progress:")
+            for srv, queue_size in self.bottleneck_queue_sizes.iteritems():
+                self.log.info("    %s: %d --> %d" % (srv, queue_size, service_queue_lengths[srv]))
 
-                else:
-                    self.log.info("flexnode has no services up, checking for new job...")
-                    self._find_new_bottlenecks()
-            finally:
-                self.scheduler_lock.release()
         else:
-            self.log.warn("Someone else has the lock - Skipping this tick")
+            self.log.info("flexnode has no services up, checking for new job...")
+            self._find_new_bottlenecks()
 
     def _wait_for_safe_start(self):
 
@@ -428,19 +420,24 @@ class FlexManager(object):
         # Allocate services
         available_ram = self.ram_mb - 256
         available_cpu = self.cores - 0.1
-        can_still_allocate = True
+        failed_list = []
         main_service, main_queue_size = flexable_services[0]
         main_resources = resources[main_service]
-        failed_list = []
-        while can_still_allocate:
+        something_changed = True
+
+        while something_changed:
+            something_changed = False
             # Can I allocated the main service ?
             if main_resources.cores <= available_cpu and main_resources.ram_mb <= available_ram and \
                     allocation[main_service] < self.MAX_WORKERS:
                 available_cpu -= main_resources.cores
                 available_ram -= main_resources.ram_mb
                 allocation[main_service] += 1
+                something_changed = True
             else:
-                failed_list.append(main_service)
+                if main_service not in failed_list:
+                    failed_list.append(main_service)
+                    something_changed = True
 
             for srv, queue_size in flexable_services[1:]:
                 # is it time to allocate this service
@@ -452,11 +449,10 @@ class FlexManager(object):
                         available_cpu -= res.cores
                         available_ram -= res.ram_mb
                         allocation[srv] += 1
+                        something_changed = True
                     else:
                         failed_list.append(srv)
-
-            if len(failed_list) == len(flexable_services):
-                can_still_allocate = False
+                        something_changed = True
 
         self.log.info("Machine has %s cores and %sMB ram. The flex manager will provision %s cores and %sMB ram." %
                       (self.cores, self.ram_mb, self.cores-available_cpu, self.ram_mb-available_ram))
