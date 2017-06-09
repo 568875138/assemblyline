@@ -292,6 +292,7 @@ DEFAULT_SEED = {
     'services': {
         'categories': [
             'Antivirus',
+            'External',
             'Extraction',
             'Filtering',
             'Networking',
