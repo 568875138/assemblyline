@@ -81,7 +81,7 @@ DBT = StringTable('DBT', [
 # it won't be a summary anymore.
 FILE_SUMMARY = StringTable('FILE_SUMMARY', constants.FILE_SUMMARY)
 
-log = logging.getLogger('assemblyline.al.common.result')
+log = logging.getLogger('assemblyline.svc.common.result')
 
 
 class Tag(object):

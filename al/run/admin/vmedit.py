@@ -14,7 +14,7 @@ from assemblyline.al.common import vm
 QCOW2_EXT = 'qcow2'
 LOCAL_VMDISK_ROOT = '/opt/al/var/masterdisks/'
 
-log = logging.getLogger('al.vme')
+log = logging.getLogger('assemblyline.al.vme')
 
 
 class VmEditor(object):

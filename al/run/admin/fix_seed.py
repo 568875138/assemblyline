@@ -23,7 +23,7 @@ if __name__ == "__main__":
     from assemblyline.common.importing import module_attribute_by_name
     from assemblyline.al.service import register_service
 
-    log = logging.getLogger('assemblyline.al.datastore')
+    log = logging.getLogger('assemblyline.datastore')
     log.setLevel(logging.WARNING)
 
     # noinspection PyBroadException

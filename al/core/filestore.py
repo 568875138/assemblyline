@@ -112,7 +112,7 @@ def create_transport(url):
 
 class FileStore(object):
     def __init__(self, *transport_urls):
-        self.log = logging.getLogger('assemblyline.transport.lvl')
+        self.log = logging.getLogger('assemblyline.transport')
         self.transports = [create_transport(url) for url in transport_urls]
         self.local_transports = [
             t for t in self.transports if isinstance(t, TransportLocal)

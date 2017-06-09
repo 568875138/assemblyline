@@ -10,7 +10,7 @@ class YaraValidator(object):
         if not logger:
             from assemblyline.al.common import log as al_log
             al_log.init_logging('YaraValidator')
-            logger = logging.getLogger('assemblyline.YaraValidator')
+            logger = logging.getLogger('assemblyline.yara_validator')
             logger.setLevel(logging.WARNING)
         if not externals:
             externals = {'dummy': ''}

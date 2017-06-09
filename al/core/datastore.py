@@ -50,7 +50,7 @@ emptyresult_queue = NamedQueue(
     port=config.core.redis.persistent.port,
 )
 field_sanitizer = re.compile("^[a-z][a-z0-9_\-.]+$")
-log = logging.getLogger('assemblyline.al.datastore')
+log = logging.getLogger('assemblyline.datastore')
 
 
 def compress_riak_key(uncompressed, srl):

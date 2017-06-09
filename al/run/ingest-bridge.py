@@ -18,7 +18,7 @@ PRODUCTION_PORT = config.core.ingest_bridge.port
 
 SEND_EVERY = int(config.core.ingest_bridge.send_every)
 
-logger = logging.getLogger('assemblyline.ingest-bridge')
+logger = logging.getLogger('assemblyline.ingest_bridge')
 running = True
 
 

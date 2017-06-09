@@ -353,7 +353,7 @@ class ServiceBase(object):  # pylint:disable=R0922
             self.cfg.update(cfg)
 
         # Initialize non trivial members in start_service rather than __init__.
-        self.log = logging.getLogger('assemblyline.svc.%s' % self.SERVICE_NAME)
+        self.log = logging.getLogger('assemblyline.svc.%s' % self.SERVICE_NAME.lower())
         self.counters = None
         self.dispatch_queue = None
         self.result_store = None

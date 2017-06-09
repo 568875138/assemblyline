@@ -9,7 +9,8 @@ from assemblyline.al.common import forge
 
 def init_logging(name='al'):
     config = forge.get_config()
-    logger = logging.root
+    logging.root.setLevel(logging.CRITICAL)
+    logger = logging.getLogger('assemblyline')
     logger.setLevel(logging.INFO)
 
     if config.logging.log_to_file:
