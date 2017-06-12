@@ -240,7 +240,7 @@ DEFAULT_SEED = {
                 'byobu',
             ],
             'pip': [
-                'ipython'
+                'ipython<6.0.0'
             ],
         },
         'pip_index_url': ''
