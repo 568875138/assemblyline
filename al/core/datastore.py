@@ -2735,6 +2735,10 @@ class RiakStore(DataStoreBase):
 
     def set_user_avatar(self, user, data):
         try:
+            # Validate avatar
+            if not (data.startswith("data:image") and ";base64," in data[:30]):
+                return False
+
             key = "%s_avatar" % user
             self._save_bucket_item(self.users, key, data)
             return True
