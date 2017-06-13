@@ -51,9 +51,7 @@ seed['filestore']['urls'] = [
 ]
 
 seed['logging']['log_to_syslog'] = True
-seed['logging']['logserver']['kibana']['url'] = 'https://kibanaadmin:{password}@{logger}'.format(
-    logger=IP_LOGGER,
-    password=LOGGER_PASS)
+seed['logging']['logserver']['kibana']['host'] = IP_LOGGER
 seed['logging']['logserver']['kibana']['password'] = LOGGER_PASS
 seed['logging']['logserver']['node'] = IP_LOGGER
 seed['logging']['syslog_ip'] = IP_LOGGER
