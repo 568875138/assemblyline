@@ -54,7 +54,7 @@ server {
     }
 
     location @alweb {
-        add_header            X-Frame-Options              DENY;
+        add_header            X-Frame-Options              SAMEORIGIN;
 
         proxy_set_header      Host                         $http_host;
         proxy_set_header      Scheme                       $scheme;
@@ -72,7 +72,7 @@ server {
 
     }
     location @alweb_dbg {
-        add_header           X-Frame-Options         DENY;
+        add_header           X-Frame-Options         SAMEORIGIN;
         proxy_set_header     X-Remote-Cert-Verified  $ssl_client_verify;
         proxy_set_header     X-Remote-DN             $ssl_client_s_dn;
         proxy_set_header     Host                    $http_host;

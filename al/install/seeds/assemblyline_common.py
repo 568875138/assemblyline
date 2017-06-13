@@ -254,9 +254,6 @@ DEFAULT_SEED = {
         'logserver': {
             'node': None,
             'kibana': {
-                'extra_viz': [],
-                'extra_indices': [],
-                'url': '',
                 'dashboards': [
                     "AL-Logs",
                     "AL-Metrics",
@@ -264,7 +261,12 @@ DEFAULT_SEED = {
                     "SOLR-Shard-Statistics",
                     "UI-Audit-Logs"
                 ],
+                'extra_viz': [],
+                'extra_indices': [],
+                'host': '',
                 'password': 'changeme',
+                'port': 443,
+                'scheme': 'https'
             },
             'elasticsearch': {
                 'heap_size': 2,
