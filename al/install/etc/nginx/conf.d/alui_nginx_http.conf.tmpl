@@ -40,7 +40,7 @@ server {
         try_files $uri @alweb;
     }
     location @alweb {
-        add_header            X-Frame-Options              DENY;
+        add_header            X-Frame-Options              SAMEORIGIN;
 
         proxy_set_header      Host          $http_host;
         proxy_set_header      Scheme        $scheme;
@@ -55,7 +55,7 @@ server {
         error_page 502 = @alweb_dbg;
     }
     location @alweb_dbg {
-        add_header            X-Frame-Options  DENY;
+        add_header            X-Frame-Options  SAMEORIGIN;
         proxy_set_header      Host             $http_host;
         proxy_set_header      Scheme           $scheme;
         proxy_set_header      Server-Port      $server_port;
