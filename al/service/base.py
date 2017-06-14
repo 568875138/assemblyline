@@ -208,9 +208,11 @@ class ServiceRequest(object):
     def get(self):
         return self._svc.transport.get(self.srl)
 
-    def get_param(self, name, default=None):
+    def get_param(self, name):
+        params = {x['name']: x['default']
+                  for x in config.services.master_list[self.task.service_name]['submission_params']}
         service_params = self.task.get_service_params(self.task.service_name)
-        return service_params.get(name, default)
+        return service_params.get(name, params[name])
 
     def get_results(self):
         return [uncompress_riak_key(r, self.srl)
@@ -383,8 +385,14 @@ class ServiceBase(object):  # pylint:disable=R0922
     def sysprep(self):
         pass
 
+    def get_service_params(self, task=None):
+        params = {x['name']: x['default'] for x in config.services.master_list[self.SERVICE_NAME]['submission_params']}
+        if task:
+            params.update(task.get_service_params(self.SERVICE_NAME))
+        return params
+
     def get_config_data(self, task):
-        return task.get_service_params(task.service_name)
+        return self.get_service_params(task)
 
     def get_tool_version(self):
         return ''
@@ -568,9 +576,10 @@ class ServiceBase(object):  # pylint:disable=R0922
             cfg = uuid.uuid4().get_hex()
         else:
             cfg = ''.join((
-                str(get_service_overrides(task).values() or ''),
+                str(get_service_overrides(task) or ''),
                 str(self.get_config_data(task) or ''),
                 str(self.get_tool_version() or ''),
+                str(self.cfg or ''),
             ))
 
         if not cfg:
