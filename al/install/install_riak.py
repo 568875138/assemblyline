@@ -108,6 +108,10 @@ def initial_install(alsi):
 
 
 if __name__ == '__main__':
+    try:
+        os.environ['AL_SEED_STATIC'] = os.environ['AL_SEED']
+    except IndexError:
+        raise Exception("AL_SEED environment variable is not set!")
 
     installer = SiteInstaller()
 
