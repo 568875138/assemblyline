@@ -222,7 +222,7 @@ class DistributedBackup():
             yield x
 
     def _search_streamer(self, bucket_name, query):
-        for x in self.ds.stream_search(bucket_name, query, fl="_yz_rk"):
+        for x in self.ds.stream_search(bucket_name, query, fl="_yz_rk", item_buffer_size=500):
             yield x['_yz_rk']
 
     # noinspection PyBroadException,PyProtectedMember
