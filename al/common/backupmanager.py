@@ -18,7 +18,7 @@ LOW_THRESHOLD = 10000
 HIGH_THRESHOLD = 50000
 
 
-class SystemBackup():
+class SystemBackup(object):
     def __init__(self, backup_file_path):
         self.backup_file_path = backup_file_path
         self.ds = forge.get_datastore()
@@ -97,7 +97,7 @@ class SystemBackup():
             print "Backup restore complete!\n"
 
 
-class DistributedBackup():
+class DistributedBackup(object):
     def __init__(self, working_dir, worker_count=50, spawn_workers=True):
         self.working_dir = working_dir
         self.ds = forge.get_datastore()
@@ -217,12 +217,13 @@ class DistributedBackup():
             summary += "\nThese buckets failed to %s completely: %s\n" % (title.lower(), self.bucket_error)
         print summary
 
+    # noinspection PyProtectedMember
     def _key_streamer(self, bucket_name, _):
         for x in self.ds._stream_bucket_debug_keys(self.BUCKET_MAP[bucket_name]):
             yield x
 
     def _search_streamer(self, bucket_name, query):
-        for x in self.ds.stream_search(bucket_name, query, fl="_yz_rk"):
+        for x in self.ds.stream_search(bucket_name, query, fl="_yz_rk", item_buffer_size=500):
             yield x['_yz_rk']
 
     # noinspection PyBroadException,PyProtectedMember
@@ -279,7 +280,8 @@ class DistributedBackup():
                                 retry = 0
                                 while self.backup_queue.length() > LOW_THRESHOLD:
                                     if retry % RETRY_PRINT_THRESHOLD == 0:
-                                        print "WARNING: Backup queue reached max threshold (%s). Waiting for queue size " \
+                                        print "WARNING: Backup queue reached max threshold (%s). " \
+                                              "Waiting for queue size " \
                                               "to reach %s before sending more keys... [%s]" \
                                               % (HIGH_THRESHOLD, LOW_THRESHOLD, self.backup_queue.length())
                                     time.sleep(0.1)
@@ -403,7 +405,7 @@ FOLLOW_KEYS = {
 
 
 # noinspection PyProtectedMember,PyBroadException
-class BackupWorker():
+class BackupWorker(object):
     def __init__(self, wid, worker_type, working_dir):
         self.working_dir = working_dir
         self.worker_id = wid
@@ -479,7 +481,7 @@ class BackupWorker():
                 success = True
                 try:
                     v = self.ds.sanitize(bucket_name, data, key)
-                    self.ds._save_bucket_item(self.ds.get_bucket(bucket_name), key, data)
+                    self.ds._save_bucket_item(self.ds.get_bucket(bucket_name), key, v)
                 except:
                     success = False
 

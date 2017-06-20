@@ -1,7 +1,10 @@
 import logging
 
 import re
+import threading
+
 import requests
+import time
 
 from copy import copy
 from hashlib import md5
@@ -1145,8 +1148,32 @@ class RiakStore(DataStoreBase):
 
     def stream_search(self, bucket, query, df="text", sort="_yz_id asc", fl=None, item_buffer_size=200,
                       access_control=None, fq=None):
-        cursor = "*"
-        done = False
+
+        def _auto_fill(_self, _page_size, _items, _lock, _bucket, _query, _args, _df, _access_control):
+            _max_yield_cache = 50000
+
+            done = False
+            _args = list(_args)
+            while not done:
+                skip = False
+                with lock:
+                    if len(_items) > _max_yield_cache:
+                        skip = True
+
+                if skip:
+                    time.sleep(0.01)
+                    continue
+
+                j = _self.direct_search(_bucket, _query, _args, df=_df, __access_control__=_access_control)
+
+                # Replace cursorMark.
+                _args = _args[:-1]
+                _args.append(('cursorMark', j.get('nextCursorMark', '*')))
+
+                with _lock:
+                    _items.extend(j['response']['docs'])
+
+                done = _page_size - len(j['response']['docs'])
 
         if item_buffer_size > 500 or item_buffer_size < 50:
             raise SearchException("Variable item_buffer_size must be between 50 and 500.")
@@ -1166,18 +1193,26 @@ class RiakStore(DataStoreBase):
                     args.append(("fq", item))
             else:
                 args.append(("fq", fq))
+        args.append(('cursorMark', '*'))
 
-        args.append(("cursorMark", cursor))
+        yield_done = False
+        items = []
+        lock = threading.Lock()
+        sf_t = threading.Thread(target=_auto_fill,
+                                args=[self, item_buffer_size, items, lock, bucket, query, args, df, access_control],
+                                name="stream_search_%s" % md5(bucket + query).hexdigest()[:7])
+        sf_t.setDaemon(True)
+        sf_t.start()
+        while not yield_done:
+            try:
+                with lock:
+                    item = items.pop(0)
 
-        while not done:
-            j = self.direct_search(bucket, query, args, df=df, __access_control__=access_control)
-            args = args[:-1]
-
-            args.append(("cursorMark", j.get("nextCursorMark", "*")))
-            if len(j["response"]["docs"]) < item_buffer_size:
-                done = True
-            for item in j["response"]["docs"]:
                 yield item
+            except IndexError:
+                if not sf_t.is_alive() and len(items) == 0:
+                    yield_done = True
+                time.sleep(0.01)
 
     ################################################################
     # Helper Functions

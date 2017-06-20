@@ -186,13 +186,7 @@ class ServiceRequest(object):
 
         received_sha256 = digests.get_sha256_for_file(localpath)
         if received_sha256 != sha256:
-            t = tempfile.NamedTemporaryFile(delete=False)
-            t.write(open(localpath).read())
-            name = t.name
-            t.close()
-            raise Exception(('SHA256 mismatch between SRL and downloaded file. '
-                             '%s vs %s. Saved copy to: %s'),
-                            received_sha256, sha256, name)
+            raise Exception('SHA256 mismatch between SRL and downloaded file. %s != %s' % (sha256, received_sha256))
         return localpath
 
     def drop(self):
@@ -206,7 +200,11 @@ class ServiceRequest(object):
         self.error_text = msg
 
     def get(self):
-        return self._svc.transport.get(self.srl)
+        data = self._svc.transport.get(self.srl)
+        received_sha256 = hashlib.sha256(data).hexdigest()
+        if received_sha256 != self.srl:
+            raise Exception('SHA256 mismatch between SRL and downloaded file. %s != %s' % (self.srl, received_sha256))
+        return data
 
     def get_param(self, name):
         params = {x['name']: x['default']
@@ -282,8 +280,11 @@ class ServiceRequestBatch(object):
             try:
                 local_path = os.path.join(download_directory,
                                           os.path.basename(request.srl))
-                # os.makedirs(download_directory)
                 self._service.transport.download(request.srl, local_path)
+                received_sha256 = digests.get_sha256_for_file(local_path)
+                if received_sha256 != request.srl:
+                    raise Exception(
+                        'SHA256 mismatch between SRL and downloaded file. %s != %s' % (request.srl, received_sha256))
                 request.successful = True
                 request.local_path = local_path
             except Exception as ex:  # pylint: disable=W0703
@@ -291,7 +292,8 @@ class ServiceRequestBatch(object):
                 msg = exceptions.get_stacktrace_info(ex)
                 request.successful = False
                 request.error_text = msg
-                request.error_is_recoverable = True
+                if not "SHA256 mismatch" in ex.message:
+                    request.error_is_recoverable = True
 
         # often batch services will know the filename that they processed
         # and want to get the original request associated with it.
