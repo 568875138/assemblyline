@@ -186,13 +186,7 @@ class ServiceRequest(object):
 
         received_sha256 = digests.get_sha256_for_file(localpath)
         if received_sha256 != sha256:
-            t = tempfile.NamedTemporaryFile(delete=False)
-            t.write(open(localpath).read())
-            name = t.name
-            t.close()
-            raise Exception(('SHA256 mismatch between SRL and downloaded file. '
-                             '%s vs %s. Saved copy to: %s'),
-                            received_sha256, sha256, name)
+            raise Exception('SHA256 mismatch between SRL and downloaded file. %s != %s' % (received_sha256, sha256))
         return localpath
 
     def drop(self):
