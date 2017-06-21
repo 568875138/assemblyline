@@ -18,6 +18,10 @@ class FileStoreException(Exception):
     pass
 
 
+class CorruptedFileStoreException(Exception):
+    pass
+
+
 def create_transport(url):
     """
     Transport are being initiated using an URL. They follow the normal url format:

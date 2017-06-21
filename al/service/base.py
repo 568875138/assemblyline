@@ -10,6 +10,14 @@ import uuid
 
 from random import random
 
+from assemblyline.al.common.counter import Counters
+from assemblyline.al.common.heuristics import get_heuristics_form_class
+from assemblyline.al.common.queue import NamedQueue
+from assemblyline.al.common.remote_datatypes import ExpiringSet, ExpiringHash
+from assemblyline.al.common.result import Result, ResultSection
+from assemblyline.al.common.task import Child, Task, get_service_overrides
+from assemblyline.al.core.datastore import uncompress_riak_key
+from assemblyline.al.core.filestore import CorruptedFileStoreException
 from assemblyline.common import digests
 from assemblyline.common import exceptions
 from assemblyline.common import net
@@ -19,13 +27,6 @@ from assemblyline.common.isotime import now_as_iso, now
 from assemblyline.common.path import modulepath
 from assemblyline.common.properties import classproperty
 from assemblyline.al.common import forge, version
-from assemblyline.al.common.counter import Counters
-from assemblyline.al.common.heuristics import get_heuristics_form_class
-from assemblyline.al.common.queue import NamedQueue
-from assemblyline.al.common.remote_datatypes import ExpiringSet, ExpiringHash
-from assemblyline.al.common.result import Result, ResultSection
-from assemblyline.al.common.task import Child, Task, get_service_overrides
-from assemblyline.al.core.datastore import uncompress_riak_key
 
 config = forge.get_config()
 Classification = forge.get_classification()
@@ -186,7 +187,8 @@ class ServiceRequest(object):
 
         received_sha256 = digests.get_sha256_for_file(localpath)
         if received_sha256 != sha256:
-            raise Exception('SHA256 mismatch between SRL and downloaded file. %s != %s' % (sha256, received_sha256))
+            raise CorruptedFileStoreException('SHA256 mismatch between SRL and '
+                                              'downloaded file. %s != %s' % (sha256, received_sha256))
         return localpath
 
     def drop(self):
@@ -203,7 +205,8 @@ class ServiceRequest(object):
         data = self._svc.transport.get(self.srl)
         received_sha256 = hashlib.sha256(data).hexdigest()
         if received_sha256 != self.srl:
-            raise Exception('SHA256 mismatch between SRL and downloaded file. %s != %s' % (self.srl, received_sha256))
+            raise CorruptedFileStoreException('SHA256 mismatch between SRL and '
+                                              'downloaded file. %s != %s' % (self.srl, received_sha256))
         return data
 
     def get_param(self, name):
@@ -283,8 +286,8 @@ class ServiceRequestBatch(object):
                 self._service.transport.download(request.srl, local_path)
                 received_sha256 = digests.get_sha256_for_file(local_path)
                 if received_sha256 != request.srl:
-                    raise Exception(
-                        'SHA256 mismatch between SRL and downloaded file. %s != %s' % (request.srl, received_sha256))
+                    raise CorruptedFileStoreException('SHA256 mismatch between SRL and '
+                                                      'downloaded file. %s != %s' % (request.srl, received_sha256))
                 request.successful = True
                 request.local_path = local_path
             except Exception as ex:  # pylint: disable=W0703

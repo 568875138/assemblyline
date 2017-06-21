@@ -79,7 +79,7 @@ from assemblyline.al.common.notice import Notice, overrides
 from assemblyline.al.common.remote_datatypes import Hash
 from assemblyline.al.common.task import Task, get_submission_overrides
 from assemblyline.al.core.datastore import create_filescore_key
-from assemblyline.al.core.filestore import FileStoreException
+from assemblyline.al.core.filestore import FileStoreException, CorruptedFileStoreException
 
 class ScanLock(object):
     SCAN_LOCK_LOCK = RLock()
@@ -1242,6 +1242,9 @@ def submitter(): # df node def
             tex = type(ex)
             if tex == FileStoreException:
                 ex = tex("Problem with file: %s" % sha256)
+            elif tex == CorruptedFileStoreException:
+                logger.error("Submission failed due to corrupted filestore: %s" % ex.message)
+                continue
             else:
                 trace = get_stacktrace_info(ex)
                 logger.error("Submission failed: %s", trace)

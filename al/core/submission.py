@@ -30,7 +30,7 @@ import time
 from assemblyline.al.common import forge
 from assemblyline.al.common.task import Task
 from assemblyline.al.common.remote_datatypes import ExpiringHash
-from assemblyline.al.core.filestore import FileStoreException
+from assemblyline.al.core.filestore import CorruptedFileStoreException
 from assemblyline.common import digests
 from assemblyline.common import identify
 from assemblyline.common.charset import safe_str
@@ -196,8 +196,8 @@ class SubmissionWrapper(object):
 
             fileinfo = identify.fileinfo(local_path)
             if fileinfo['sha256'] != sha256:
-                raise FileStoreException('SHA256 mismatch between received '
-                                         'and calculated sha256. %s != %s' % (sha256, fileinfo['sha256']))
+                raise CorruptedFileStoreException('SHA256 mismatch between received '
+                                                  'and calculated sha256. %s != %s' % (sha256, fileinfo['sha256']))
             storage.save_or_freshen_file(sha256, fileinfo, expiry, classification)
 
             decode_file = forge.get_decode_file()
