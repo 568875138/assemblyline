@@ -101,7 +101,7 @@ class PackageFetcher(object):
                 except ImportError:
                     alsi.milestone("Installing Amazon S3 Dependencies...")
                     alsi.sudo_apt_install("python-pip")
-                    alsi.pip_install("boto3")
+                    alsi.pip_install_all(["boto3==1.4.4", 'botocore=1.5.62'])
                     from assemblyline.al.common.transport import s3
                 logging.getLogger('botocore').setLevel(logging.WARNING)
                 logging.getLogger('boto3').setLevel(logging.WARNING)
