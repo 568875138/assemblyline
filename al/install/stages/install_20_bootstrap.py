@@ -58,7 +58,7 @@ def install(alsi):
     ])
     alsi.pip_install_all([
         'boto3==1.4.4',
-        'botocore==1.5.62'
+        'botocore==1.5.62',
         'setuptools==24.0.2',
         'cryptography',
         'riak-pb',
