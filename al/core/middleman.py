@@ -1239,12 +1239,13 @@ def submitter(): # df node def
 
             ingester_counts.increment('ingest.error')
 
+            should_retry = True
             tex = type(ex)
             if tex == FileStoreException:
                 ex = tex("Problem with file: %s" % sha256)
             elif tex == CorruptedFileStoreException:
                 logger.error("Submission failed due to corrupted filestore: %s" % ex.message)
-                continue
+                should_retry = False
             else:
                 trace = get_stacktrace_info(ex)
                 logger.error("Submission failed: %s", trace)
@@ -1252,6 +1253,9 @@ def submitter(): # df node def
             raw = scanning.pop(scan_key)
             if not raw:
                 logger.error('No scanning entry for for %s', sha256)
+                continue
+
+            if not should_retry:
                 continue
 
             retry(raw, scan_key, sha256, ex)
