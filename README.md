@@ -80,7 +80,7 @@ Then clone assemblyline repo with one of those two techniques:
     ssh -T git@bitbucket.org
 
     cd $ASSEMBLYLINE_DIR
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
 
 ###### App password
 
@@ -89,7 +89,7 @@ First you need to create an app password for your user in bitbucket then:
     export GIT_USER=<your git user>
     export GIT_PASS=<your app password>
     cd $ASSEMBLYLINE_DIR
-    git clone https://${GIT_USER}:${GIT_PASS}@bitbucket.org/cse-assemblyline/assemblyline.git
+    git clone https://${GIT_USER}:${GIT_PASS}@bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.1
 
 ##### Clone other repos
 

@@ -44,7 +44,7 @@ This will install assemblyline on a bare-metal machine. All actions need to be p
     chmod 700 $PYTHONPATH/../.ssh/
 
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
 
 ### Create Appliance Deployment
 
