@@ -164,7 +164,7 @@ def cluster(templating_directory, update_seed_path):
     organisation = get_string("What is your organisation acronym?")
     if get_bool("Is this a production cluster?"):
         sys_name = 'production'
-        repo_branch = 'master'
+        repo_branch = 'prod_3.1'
     else:
         sys_name = 'staging'
         repo_branch = 'master'
