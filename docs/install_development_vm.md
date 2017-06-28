@@ -50,7 +50,7 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
     chmod 700 $PYTHONPATH/../.ssh/
 
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
 
 ### Create Dev VM Deployment
 
