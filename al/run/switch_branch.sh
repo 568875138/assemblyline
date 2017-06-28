@@ -13,7 +13,6 @@ switch_branch() {
         echo "Switching ${repo} to branch $branch:"
         (cd ${repo_path} &&
          git fetch --all &&
-         git clean -f &&
          git reset --hard origin/${cur_branch} 2> /dev/null 1> /dev/null &&
          git checkout ${branch} &&
          git reset --hard origin/${branch}) 2>&1 |
