@@ -77,14 +77,12 @@ def install_switch_branch(alsi):
     script_name = "al_switch_branch"
 
     user = alsi.config['system']['user']
-    script = os.path.join(alsi.alroot, 'pkg/assemblyline/al/run/git-pull.sh')
+    script = os.path.join(alsi.alroot, 'pkg/assemblyline/al/run/switch_branch.sh')
     target = '/tmp/{script_name}'.format(script_name=script_name)
 
-    alsi.runcmd('echo "#!/bin/sh\n\n'
-                '[ \$# -lt 1 ] && echo \\"usage: {script_name} <branch>\\" && exit 1\n\n'
-                'sudo sed -i -e \\"s|AL_BRANCH=.*|AL_BRANCH=\$1|g\\" /etc/default/al\n'
-                'sudo su {user} -c {script}" > {target}'.format(script=script, target=target,
-                                                                user=user, script_name=script_name),
+    alsi.runcmd('echo "#!/bin/sh\n\nsudo su {user} -c {git_pull}" > {target}'.format(user=user,
+                                                                                     git_pull=script,
+                                                                                     target=target),
                 raise_on_error=False)
     alsi.runcmd("chmod +x {target}".format(target=target))
     alsi.runcmd("sudo mv {target} {exec_path}/{script_name}".format(target=target,
