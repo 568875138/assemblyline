@@ -47,8 +47,8 @@ This will install the bootstrap code for an assemblyline base VM image. All acti
     chmod 700 $PYTHONPATH/../.ssh/
 
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git
-    git clone git@bitbucket.org:${BB_USER}/al_private.git
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
+    git clone git@bitbucket.org:${BB_USER}/al_private.git -b prod_3.1
 
 ### Install bootstrap code
     
