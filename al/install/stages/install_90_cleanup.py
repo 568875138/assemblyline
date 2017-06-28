@@ -80,7 +80,7 @@ def install_switch_branch(alsi):
     script = os.path.join(alsi.alroot, 'pkg/assemblyline/al/run/switch_branch.sh')
     target = '/tmp/{script_name}'.format(script_name=script_name)
 
-    alsi.runcmd('echo "#!/bin/sh\n\nsudo su {user} -c {git_pull}" > {target}'.format(user=user,
+    alsi.runcmd('echo "#!/bin/sh\n\nsudo su {user} -c {git_pull} $1" > {target}'.format(user=user,
                                                                                      git_pull=script,
                                                                                      target=target),
                 raise_on_error=False)
