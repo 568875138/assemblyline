@@ -10,7 +10,6 @@ git_update() {
         echo "Updating ${repo} ($branch):"
         (cd ${repo_path} &&
          git fetch --all &&
-         git clean -f &&
          git reset --hard origin/${branch}) 2>&1 |
         grep -Ev '^(Already on|Your branch is up-to-date with) ' |
         grep -Ev '^Fetching origin$' |
