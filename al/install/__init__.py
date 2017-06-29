@@ -575,15 +575,15 @@ class SiteInstaller(object):
             cmd_output = self.runcmd('pip show yara-python')[1]
         except:
             cmd_output = ''
-        if "Version: 3.6.1" not in cmd_output:
+        if "Version: 3.6.2" not in cmd_output:
             wd = os.getcwd()
             local_yara_support = os.path.join(self.alroot, 'support/yara/')
-            local_yara_python = os.path.join(local_yara_support, 'yara-python-3.6.1.tar.gz')
-            self.fetch_package('yara-python-3.6.1.tar.gz', local_yara_python)
+            local_yara_python = os.path.join(local_yara_support, 'yara-python-3.6.2.tar.gz')
+            self.fetch_package('yara-python-3.6.2.tar.gz', local_yara_python)
 
             os.chdir(local_yara_support)
-            self.runcmd("tar -zxf yara-python-3.6.1.tar.gz")
-            os.chdir(os.path.join(local_yara_support, "yara-python-3.6.1"))
+            self.runcmd("tar -zxf yara-python-3.6.2.tar.gz")
+            os.chdir(os.path.join(local_yara_support, "yara-python-3.6.2"))
             self.runcmd("python setup.py build --enable-dotnet")
             self.runcmd("sudo python setup.py install")
             os.chdir(wd)
