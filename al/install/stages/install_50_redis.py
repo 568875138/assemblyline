@@ -61,14 +61,14 @@ def install(alsi=None):
 
     tmpl_path = os.path.join(
             alsi.alroot, 'pkg',
-            'assemblyline/al/install/etc/cron/al-bgrewriteaof.tmpl')
+            'assemblyline/al/install/etc/cron/al-redis_maintenance.tmpl')
 
     tmpl = open(tmpl_path).read()
     cfg = tmpl.replace('___DB___', str(db)).replace('___PORT___', str(port))
-    with open('/tmp/al-bgrewriteaof', 'w') as f:
+    with open('/tmp/al-redis_maintenance', 'w') as f:
         f.write(cfg)
 
-    alsi.sudo_install_file('/tmp/al-bgrewriteaof', '/etc/cron.d/al-bgrewriteaof')
+    alsi.sudo_install_file('/tmp/al-redis_maintenance', '/etc/cron.d/al-redis_maintenance')
 
 if __name__ == '__main__':
     install()
