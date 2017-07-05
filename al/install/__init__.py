@@ -696,7 +696,7 @@ class SiteInstaller(object):
         remote_path = 'python/pip/' + pefile_pkg
         local_path = os.path.join('/tmp/', pefile_pkg)
         self.fetch_package(remote_path, local_path)
-        self.runcmd('sudo pip install ' + local_path, piped_stdio=False)
+        self.runcmd('sudo -H pip install ' + local_path, piped_stdio=False)
 
 
 def _runcmd(cmdline, shell=True, raise_on_error=True, piped_stdio=True, silent=False, cwd=None):
