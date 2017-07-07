@@ -91,6 +91,12 @@ DEFAULT_SEED = {
             'max_extracted': 100,
             'max_supplementary': 100,
             'max_value_size': 4096,
+            'sampling_at': {
+                'low':    10000000,
+                'medium':  2000000,
+                'high':    1000000,
+                'critical': 500000
+            },
             'shards': 2,
             'stale_after': 1 * 24 * 60 * 60,
             'submitter_threads': 4,

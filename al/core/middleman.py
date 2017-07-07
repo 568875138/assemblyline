@@ -237,12 +237,11 @@ defaults = {
 # When a unique queue for a priority group has passed a threshold value, we
 # start sampling, gradually increasing the probability that a newly ingested
 # entry will be dropped.
-sample_threshold_base = 1000000
 sample_threshold = {
-    'low': sample_threshold_base * 10,
-    'medium': sample_threshold_base,
-    'high': sample_threshold_base,
-    'critical': sample_threshold_base,
+    'low': config.core.middleman.get('sampling_at', {}).get('low', 10000000),
+    'medium': config.core.middleman.get('sampling_at', {}).get('medium', 2000000),
+    'high': config.core.middleman.get('sampling_at', {}).get('high', 1000000),
+    'critical': config.core.middleman.get('sampling_at', {}).get('critical', 500000),
 }
 
 priority_range = {}
