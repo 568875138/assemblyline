@@ -81,6 +81,7 @@ from assemblyline.al.common.task import Task, get_submission_overrides
 from assemblyline.al.core.datastore import create_filescore_key
 from assemblyline.al.core.filestore import FileStoreException, CorruptedFileStoreException
 
+
 class ScanLock(object):
     SCAN_LOCK_LOCK = RLock()
     SCAN_LOCK = {}
@@ -134,7 +135,7 @@ for opt, arg in opts:
         shard = arg
 
 # Globals
-alertq = queue.NamedQueue('m-alert', **persistent) # df line queue
+alertq = queue.NamedQueue('m-alert', **persistent)  # df line queue
 cache = {}
 cache_lock = RLock()
 chunk_size = 1000
@@ -142,7 +143,7 @@ completeq_name = 'm-complete-' + shard
 date_fmt = '%Y-%m-%dT%H:%M:%SZ'
 default_prefix = config.core.middleman.default_prefix
 dup_prefix = 'w-' + shard + '-'
-dupq = queue.MultiQueue(**persistent) # df line queue
+dupq = queue.MultiQueue(**persistent)  # df line queue
 expire_after_seconds = config.core.middleman.expire_after
 get_whitelist_verdict = forge.get_get_whitelist_verdict()
 hostinfo = {
@@ -159,7 +160,7 @@ max_waiting = int(config.core.dispatcher.max.inflight) / (2 * shards)
 min_priority = 1
 priority_value = constants.PRIORITIES
 retry_delay = 180
-retryq = queue.NamedQueue('m-retry-' + shard, **persistent) # df line queue
+retryq = queue.NamedQueue('m-retry-' + shard, **persistent)  # df line queue
 running = True
 sampling = False
 selected_initial = [
@@ -167,7 +168,7 @@ selected_initial = [
 ]
 stale_after_seconds = config.core.middleman.stale_after
 start_time = now()
-submissionq = queue.NamedQueue('m-submission-' + shard, **persistent) # df line queue
+submissionq = queue.NamedQueue('m-submission-' + shard, **persistent)  # df line queue
 timeouts = []
 timeouts_lock = RLock()
 whitelist = forge.get_whitelist()
@@ -260,23 +261,23 @@ threshold_value = {
 }
 
 # Input. An external process creates a record when any submission completes.
-completeq = queue.NamedQueue(completeq_name) # df line queue
+completeq = queue.NamedQueue(completeq_name)  # df line queue
 
 # Output. Dropped entries are placed on this queue.
-dropq = queue.NamedQueue('m-drop-' + shard, **persistent) # df line queue
+dropq = queue.NamedQueue('m-drop-' + shard, **persistent)  # df line queue
 
 # Input. An external process places submission requests on this queue.
-ingestq = queue.NamedQueue(ingestq_name, **persistent) # df line queue
+ingestq = queue.NamedQueue(ingestq_name, **persistent)  # df line queue
 
 # Output. Notifications are placed on a notification queue.
 notificationq = {}
 
 # Input/Output. Unique requests are placed in and processed from this queue.
-uniqueq = queue.PriorityQueue('m-unique-' + shard, **persistent) # df line queue
+uniqueq = queue.PriorityQueue('m-unique-' + shard, **persistent)  # df line queue
 
 # State. The submissions in progress are stored in Redis in order to
 # persist this state and recover in case we crash.
-scanning = Hash('m-scanning-' + shard, **persistent) # df line hash
+scanning = Hash('m-scanning-' + shard, **persistent)  # df line hash
 
 # Status.
 statusq = queue.CommsQueue('status')
@@ -360,7 +361,8 @@ def check(datastore, notice):
 
 
 # Invoked when notified that a submission has completed.
-def completed(task): # df node def
+# noinspection PyBroadException
+def completed(task):  # df node def
     sha256 = task.root_sha256
 
     psid = task.psid
@@ -371,7 +373,7 @@ def completed(task): # df node def
 
     with ScanLock(scan_key):
         # Remove the entry from the hash of submissions in progress.
-        raw = scanning.pop(scan_key) # df pull pop
+        raw = scanning.pop(scan_key)  # df pull pop
         if not raw:
             logger.warning("Untracked submission (score=%d) for: %s %s",
                            int(score), sha256, str(task.metadata))
@@ -382,7 +384,7 @@ def completed(task): # df node def
                 stype = None
                 try:
                     stype = task.metadata.get('type', None)
-                except: # pylint: disable=W0702
+                except:  # pylint: disable=W0702
                     logger.exception("Malformed metadata: %s:", sid)
 
                 if not stype:
@@ -410,11 +412,11 @@ def completed(task): # df node def
         with cache_lock:
             _add(scan_key, psid, sid, score, errors, now())
 
-        finalize(psid, sid, score, notice) # df push calls
+        finalize(psid, sid, score, notice)  # df push calls
 
         def exhaust():
             while True:
-                res = dupq.pop( # df pull pop
+                res = dupq.pop(  # df pull pop
                     dup_prefix + scan_key, blocking=False
                 )
                 if res is None:
@@ -461,7 +463,7 @@ def determine_resubmit_selected(selected, resubmit_to):
     return resubmit_selected
 
 
-def drop(notice): # df node def
+def drop(notice):  # df node def
     priority = notice.get('priority')
 
     dropped = False
@@ -479,7 +481,7 @@ def drop(notice): # df node def
         return False
 
     notice.set('failure', 'Skipped')
-    dropq.push(notice.raw) # df push push
+    dropq.push(notice.raw)  # df push push
 
     ingester_counts.increment('ingest.skipped')
 
@@ -491,11 +493,11 @@ def drop_chance(length, maximum):
 
 
 @exit_and_log
-def dropper(): # df node def
+def dropper():  # df node def
     datastore = forge.get_datastore()
 
     while running:
-        raw = dropq.pop(timeout=1) # df pull pop
+        raw = dropq.pop(timeout=1)  # df pull pop
         if not raw:
             continue
 
@@ -519,7 +521,7 @@ def expired(delta, errors):
         return delta >= expire_after_seconds
 
 
-def finalize(psid, sid, score, notice): # df node def
+def finalize(psid, sid, score, notice):  # df node def
     logger.debug("Finalizing (score=%d) %s", score, notice.get('sha256'))
     if psid:
         notice.set('psid', psid)
@@ -535,7 +537,7 @@ def finalize(psid, sid, score, notice): # df node def
         notice.set('psid', None)
 
     if is_alert(notice, score):
-        alertq.push(notice.raw) # df push push
+        alertq.push(notice.raw)  # df push push
 
     send_notification(notice)
 
@@ -547,10 +549,10 @@ def finalize(psid, sid, score, notice): # df node def
         notice.set('selected', resubmit_selected)
         priority = notice.get('priority', 0)
 
-        uniqueq.push(priority, notice.raw) # df push push
+        uniqueq.push(priority, notice.raw)  # df push push
 
 
-def ingest(datastore, user_groups, raw): # df node def
+def ingest(datastore, user_groups, raw):  # df node def
     notice = Notice(raw)
 
     ignore_size = notice.get('ignore_size', False)
@@ -621,10 +623,9 @@ def ingest(datastore, user_groups, raw): # df node def
 
     if size > config.submissions.max.size and not ignore_size and not never_drop:
         notice.set(
-            'failure', "File too large (%d > %d)" % \
-                (size, config.submissions.max.size)
+            'failure', "File too large (%d > %d)" % (size, config.submissions.max.size)
         )
-        dropq.push(notice.raw) # df push push
+        dropq.push(notice.raw)  # df push push
         ingester_counts.increment('ingest.skipped')
         return
 
@@ -660,16 +661,16 @@ def ingest(datastore, user_groups, raw): # df node def
     # (So we don't end up dropping the resubmission).
     if previous:
         ingester_counts.increment('ingest.duplicates')
-        finalize(pprevious, previous, score, notice) # df push calls
+        finalize(pprevious, previous, score, notice)  # df push calls
         return
 
-    if drop(notice): # df push calls
+    if drop(notice):  # df push calls
         return
 
-    if is_whitelisted(notice): # df push calls
+    if is_whitelisted(notice):  # df push calls
         return
 
-    uniqueq.push(priority, notice.raw) # df push push
+    uniqueq.push(priority, notice.raw)  # df push push
 
 
 @exit_and_log
@@ -683,17 +684,17 @@ def ingester():  # df node def # pylint:disable=R0912
     # duplicates to their own queues / waiting.
     while running:
         while True:
-            result = completeq.pop(blocking=False) # df pull pop
+            result = completeq.pop(blocking=False)  # df pull pop
             if not result:
                 break
 
-            completed(Task(result)) # df push calls
+            completed(Task(result))  # df push calls
 
-        entry = ingestq.pop(timeout=1) # df pull pop
+        entry = ingestq.pop(timeout=1)  # df pull pop
         if not entry:
             continue
 
-        trafficq.push(entry) # df push push
+        trafficq.push(entry)  # df push push
 
         sha256 = entry.get('sha256', '')
         if not sha256 or len(sha256) != 64:
@@ -704,11 +705,12 @@ def ingester():  # df node def # pylint:disable=R0912
         entry['sha1'] = entry.get('sha1', '').lower()
         entry['sha256'] = sha256.lower()
 
-        ingest(datastore, user_groups, entry) # df push calls
+        ingest(datastore, user_groups, entry)  # df push calls
 
     datastore.close()
 
 
+# noinspection PyBroadException
 def init():
     datastore = forge.get_datastore()
     datastore.commit_index('submission')
@@ -775,7 +777,7 @@ def init():
         stype = None
         try:
             stype = task.metadata.get('type', None)
-        except: # pylint: disable=W0702
+        except:  # pylint: disable=W0702
             logger.exception(
                 "Init: Incomplete submission has malformed metadata: %s", sid
             )
@@ -820,7 +822,7 @@ def init():
         scan_key = completed(Task(res))
         try:
             missing.remove(scan_key)
-        except: # pylint: disable=W0702
+        except:  # pylint: disable=W0702
             pass
 
     # Process the set of submissions middleman thinks are in flight but
@@ -860,7 +862,7 @@ def is_alert(notice, score):
     return True
 
 
-def is_whitelisted(notice): # df node def
+def is_whitelisted(notice):  # df node def
     reason, hit = get_whitelist_verdict(whitelist, notice)
     hit = {x: dotdump(safe_str(y)) for x, y in hit.iteritems()}
 
@@ -879,10 +881,9 @@ def is_whitelisted(notice): # df node def
 
         notice.set(
             'failure',
-            "Whitelisting due to reason %s (%s)" % \
-                (dotdump(safe_str(reason)), hit)
+            "Whitelisting due to reason %s (%s)" % (dotdump(safe_str(reason)), hit)
         )
-        dropq.push(notice.raw) # df push push
+        dropq.push(notice.raw)  # df push push
 
         ingester_counts.increment('ingest.whitelisted')
         whitelister_counts.increment('whitelist.' + reason)
@@ -891,7 +892,7 @@ def is_whitelisted(notice): # df node def
 
 
 @exit_and_log
-def maintain_inflight(): # df node def
+def maintain_inflight():  # df node def
     while running:
         # If we are scanning less than the max_waiting, submit more.
         length = scanning.length() + submissionq.length()
@@ -904,7 +905,7 @@ def maintain_inflight(): # df node def
             time.sleep(1)
             continue
 
-        entries = uniqueq.pop(num) # df pull pop
+        entries = uniqueq.pop(num)  # df pull pop
         if not entries:
             time.sleep(1)
             continue
@@ -913,7 +914,7 @@ def maintain_inflight(): # df node def
             # Remove the key event_timestamp if it exists.
             raw.pop('event_timestamp', None)
 
-            submissionq.push(raw) # df push push
+            submissionq.push(raw)  # df push push
 
 
 ###############################################################################
@@ -942,9 +943,9 @@ def must_drop(length, maximum):
 
 
 @exit_and_log
-def process_retries(): # df node def
+def process_retries():  # df node def
     while running:
-        raw = retryq.pop(timeout=1) # df pull pop
+        raw = retryq.pop(timeout=1)  # df pull pop
         if not raw:
             continue
 
@@ -956,12 +957,12 @@ def process_retries(): # df node def
             time.sleep(min(delay, 1))
             continue
 
-        ingestq.push(raw) # df push push
+        ingestq.push(raw)  # df push push
 
 
 # noinspection PyBroadException
 @exit_and_log
-def process_timeouts(): # df node def
+def process_timeouts():  # df node def
     global timeouts  # pylint:disable=W0603
 
     with timeouts_lock:
@@ -975,7 +976,7 @@ def process_timeouts(): # df node def
             index += 1
 
             try:
-                timed_out(t.scan_key) # df push calls
+                timed_out(t.scan_key)  # df push calls
             except:  # pylint: disable=W0702
                 logger.exception("Problem timing out %s:", t.scan_key)
 
@@ -1004,7 +1005,7 @@ def reinsert(datastore, msg, notice, out, retry_all=True):
         logger.info("Init: Stale%s: %s", msg, notice.get('sha256'))
 
 
-def retry(raw, scan_key, sha256, ex): # df node def
+def retry(raw, scan_key, sha256, ex):  # df node def
     current_time = now()
 
     notice = Notice(raw)
@@ -1018,13 +1019,13 @@ def retry(raw, scan_key, sha256, ex): # df node def
         dupq.delete(dup_prefix + scan_key)
     elif expired(current_time - seconds(notice.get('ts', current_time)), 0):
         logger.info('No point retrying expired submission for %s', sha256)
-        dupq.delete(dup_prefix + scan_key) # df pull delete
+        dupq.delete(dup_prefix + scan_key)  # df pull delete
     else:
         logger.info('Requeuing %s (%s)', sha256, ex or 'unknown')
         notice.set('retries', retries)
         notice.set('retry_at', now(retry_delay))
 
-        retryq.push(notice.raw) # df push push
+        retryq.push(notice.raw)  # df push push
 
 
 def return_exception(func, *args, **kwargs):
@@ -1185,14 +1186,16 @@ def submit(client, notice):
     with timeouts_lock:
         timeouts.append(Timeout(now(max_time), notice.get('scan_key')))
 
+
+# noinspection PyBroadException
 @exit_and_log
-def submitter(): # df node def
+def submitter():  # df node def
     client = forge.get_submission_service()
     datastore = forge.get_datastore()
 
     while running:
         try:
-            raw = submissionq.pop(timeout=1) # df pull pop
+            raw = submissionq.pop(timeout=1)  # df pull pop
             if not raw:
                 continue
 
@@ -1208,10 +1211,10 @@ def submitter(): # df node def
                 continue
 
             notice = Notice(raw)
-            if drop(notice): # df push calls
+            if drop(notice):  # df push calls
                 continue
 
-            if is_whitelisted(notice): # df push calls
+            if is_whitelisted(notice):  # df push calls
                 continue
 
             pprevious, previous, score = None, False, None
@@ -1221,17 +1224,17 @@ def submitter(): # df node def
             if previous:
                 if not notice.get('resubmit_to', []) and not pprevious:
                     logger.warning("No psid for what looks like a resubmission of %s: %s", sha256, scan_key)
-                finalize(pprevious, previous, score, notice) # df push calls
+                finalize(pprevious, previous, score, notice)  # df push calls
                 continue
 
             with ScanLock(scan_key):
                 if scanning.exists(scan_key):
                     logger.debug('Duplicate %s', sha256)
                     ingester_counts.increment('ingest.duplicates')
-                    dupq.push(dup_prefix + scan_key, notice.raw) # df push push
+                    dupq.push(dup_prefix + scan_key, notice.raw)  # df push push
                     continue
 
-                scanning.add(scan_key, notice.raw) # df push add
+                scanning.add(scan_key, notice.raw)  # df push add
 
             ex = return_exception(submit, client, notice)
             if not ex:
@@ -1261,24 +1264,24 @@ def submitter(): # df node def
             retry(raw, scan_key, sha256, ex)
 
             if tex == riak.RiakError:
-                raise ex # pylint: disable=E0702
+                raise ex  # pylint: disable=E0702
 
         except Exception:  # pylint:disable=W0703
             logger.exception("Unexpected error") 
 
 
 # Invoked when a timeout fires. (Timeouts always fire).
-def timed_out(scan_key): # df node def
+def timed_out(scan_key):  # df node def
     actual_timeout = False
 
     with ScanLock(scan_key):
         # Remove the entry from the hash of submissions in progress.
-        entry = scanning.pop(scan_key) # df pull pop
+        entry = scanning.pop(scan_key)  # df pull pop
         if entry:
             actual_timeout = True
             logger.error("Submission timed out for %s: %s", scan_key, str(entry))
 
-        dup = dupq.pop(dup_prefix + scan_key, blocking=False) # df pull pop
+        dup = dupq.pop(dup_prefix + scan_key, blocking=False)  # df pull pop
         if dup:
             actual_timeout = True
 
@@ -1313,11 +1316,14 @@ Thread(target=send_heartbeats, name="send_heartbeats").start()
 Thread(target=send_traffic, name="send_traffic").start()
 
 # pylint: disable=C0321
-for i in range(dropper_threads): Thread(target=dropper, name="dropper_%s" % i).start() # df line thread
+for i in range(dropper_threads):
+    Thread(target=dropper, name="dropper_%s" % i).start()  # df line thread
 # noinspection PyRedeclaration
-for i in range(ingester_threads): Thread(target=ingester, name="ingester_%s" % i).start() # df line thread
+for i in range(ingester_threads):
+    Thread(target=ingester, name="ingester_%s" % i).start()  # df line thread
 # noinspection PyRedeclaration
-for i in range(submitter_threads): Thread(target=submitter, name="submitter_%s" % i).start() # df line thread
+for i in range(submitter_threads):
+    Thread(target=submitter, name="submitter_%s" % i).start()  # df line thread
 
 while running:
     process_timeouts()
