@@ -2467,21 +2467,33 @@ class RiakStore(DataStoreBase):
 
         files = res.get("files", {})
         scores = res.get("scores", {})
+        tree_cache = []
 
-        def recurse_tree(child_p, placeholder, parents_p):
+        def recurse_tree(child_p, placeholder, parents_p, lvl=0):
+            if lvl == config.core.dispatcher.max.depth + 1:
+                # Enforce depth protection while building the tree
+                return
+
             if child_p['srl'] in placeholder:
                 placeholder[child_p['srl']]['name'].append(child_p['name'])
             else:
                 children_list = {}
+                truncated = False
                 child_list = files.get(child_p['srl'], [])
                 for new_child in child_list:
+                    if new_child['srl'] in tree_cache:
+                        truncated = True
+                        continue
+                    tree_cache.append(child['srl'])
+
                     if new_child['srl'] not in parents_p:
                         recurse_tree(new_child, children_list,
-                                     parents_p + [child_p['srl']])
+                                     parents_p + [child_p['srl']], lvl+1)
 
                 placeholder[child_p['srl']] = {
                     "name": [child_p['name']],
                     "children": children_list,
+                    "truncated": truncated,
                     "score": scores.get(child_p['srl'], 0),
                 }
 
@@ -2493,11 +2505,13 @@ class RiakStore(DataStoreBase):
                 children = {}
                 c_list = files.get(srl, [])
                 for child in c_list:
+                    tree_cache.append(child['srl'])
                     recurse_tree(child, children, parents)
 
                 tree[srl] = {
                     "name": [name],
                     "children": children,
+                    "truncated": False,
                     "score": scores.get(srl, 0),
                 }
 
