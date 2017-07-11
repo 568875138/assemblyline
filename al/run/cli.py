@@ -18,7 +18,7 @@ from pprint import pprint, pformat
 from assemblyline.common.importing import module_attribute_by_name
 from assemblyline.common.net import get_mac_address
 from assemblyline.al.common import forge, log as al_log
-from assemblyline.al.common.backupmanager import SystemBackup, DistributedBackup
+from assemblyline.al.common.backupmanager import DistributedBackup
 from assemblyline.al.common.message import send_rpc
 from assemblyline.al.common.queue import reply_queue_name, NamedQueue
 from assemblyline.al.common.task import Task
@@ -163,15 +163,15 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         if platform == 'this':
             platform = (sys.platform != 'win32')
         if platform == 1:
-            CMD_LEX = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+            cmd_lex = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
         elif platform == 0:
-            CMD_LEX = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+            cmd_lex = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
         else:
             raise AssertionError('unkown platform %r' % platform)
 
         args = []
         accu = None  # collects pieces of one arg
-        for qs, qss, esc, pipe, word, white, fail in re.findall(CMD_LEX, s):
+        for qs, qss, esc, pipe, word, white, fail in re.findall(cmd_lex, s):
             if word:
                 pass  # most frequent
             elif esc:
@@ -213,16 +213,16 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         if stack_func:
             function_doc = inspect.getdoc(getattr(self, stack_func))
             if function_doc:
-                print function_doc + "\n"
+                print "Usage:\n" + function_doc + "\n"
 
     #
-    # Exit functions
+    # Exit actions
     #
     def do_exit(self, arg):
         arg = arg or 0
         sys.exit(int(arg))
 
-    def do_old_quit(self, arg):
+    def do_quit(self, arg):
         self.do_exit(arg)
 
     # noinspection PyPep8Naming
@@ -230,14 +230,15 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         print
         self.do_exit(0)
 
+    #
+    # Backup actions
+    #
     def do_backup(self, args):
         """
         backup <destination_file>
                <destination_file> <bucket_name> [follow] [force] <query>
         """
         args = self._parse_args(args)
-        for a in args:
-            print a
 
         follow = False
         if 'follow' in args:
@@ -310,7 +311,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         args = self._parse_args(args)
 
         if len(args) not in [1]:
-            self._print_error("Wrong number of arguments for backup command.")
+            self._print_error("Wrong number of arguments for restore command.")
             return
 
         path = args[0]
@@ -322,27 +323,51 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         backup_manager = DistributedBackup(path, worker_count=workers)
         backup_manager.restore()
 
-
-
-
-
-
-
     #
     # Seed actions
     #
-    def do_old_reseed(self, args):
+    def do_reseed(self, args):
         """
-        This script takes a seed path as parameter and save the seed into
-        the target key in the blob bucket.
+        reseed    current
+                  previous
+                  module <python_path_of_seed> [<destination_blob>]
         """
-        try:
-            seed_path, target = args.split(" ")
-        except:
-            print "reseed <seed_path> <target_blob>"
+        args = self._parse_args(args)
+
+        if len(args) not in [1, 2, 3]:
+            self._print_error("Wrong number of arguments for reseed command.")
             return
 
-        seed = module_attribute_by_name(seed_path)
+        action_type = args[0]
+
+        if action_type == 'current':
+            seed_path = self.datastore.get_blob('seed_module')
+            target = 'seed'
+        elif action_type == 'previous':
+            cur_seed = self.datastore.get_blob('seed')
+            self.datastore.save_blob('seed', self.datastore.get_blob('previous_seed'))
+            self.datastore.save_blob('previous_seed', cur_seed)
+            print "Current and previous seed where swapped."
+            return
+        elif action_type == 'module':
+            if len(args) == 2:
+                seed_path = args[1]
+                target = 'seed'
+            elif len(args) == 3:
+                seed_path, target = args[1:]
+            else:
+                self._print_error("Wrong number of arguments for reseed command.")
+                return
+        else:
+            self._print_error("Invalid reseed action '%s' must be one of current, previous or module.")
+            return
+
+        try:
+            seed = module_attribute_by_name(seed_path)
+        except:
+            print "Unable to load seed form path: %s" % seed_path
+            return
+
         services_to_register = seed['services']['master_list']
 
         for service, svc_detail in services_to_register.iteritems():
@@ -363,21 +388,104 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         self.datastore.save_blob(target, seed)
         print "Module '%s' was loaded into blob '%s'." % (seed_path, target)
 
-    def do_old_reseed_current(self, _):
+    #
+    # Delete actions
+    #
+    def do_delete(self, args):
         """
-        This script takes the current seed_module and reloads it into the seed key
+        delete <bucket> [full] [force] <query>
         """
-        module = self.datastore.get_blob('seed_module')
-        self.do_old_reseed("%s seed" % module)
+        valid_buckets = self.datastore.INDEXED_BUCKET_LIST + self.datastore.ADMIN_INDEXED_BUCKET_LIST
+        args = self._parse_args(args)
 
-    def do_old_restore_previous_seed(self, _):
+        if 'full' in args:
+            full = True
+            args.remove('full')
+        else:
+            full = False
+
+        if 'force' in args:
+            force = True
+            args.remove('force')
+        else:
+            force = False
+
+        if len(args) != 2:
+            self._print_error("Wrong number of arguments for delete command.")
+            return
+
+        bucket, query = args
+
+        if bucket not in valid_buckets:
+            self._print_error("\nInvalid bucket specified: %s\n\n"
+                              "Valid buckets are:\n%s" % (bucket, "\n".join(valid_buckets)))
+            return
+
+        pool = multiprocessing.Pool(processes=PROCESSES_COUNT, initializer=init)
+        try:
+            cont = force
+            test_data = self.datastore._search_bucket(self.datastore.get_bucket(bucket), query, start=0, rows=1)
+            if not test_data["total"]:
+                print "Nothing matches the query."
+                return
+
+            if not force:
+                print "\nNumber of items matching this query: %s\n\n" % test_data["total"]
+                print "This is an example of the data that will be deleted:\n"
+                print test_data['items'][0], "\n"
+                if self.prompt:
+                    cont = raw_input("Are your sure you want to continue? (y/N) ")
+                    cont = cont == "y"
+
+                    if not cont:
+                        print "\n**ABORTED**\n"
+                        return
+                else:
+                    print "You are not in interactive mode therefor the delete was not executed. " \
+                          "Add 'force' to your commandline to execute the delete."
+                    return
+
+            if cont:
+                for data in self.datastore.stream_search(bucket, query, fl="_yz_rk", item_buffer_size=COUNT_INCREMENT):
+                    if full and bucket == 'submission':
+                        func = submission_delete_tree
+                        func_args = (data["_yz_rk"],)
+                    else:
+                        func = bucket_delete
+                        func_args = (bucket, data["_yz_rk"])
+
+                    pool.apply_async(func, func_args, callback=action_done)
+
+        except KeyboardInterrupt, e:
+            print "Interrupting jobs..."
+            pool.terminate()
+            pool.join()
+            raise e
+        except Exception, e:
+            print "Something when wrong, retry!\n\n %s\n" % e
+        else:
+            pool.close()
+            pool.join()
+            self.datastore.commit_index(bucket)
+            print "Data of bucket '%s' matching query '%s' has been deleted." % (bucket, query)
+
+    def do_remove(self, args):
         """
-        This script swaps 'seed' and 'previous_seed' to restore the previous seed
+        remove        node|service|user    <id>
         """
-        cur_seed = self.datastore.get_blob('seed')
-        self.datastore.save_blob('seed', self.datastore.get_blob('previous_seed'))
-        self.datastore.save_blob('previous_seed', cur_seed)
-        print "Previous seed and current seed were swapped."
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
 
     #
     # Delete actions
