@@ -65,7 +65,7 @@ def install_al_cli(alsi):
                 '    if [ $# = 0 ]; then\n'
                 '        sudo su al -c "{invoke} {cli}"\n'
                 '    else\n'
-                '        echo ${{@}} | sudo su al -c "{invoke} {cli}"\n'
+                '        echo ${{@}} | sudo su al -c ". /etc/default/al && {cli}"\n'
                 '    fi\n'
                 '}}\n\n'
                 'run_al_cli $@\' > {target}'.format(user=user, invoke=invoke_path, cli=cli_path, target=target),
