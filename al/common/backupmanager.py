@@ -202,7 +202,7 @@ class DistributedBackup(object):
         summary += "%s DONE! (%s keys backed up - %s errors - %s secs)\n" % \
                    (title, t_count, e_count, time.time() - t0)
         summary += "\n############################################\n"
-        summary += "########## %s SUMMARY ################\n" % title.upper()
+        summary += "########## %08s SUMMARY ################\n" % title.upper()
         summary += "############################################\n\n"
 
         for k, v in map_count.iteritems():

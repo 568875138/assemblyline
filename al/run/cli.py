@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
+# Suppress all warnings
+import warnings
+warnings.filterwarnings("ignore")
+
 import cmd
 import inspect
 import sys
 import multiprocessing
 import os
-import shlex
+import re
 import signal
 import time
 
@@ -34,12 +38,12 @@ COUNT_INCREMENT = 500
 DATASTORE = None
 t_count = 0
 t_last = time.time()
-
-YaraParser = forge.get_yara_parser()
+YaraParser = None
 
 
 def init():
-    global DATASTORE
+    global DATASTORE, YaraParser
+    YaraParser = forge.get_yara_parser()
     DATASTORE = forge.get_datastore()
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -120,25 +124,26 @@ def _reindex_template(bucket_name, keys_function, get_function, save_function, b
 # noinspection PyMethodMayBeStatic,PyProtectedMember,PyBroadException
 class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
-    intro = 'AL 3.1 - Console. (type help).'
-
-    def __init__(self):
+    def __init__(self, show_prompt=True):
         cmd.Cmd.__init__(self)
         self.local_mac = get_mac_address()
         self.mac = self.local_mac  # the mac we are currently targetting.
         self.queue = None
-        self.prompt = None
+        self.prompt = ""
+        self.intro = ""
         self.datastore = forge.get_datastore()
         self.controller_client = ControllerClient(async=False)
         self.vmm_client = VmmAgentClient(async=False)
         self.svc_client = ServiceAgentClient(async=False)
         self.config = forge.get_config()
-        self._update_context()
+        if show_prompt:
+            self._update_context()
 
     def _update_context(self):
         label = 'local' if self.mac == self.local_mac else 'remote'
         self.prompt = '%s (%s)> ' % (self.mac, label)
         self.queue = NamedQueue(self.mac)
+        self.intro = 'AL 3.1 - Console. (type help).'
 
     def _send_agent_cmd(self, command, args=None):
         self.queue.push(AgentRequest(self.mac, command, body=args))
@@ -146,8 +151,53 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     def _send_agent_rpc(self, command, args=None):
         return send_rpc(AgentRequest(self.mac, command, body=args))
 
-    def _parse_args(self, args):
-        return [x for x in shlex.shlex(args)]
+    def _parse_args(self, s, platform='this'):
+        """Multi-platform variant of shlex.split() for command-line splitting.
+        For use with subprocess, for argv injection etc. Using fast REGEX.
+
+        platform: 'this' = auto from current platform;
+                  1 = POSIX;
+                  0 = Windows/CMD
+                  (other values reserved)
+        """
+        if platform == 'this':
+            platform = (sys.platform != 'win32')
+        if platform == 1:
+            CMD_LEX = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+        elif platform == 0:
+            CMD_LEX = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+        else:
+            raise AssertionError('unkown platform %r' % platform)
+
+        args = []
+        accu = None  # collects pieces of one arg
+        for qs, qss, esc, pipe, word, white, fail in re.findall(CMD_LEX, s):
+            if word:
+                pass  # most frequent
+            elif esc:
+                word = esc[1]
+            elif white or pipe:
+                if accu is not None:
+                    args.append(accu)
+                if pipe:
+                    args.append(pipe)
+                accu = None
+                continue
+            elif fail:
+                raise ValueError("invalid or incomplete shell string")
+            elif qs:
+                word = qs.replace('\\"', '"').replace('\\\\', '\\')
+                if platform == 0:
+                    word = word.replace('""', '"')
+            else:
+                word = qss  # may be even empty; must be last
+
+            accu = (accu or '') + word
+
+        if accu is not None:
+            args.append(accu)
+
+        return args
 
     def _print_error(self, msg):
         stack_func = None
@@ -165,209 +215,112 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             if function_doc:
                 print function_doc + "\n"
 
+    #
+    # Exit functions
+    #
+    def do_exit(self, arg):
+        arg = arg or 0
+        sys.exit(int(arg))
+
+    def do_old_quit(self, arg):
+        self.do_exit(arg)
+
+    # noinspection PyPep8Naming
+    def do_EOF(self, _):
+        print
+        self.do_exit(0)
+
     def do_backup(self, args):
         """
         backup <destination_file>
-               <destination_file> <bucket_name> [follow] <query>
+               <destination_file> <bucket_name> [follow] [force] <query>
         """
-
         args = self._parse_args(args)
+        for a in args:
+            print a
+
+        follow = False
+        if 'follow' in args:
+            follow = True
+            args.remove('follow')
+
+        force = False
+        if 'force' in args:
+            force = True
+            args.remove('force')
 
         if len(args) == 1:
             dest = args[0]
-            system = True
+            system_backup = True
             bucket = None
             follow = False
             query = None
         elif len(args) == 3:
             dest, bucket, query = args
-            system = False
-            follow = False
-        elif len(args) == 4:
-            dest, bucket, follow, query = args
-            follow = follow == 'follow'
-            system = False
+            system_backup = False
         else:
             self._print_error("Wrong number of arguments for backup command.")
-
-
-
-        #
-        # Backup functions
-        #
-    def do_old_backup(self, args):
-        try:
-            path, buckets = args.rsplit(" ", 1)
-            buckets = buckets.split("|")
-        except:
-            path = args
-            buckets = None
-
-        backup_manager = SystemBackup(path)
-
-        if not path:
-            print "ERROR: You must specify an output file. You can optionally select the specific bucket(s) " \
-                  "you want to backup.\nbackup <output_file> <%s>\n" % "|".join(backup_manager.VALID_BUCKETS)
             return
 
-        backup_manager.backup(buckets)
-
-    def do_old_restore(self, args):
-        try:
-            path, buckets = args.rsplit(" ", 1)
-            buckets = buckets.split("|")
-        except:
-            path = args
-            buckets = None
-
-        backup_manager = SystemBackup(path)
-
-        if not path and not os.path.exists(path):
-            print "ERROR: you must specify a valid backup file to restore. You can optionally select the specific " \
-                  "bucket(s) you want to restore.\nrestore <backup_file_path> <%s>\n" % \
-                  "|".join(backup_manager.VALID_BUCKETS)
-            return
-
-        backup_manager.restore(buckets)
-
-    def do_old_distributed_backup(self, args):
-        try:
-            path, buckets = args.rsplit(" ", 1)
-            buckets = buckets.split("|")
-        except:
-            backup_manager = DistributedBackup(None)
-
-            print "ERROR: You must specify an output folder and the specific buckets you want to backup." \
-                  "\ndistributed_backup <output_folder> <%s>\n" % "|".join(backup_manager.VALID_BUCKETS)
-            return
-
-        try:
-            if not os.path.exists(path):
-                os.makedirs(path)
-        except:
-            print "ERROR: Cannot make %s folder. Make sure you can write to this folder. " \
-                  "Maybe you should write your backups in /tmp ?" % path
-            return
-
-        backup_manager = DistributedBackup(path)
-        backup_manager.backup(buckets)
-
-    def do_old_backup_by_query(self, args):
-        try:
-            path, bucket_name, query = args.split(" ", 2)
-        except:
-            path = raw_input("Folder to store the backup ?: ")
-            bucket_name = raw_input("Which bucket?: ")
-            query = raw_input("Query to run: ")
-
-        data = self.datastore._search_bucket(self.datastore.get_bucket(bucket_name), query, start=0, rows=1)
-        print "\nNumber of items matching this query: %s\n\n" % data["total"]
-
-        if data['total'] > 0:
-            print "This is an exemple of the data that will be backuped:\n"
-            print data['items'][0], "\n"
-            cont = raw_input("Are your sure you want to continue? (y/N) ")
-            cont = cont == "y"
+        if system_backup:
+            backup_manager = DistributedBackup(dest, worker_count=5)
+            backup_manager.backup(["blob", "node", "profile", "signature", "user"])
         else:
-            cont = False
+            data = self.datastore._search_bucket(self.datastore.get_bucket(bucket), query, start=0, rows=1)
 
-        if not cont:
-            print "\n**ABORTED**\n"
+            if not force:
+                print "\nNumber of items matching this query: %s\n\n" % data["total"]
+
+                if data['total'] > 0:
+                    print "This is an exemple of the data that will be backuped:\n"
+                    print data['items'][0], "\n"
+                    if self.prompt:
+                        cont = raw_input("Are your sure you want to continue? (y/N) ")
+                        cont = cont == "y"
+                    else:
+                        print "You are not in interactive mode therefor the backup was not executed. " \
+                              "Add 'force' to your commandline to execute the backup."
+                        cont = False
+                else:
+                    cont = False
+
+                if not cont:
+                    print "\n**ABORTED**\n"
+                    return
+
+            total = data['total']
+            if follow:
+                total *= 100
+
+            try:
+                if not os.path.exists(dest):
+                    os.makedirs(dest)
+            except:
+                print "Cannot make %s folder. Make sure you can write to this folder. " \
+                      "Maybe you should write your backups in /tmp ?" % dest
+                return
+
+            backup_manager = DistributedBackup(dest, worker_count=max(1, min(total / 1000, 50)))
+            backup_manager.backup([bucket], follow_keys=follow, query=query)
+
+    def do_restore(self, args):
+        """
+        restore <backup_directory>
+        """
+        args = self._parse_args(args)
+
+        if len(args) not in [1]:
+            self._print_error("Wrong number of arguments for backup command.")
             return
 
-        deep = raw_input("Do you want to do a deep backup? (y/N) ")
-        deep = deep == "y"
-
-        total = data['total']
-        if deep:
-            total *= 100
-
-        try:
-            if not os.path.exists(path):
-                os.makedirs(path)
-        except:
-            print "ERROR: Cannot make %s folder. Make sure you can write to this folder. " \
-                  "Maybe you should write your backups in /tmp ?" % path
-            return
-
-        backup_manager = DistributedBackup(path, worker_count=max(1, min(total / 1000, 50)))
-        backup_manager.backup([bucket_name], follow_keys=deep, query=query)
-
-    def do_old_distributed_follow_backup(self, args):
-        try:
-            path, buckets = args.rsplit(" ", 1)
-            buckets = buckets.split("|")
-        except:
-            backup_manager = DistributedBackup(None)
-
-            print "ERROR: You must specify an output folder and the specific buckets you want to backup." \
-                  "\ndistributed_follow_backup <output_folder> <%s>\n" % "|".join(backup_manager.VALID_BUCKETS)
-            return
-
-        try:
-            if not os.path.exists(path):
-                os.makedirs(path)
-        except:
-            print "ERROR: Cannot make %s folder. Make sure you can write to this folder. " \
-                  "Maybe you should write your backups in /tmp ?" % path
-            return
-
-        backup_manager = DistributedBackup(path)
-        backup_manager.backup(buckets, follow_keys=True)
-
-    def do_old_distributed_restore(self, args):
-        path = args
-
+        path = args[0]
         if not path:
-            print "ERROR: You must specify an input folder.\ndistributed_restore <input_folder>\n"
+            self._print_error("You must specify an input folder.")
             return
 
-        workers = len(os.listdir(path))
+        workers = len([x for x in os.listdir(path) if '.part' in x])
         backup_manager = DistributedBackup(path, worker_count=workers)
         backup_manager.restore()
-
-    def do_old_distributed_cluster_backup(self, args):
-        path = args
-
-        if not path:
-            print "ERROR: You must specify an output folder.\ndistributed_cluster_backup <output_folder>\n"
-            return
-
-        buckets = [
-            "blob",
-            "user",
-            "signature",
-            "node",
-            "profile",
-            "alert"
-        ]
-
-        try:
-            if not os.path.exists(path):
-                os.makedirs(path)
-        except:
-            print "Cannot make %s folder. Make sure you can write to this folder. " \
-                  "Maybe you should write your backups in /tmp ?" % path
-            return
-
-        backup_manager = DistributedBackup(path)
-        backup_manager.backup(buckets, follow_keys=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -738,21 +691,6 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         self._update_context()
 
     #
-    # Exit functions
-    #
-    def do_old_exit(self, arg):
-        arg = arg or 0
-        sys.exit(int(arg))
-
-    def do_old_quit(self, arg):
-        self.do_old_exit(arg)
-
-    # noinspection PyPep8Naming
-    def do_old_EOF(self, _):
-        print
-        self.do_old_exit(0)
-
-    #
     # Dispatcher functions
     #
     def do_old_dispatcher_get_time(self, dispatcher):
@@ -993,8 +931,11 @@ def print_banner():
 
 
 def shell_main():
-    print_banner()
-    cli = ALCommandLineInterface()
+    show_prompt = False
+    if sys.stdin.isatty():
+        print_banner()
+        show_prompt = True
+    cli = ALCommandLineInterface(show_prompt)
     cli.cmdloop()
 
 
