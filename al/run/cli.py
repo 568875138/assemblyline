@@ -221,14 +221,17 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     # Exit actions
     #
     def do_exit(self, arg):
+        """Quits the CLI"""
         arg = arg or 0
         sys.exit(int(arg))
 
     def do_quit(self, arg):
+        """Quits the CLI"""
         self.do_exit(arg)
 
     # noinspection PyPep8Naming
     def do_EOF(self, _):
+        """Stops CLI loop when called from shell"""
         print
         self.do_exit(0)
 
@@ -477,12 +480,18 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     def do_node(self, args):
         """
         node list
-             show    <id>
-             disable <id>
-             enable  <id>
-             remove  <id>
+             disable  <id>
+             enable   <id>
+             hearbeat <id>
+             remove   <id>
+             restart  <id>
+             show     <id>
+             stop     <id>
+             start    <id>
+             status   <id>
         """
-        valid_actions = ['list', 'show', 'disable', 'enable', 'remove']
+        valid_actions = ['list', 'show', 'disable', 'enable', 'remove', 'start',
+                         'stop', 'restart', 'status', 'heartbeat']
         args = self._parse_args(args)
 
         if len(args) == 1:
@@ -521,6 +530,17 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                 print "%s does not exist" % item_id
         elif action_type == 'remove' and item_id:
             self.datastore.delete_node(item_id)
+            print "Node %s removed." % item_id
+        elif action_type == 'start' and item_id:
+            pprint(self.controller_client.start(item_id))
+        elif action_type == 'stop' and item_id:
+            pprint(self.controller_client.stop(item_id))
+        elif action_type == 'restart' and item_id:
+            pprint(self.controller_client.restart(item_id))
+        elif action_type == 'status' and item_id:
+            pprint(self.controller_client.status(item_id))
+        elif action_type == 'heartbeat' and item_id:
+            pprint(self.controller_client.heartbeat(item_id))
         else:
             self._print_error("Invalid command parameters")
 
@@ -553,6 +573,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             pprint(self.datastore.get_profile(item_id))
         elif action_type == 'remove' and item_id:
             self.datastore.delete_profile(item_id)
+            print "Profile '%s' removed."
         else:
             self._print_error("Invalid command parameters")
 
@@ -603,15 +624,17 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                 print "%s does not exist" % item_id
         elif action_type == 'remove' and item_id:
             self.datastore.delete_service(item_id)
+            print "Service '%s' removed."
         else:
             self._print_error("Invalid command parameters")
 
     def do_signature(self, args):
         """
-        signature show          <id>
-                  change_status by_id    [force] <status_value> <id>
+        signature change_status by_id    [force] <status_value> <id>
                   change_status by_query [force] <status_value> <query>
+
                   remove        <id>
+                  show          <id>
         """
         valid_actions = ['show', 'change_status', 'remove']
         args = self._parse_args(args)
@@ -691,6 +714,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
         elif action_type == 'remove' and item_id:
             self.datastore.delete_signature(item_id)
+            print "Signature '%s' removed."
         else:
             self._print_error("Invalid command parameters")
 
@@ -759,6 +783,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                     print "%s does not exist" % item_id
         elif action_type == 'remove' and item_id:
             self.datastore.delete_user(item_id)
+            print "User '%s' removed."
         else:
             self._print_error("Invalid command parameters")
 
@@ -769,6 +794,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         """
         index commit   [<bucket>]
               reindex  [<bucket>]
+
               reset
 
         """
@@ -808,7 +834,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         elif len(args) == 2:
             action_type, bucket = args
         else:
-            self._print_error("Wrong number of arguments for delete command.")
+            self._print_error("Wrong number of arguments for index command.")
             return
 
         if action_type not in valid_actions:
@@ -890,85 +916,97 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             print "All indexes successfully recreated!"
 
     #
-    # Host functions
-    #
-    def do_old_host_stop(self, _):
-        pprint(self.controller_client.stop(self.mac))
-
-    def do_old_host_start(self, _):
-        pprint(self.controller_client.start(self.mac))
-
-    def do_old_host_restart(self, _):
-        pprint(self.controller_client.restart(self.mac))
-
-    def do_old_host_status(self, _):
-        pprint(self.controller_client.status(self.mac))
-
-    def do_old_host_heartbeat(self, _):
-        pprint(self.controller_client.heartbeat(self.mac))
-
-    #
-    # Node Jump
-    #
-    def do_old_change_node(self, mac):
-        if not mac:
-            print "You must provide a mac to switch to"
-            return
-
-        if mac not in self.datastore.list_node_keys():
-            print 'Warning. (%s) is not a registered agent.' % mac
-            return
-
-        self.mac = mac
-        self._update_context()
-
-    #
     # Dispatcher functions
     #
-    def do_old_dispatcher_get_time(self, dispatcher):
-        if not dispatcher:
-            dispatcher = '0'
-        pprint(DispatchClient.get_system_time(dispatcher))
+    def do_dispatcher(self, args):
+        """
+        dispatcher get_time      <dispatcher_id>
+                   list_services <dispatcher_id>
+                   outstanding   <dispatcher_id>
 
-    def do_old_dispatcher_list_services(self, dispatcher):
-        if not dispatcher:
-            dispatcher = '0'
-        pprint(DispatchClient.list_service_info(dispatcher))
+                   explain_state <sid>
+                   services      <sid>
+        """
+        class DispatcherException(Exception):
+            pass
 
-    def do_old_dispatcher_outstanding(self, dispatcher):
-        if not dispatcher:
-            for dispatcher in range(int(self.config.core.dispatcher.shards)):
-                pprint(DispatchClient.list_outstanding(dispatcher))
+        def _validate_dispatcher_id(i):
+            try:
+                i = int(i)
+            except:
+                raise DispatcherException("Not an integer")
+            if i >= self.config.core.dispatcher.shards:
+                raise DispatcherException("Out of range")
+
+            return i
+
+        args = self._parse_args(args)
+        valid_actions = ['get_time', 'list_services', 'outstanding', 'services', 'explain_state']
+
+        if len(args) == 1:
+            action_type = args[0]
+            item = None
+        elif len(args) == 2:
+            action_type, item = args
+        else:
+            self._print_error("Wrong number of arguments for dispatcher command.")
             return
-        pprint(DispatchClient.list_outstanding(dispatcher))
 
-    def do_old_dispatcher_services(self, sid):
-        if not sid:
-            print "You must provide a SID"
+        if action_type not in valid_actions:
+            self._print_error("\nInvalid action specified: %s\n\n"
+                              "Valid actions are:\n%s" % (action_type, "\n".join(valid_actions)))
             return
 
-        pprint(DispatchClient.get_outstanding_services(sid))
+        try:
+            if action_type == 'get_time':
+                if item:
 
-    def do_old_dispatcher_explain_state(self, sid):
-        if not sid:
-            print "You must provide a SID"
-            return
-
-        name = reply_queue_name('SID')
-        t = Task({}, **{
-            'sid': sid,
-            'state': 'explain_state',
-            'watch_queue': name,
-        })
-        n = forge.determine_dispatcher(sid)
-        forge.get_control_queue('control-queue-' + str(n)).push(t.raw)
-        nq = NamedQueue(name)
-        r = nq.pop(timeout=3000)
-        while r:
-            print '    ' * int(r['depth']) + str(r['srl']), str(r['message'])
-            r = nq.pop(timeout=3000)
-        if r is None:
-            print 'Timed out'
+                    pprint(DispatchClient.get_system_time(_validate_dispatcher_id(item)))
+                else:
+                    for dispatcher in range(int(self.config.core.dispatcher.shards)):
+                        pprint(DispatchClient.get_system_time(dispatcher))
+            elif action_type == 'list_services':
+                if item:
+                    pprint(DispatchClient.list_service_info(_validate_dispatcher_id(item)))
+                else:
+                    for dispatcher in range(int(self.config.core.dispatcher.shards)):
+                        pprint(DispatchClient.list_service_info(dispatcher))
+            elif action_type == 'outstanding':
+                if item:
+                    pprint(DispatchClient.list_outstanding(_validate_dispatcher_id(item)))
+                else:
+                    for dispatcher in range(int(self.config.core.dispatcher.shards)):
+                        pprint(DispatchClient.list_outstanding(dispatcher))
+            elif action_type == 'services':
+                if not item:
+                    self._print_error("You must provide a SID")
+                    return
+                else:
+                    pprint(DispatchClient.get_outstanding_services(item))
+            elif action_type == 'explain_state':
+                if not item:
+                    self._print_error("You must provide a SID")
+                    return
+                else:
+                    name = reply_queue_name('SID')
+                    t = Task({}, **{
+                        'sid': item,
+                        'state': 'explain_state',
+                        'watch_queue': name,
+                    })
+                    n = forge.determine_dispatcher(item)
+                    forge.get_control_queue('control-queue-' + str(n)).push(t.raw)
+                    nq = NamedQueue(name)
+                    r = nq.pop(timeout=3000)
+                    while r:
+                        print '  ' * int(r['depth']) + str(r['srl']), str(r['message'])
+                        r = nq.pop(timeout=3000)
+                    if r is None:
+                        print 'Timed out'
+            else:
+                self._print_error("Invalid command parameters")
+        except DispatcherException, e:
+            self._print_error("'%s' is not a valid dispatcher ID. [%s]" % (item, e.message))
 
     #
     # Wipe functions
