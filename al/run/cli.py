@@ -13,7 +13,7 @@ import re
 import signal
 import time
 
-from pprint import pprint, pformat
+from pprint import pprint
 
 from assemblyline.common.importing import module_attribute_by_name
 from assemblyline.common.net import get_mac_address
@@ -38,12 +38,11 @@ COUNT_INCREMENT = 500
 DATASTORE = None
 t_count = 0
 t_last = time.time()
-YaraParser = None
+YaraParser = forge.get_yara_parser()
 
 
 def init():
-    global DATASTORE, YaraParser
-    YaraParser = forge.get_yara_parser()
+    global DATASTORE
     DATASTORE = forge.get_datastore()
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -60,8 +59,11 @@ def bucket_delete(bucket_name, key):
 
 
 # noinspection PyProtectedMember
-def update_signature_status(status, key):
+def update_signature_status(status, key, datastore=None):
     try:
+        global DATASTORE
+        if not DATASTORE:
+            DATASTORE = datastore
         data = DATASTORE._get_bucket_item(DATASTORE.get_bucket('signature'), key)
         data['meta']['al_status'] = status
         data = DATASTORE.sanitize('signature', data, key)
@@ -469,127 +471,307 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             self.datastore.commit_index(bucket)
             print "Data of bucket '%s' matching query '%s' has been deleted." % (bucket, query)
 
-    def do_remove(self, args):
-        """
-        remove        node|service|user    <id>
-        """
-        pass
-
-
-
-
-
-
-
-
-
-
-
-
-
     #
-    # Delete actions
+    # bucket actions
     #
-    def do_old_delete_full_submission_by_query(self, args):
-        pool = multiprocessing.Pool(processes=PROCESSES_COUNT, initializer=init)
-        if args:
-            query = args
+    def do_node(self, args):
+        """
+        node list
+             show    <id>
+             disable <id>
+             enable  <id>
+             remove  <id>
+        """
+        valid_actions = ['list', 'show', 'disable', 'enable', 'remove']
+        args = self._parse_args(args)
+
+        if len(args) == 1:
+            action_type = args[0]
+            item_id = None
+        elif len(args) == 2:
+            action_type, item_id = args
         else:
-            query = raw_input("Query to run: ")
+            self._print_error("Wrong number of arguments for node command.")
+            return
 
-        try:
-            prompt = True
-            cont = True
-            print "\nNumber of items matching this query: %s\n\n" % \
-                  self.datastore._search_bucket(self.datastore.submissions, query, start=0, rows=0)["total"]
+        if action_type not in valid_actions:
+            self._print_error("Invalid action for node command.")
+            return
 
-            for data in self.datastore.stream_search("submission", query, item_buffer_size=COUNT_INCREMENT):
-                if prompt:
-                    print "This is an exemple of the data that will be deleted:\n"
-                    print data, "\n"
-                    cont = raw_input("Are your sure you want to continue? (y/N) ")
-                    cont = cont == "y"
-                    prompt = False
-
-                if not cont:
-                    print "\n**ABORTED**\n"
-                    break
-
-                pool.apply_async(submission_delete_tree, (data["_yz_rk"], ), callback=action_done)
-        except KeyboardInterrupt, e:
-            print "Interrupting jobs..."
-            pool.terminate()
-            pool.join()
-            raise e
-        except Exception, e:
-            print "Something when wrong, retry!\n\n %s\n" % e
-        else:
-            pool.close()
-            pool.join()
-            if prompt:
-                print "\nNothing matches that query...\n"
+        if action_type == 'list':
+            for key in self.datastore.list_node_keys():
+                print key
+        elif action_type == 'show' and item_id:
+            pprint(self.datastore.get_node(item_id))
+        elif action_type == 'disable' and item_id:
+            item = self.datastore.get_node(item_id)
+            if item:
+                item['enabled'] = False
+                self.datastore.save_node(item_id, item)
+                print "%s was disabled" % item_id
             else:
-                self.datastore.commit_index('submission')
-
-    def do_old_delete_by_query(self, args):
-        pool = multiprocessing.Pool(processes=PROCESSES_COUNT, initializer=init)
-        try:
-            bucket_name, query = args.split(" ", 1)
-        except:
-            bucket_name = raw_input("Which bucket?: ")
-            query = raw_input("Query to run: ")
-
-        try:
-            prompt = True
-            cont = True
-            print "\nNumber of items matching this query: %s\n\n" % \
-                self.datastore._search_bucket(self.datastore.get_bucket(bucket_name),
-                                              query, start=0, rows=0)["total"]
-
-            for data in self.datastore.stream_search(bucket_name, query, item_buffer_size=COUNT_INCREMENT):
-                if prompt:
-                    print "This is an exemple of the data that will be deleted:\n"
-                    print data, "\n"
-                    cont = raw_input("Are your sure you want to continue? (y/N) ")
-                    cont = cont == "y"
-                    prompt = False
-
-                if not cont:
-                    print "\n**ABORTED**\n"
-                    break
-
-                pool.apply_async(bucket_delete, (bucket_name, data["_yz_rk"]), callback=action_done)
-        except KeyboardInterrupt, e:
-            print "Interrupting jobs..."
-            pool.terminate()
-            pool.join()
-            raise e
-        except Exception, e:
-            print "Something when wrong, retry!\n\n %s\n" % e
+                print "%s does not exist" % item_id
+        elif action_type == 'enable' and item_id:
+            item = self.datastore.get_node(item_id)
+            if item:
+                item['enabled'] = True
+                self.datastore.save_node(item_id, item)
+                print "%s was enabled" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'remove' and item_id:
+            self.datastore.delete_node(item_id)
         else:
-            if prompt:
-                print "\nNothing matches that query...\n"
+            self._print_error("Invalid command parameters")
 
-            pool.close()
-            pool.join()
+    def do_profile(self, args):
+        """
+        profile list
+                show    <id>
+                remove  <id>
+        """
+        valid_actions = ['list', 'show', 'remove']
+        args = self._parse_args(args)
 
-    #
-    # Remove actions
-    #
-    def do_old_remove_user(self, user):
-        if user:
-            self.datastore.delete_user(user)
+        if len(args) == 1:
+            action_type = args[0]
+            item_id = None
+        elif len(args) == 2:
+            action_type, item_id = args
         else:
-            print "Please use: remove_user <user>"
+            self._print_error("Wrong number of arguments for profile command.")
+            return
 
-    def do_old_remove_signature(self, key):
-        if not id:
-            print "ERROR: you must specify the key of the signature to remove.\nremove_signature <id>r.<rule_version>"
+        if action_type not in valid_actions:
+            self._print_error("Invalid action for profile command.")
+            return
 
-        self.datastore.delete_signature(key)
+        if action_type == 'list':
+            for key in self.datastore.list_profile_keys():
+                print key
+        elif action_type == 'show' and item_id:
+            pprint(self.datastore.get_profile(item_id))
+        elif action_type == 'remove' and item_id:
+            self.datastore.delete_profile(item_id)
+        else:
+            self._print_error("Invalid command parameters")
 
-    def do_old_remove_node(self, node):
-        self.datastore.delete_node(node)
+    def do_service(self, args):
+        """
+        service list
+                show    <id>
+                disable <id>
+                enable  <id>
+                remove  <id>
+        """
+        valid_actions = ['list', 'show', 'disable', 'enable', 'remove']
+        args = self._parse_args(args)
+
+        if len(args) == 1:
+            action_type = args[0]
+            item_id = None
+        elif len(args) == 2:
+            action_type, item_id = args
+        else:
+            self._print_error("Wrong number of arguments for service command.")
+            return
+
+        if action_type not in valid_actions:
+            self._print_error("Invalid action for service command.")
+            return
+
+        if action_type == 'list':
+            for key in self.datastore.list_service_keys():
+                print key
+        elif action_type == 'show' and item_id:
+            pprint(self.datastore.get_service(item_id))
+        elif action_type == 'disable' and item_id:
+            item = self.datastore.get_service(item_id)
+            if item:
+                item['enabled'] = False
+                self.datastore.save_service(item_id, item)
+                print "%s was disabled" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'enable' and item_id:
+            item = self.datastore.get_service(item_id)
+            if item:
+                item['enabled'] = True
+                self.datastore.save_service(item_id, item)
+                print "%s was enabled" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'remove' and item_id:
+            self.datastore.delete_service(item_id)
+        else:
+            self._print_error("Invalid command parameters")
+
+    def do_signature(self, args):
+        """
+        signature show          <id>
+                  change_status by_id    [force] <status_value> <id>
+                  change_status by_query [force] <status_value> <query>
+                  remove        <id>
+        """
+        valid_actions = ['show', 'change_status', 'remove']
+        args = self._parse_args(args)
+
+        if 'force' in args:
+            force = True
+        else:
+            force = False
+
+        if len(args) == 2:
+            action_type, item_id = args
+            id_type = status = None
+        elif len(args) == 4:
+            action_type, id_type, status, item_id = args
+        else:
+            self._print_error("Wrong number of arguments for signature command.")
+            return
+
+        if action_type not in valid_actions:
+            self._print_error("Invalid action for signature command.")
+            return
+
+        if action_type == 'show' and item_id:
+            pprint(self.datastore.get_signature(item_id))
+        elif action_type == 'change_status' and item_id and id_type and status:
+            if status not in YaraParser.STATUSES:
+                self._print_error("\nInvalid status for action 'change_status' of signature command."
+                                  "\n\nValid statuses are:\n%s" % "\n".join(YaraParser.STATUSES))
+                return
+
+            if id_type == 'by_id':
+                update_signature_status(status, item_id, datastore=self.datastore)
+                print "Signature '%s' was changed to status %s." % (item_id, status)
+            elif id_type == 'by_query':
+                pool = multiprocessing.Pool(processes=PROCESSES_COUNT, initializer=init)
+                try:
+                    cont = force
+                    test_data = self.datastore._search_bucket(self.datastore.get_bucket("signature"),
+                                                              item_id, start=0, rows=1)
+                    if not test_data["total"]:
+                        print "Nothing matches the query."
+                        return
+
+                    if not force:
+                        print "\nNumber of items matching this query: %s\n\n" % test_data["total"]
+                        print "This is an exemple of the signatures that will change status:\n"
+                        print test_data['items'][0], "\n"
+                        if self.prompt:
+                            cont = raw_input("Are your sure you want to continue? (y/N) ")
+                            cont = cont == "y"
+
+                            if not cont:
+                                print "\n**ABORTED**\n"
+                                return
+                        else:
+                            print "You are not in interactive mode therefor the status change was not executed. " \
+                                  "Add 'force' to your commandline to execute the status change."
+                            return
+
+                    if cont:
+                        for data in self.datastore.stream_search("signature", item_id, fl="_yz_rk",
+                                                                 item_buffer_size=COUNT_INCREMENT):
+                            pool.apply_async(update_signature_status, (status, data["_yz_rk"]))
+                except KeyboardInterrupt, e:
+                    print "Interrupting jobs..."
+                    pool.terminate()
+                    pool.join()
+                    raise e
+                except Exception, e:
+                    print "Something when wrong, retry!\n\n %s\n" % e
+                else:
+                    pool.close()
+                    pool.join()
+                    print "Signatures matching query '%s' were changed to status '%s'." % (item_id, status)
+            else:
+                self._print_error("Invalid action parameters for action 'change_status' of signature command.")
+
+        elif action_type == 'remove' and item_id:
+            self.datastore.delete_signature(item_id)
+        else:
+            self._print_error("Invalid command parameters")
+
+    def do_user(self, args):
+        """
+        user list
+             show        <id>
+             disable     <id>
+             enable      <id>
+             set_admin   <id>
+             unset_admin <id>
+             remove      <id>
+        """
+        valid_actions = ['list', 'show', 'disable', 'enable', 'remove', 'set_admin', 'unset_admin']
+        args = self._parse_args(args)
+
+        if len(args) == 1:
+            action_type = args[0]
+            item_id = None
+        elif len(args) == 2:
+            action_type, item_id = args
+        else:
+            self._print_error("Wrong number of arguments for user command.")
+            return
+
+        if action_type not in valid_actions:
+            self._print_error("Invalid action for user command.")
+            return
+
+        if action_type == 'list':
+            for key in [x for x in self.datastore.list_user_keys() if '_options' not in x and '_avatar' not in x]:
+                print key
+        elif action_type == 'show' and item_id:
+            pprint(self.datastore.get_user(item_id))
+        elif action_type == 'disable' and item_id:
+            item = self.datastore.get_user(item_id)
+            if item:
+                item['is_active'] = False
+                self.datastore.save_user(item_id, item)
+                print "%s was disabled" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'enable' and item_id:
+            item = self.datastore.get_user(item_id)
+            if item:
+                item['is_active'] = True
+                self.datastore.save_user(item_id, item)
+                print "%s was enabled" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'set_admin' and item_id:
+                item = self.datastore.get_user(item_id)
+                if item:
+                    item['is_admin'] = True
+                    self.datastore.save_user(item_id, item)
+                    print "%s was added admin priviledges" % item_id
+                else:
+                    print "%s does not exist" % item_id
+        elif action_type == 'unset_admin' and item_id:
+                item = self.datastore.get_user(item_id)
+                if item:
+                    item['is_admin'] = False
+                    self.datastore.save_user(item_id, item)
+                    print "%s was removed admin priviledges" % item_id
+                else:
+                    print "%s does not exist" % item_id
+        elif action_type == 'remove' and item_id:
+            self.datastore.delete_user(item_id)
+        else:
+            self._print_error("Invalid command parameters")
+
+
+
+
+
+
+
+
+
+
+
 
     #
     # Re-index functions
@@ -736,54 +918,6 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         pprint(self.controller_client.heartbeat(self.mac))
 
     #
-    # Enable/Disable functions
-    #
-    def _set_enabled_status(self, enabled=True):
-        reg = self.datastore.get_node(self.mac)
-        if not reg:
-            print 'No such registration'
-            return
-        reg['enabled'] = enabled
-        self.datastore.save_node(self.mac, reg)
-        return "Rule enabled field is now set to %s" % enabled
-
-    def do_old_enable_node(self, _):
-        print(self._set_enabled_status(True))
-
-    def do_old_disable_node(self, _):
-        print(self._set_enabled_status(False))
-
-    def do_old_enable_service(self, name):
-        if not name:
-            print "You must provide a service name"
-            return
-
-        service_entry = self.datastore.get_service(name)
-        if not service_entry:
-            print "Service '%s' does not exists"
-            return
-
-        if not service_entry['enabled']:
-            service_entry['enabled'] = True
-        self.datastore.save_service(name, service_entry)
-        print 'Enabled'
-
-    def do_old_disable_service(self, name):
-        if not name:
-            print "You must provide a service name"
-            return
-
-        service_entry = self.datastore.get_service(name)
-        if not service_entry:
-            print "Service '%s' does not exists"
-            return
-
-        if service_entry['enabled']:
-            service_entry['enabled'] = False
-        self.datastore.save_service(name, service_entry)
-        print 'Disabled'
-
-    #
     # Node Jump
     #
     def do_old_change_node(self, mac):
@@ -845,40 +979,6 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             r = nq.pop(timeout=3000)
         if r is None:
             print 'Timed out'
-
-    #
-    # GET functions
-    #
-    def do_old_get_current_node_profile(self, _):
-        reg = self.datastore.get_node(self.mac)
-        if not reg:
-            print "Machine not registered: %s" % self.mac
-            return
-
-        profile_name = reg['profile']
-        if not profile_name:
-            print 'Profile not found: %s' % profile_name
-            return
-        profile_contents = self.datastore.get_profile(profile_name)
-        profile = {profile_name: profile_contents}
-        pprint(profile)
-
-    def do_old_get_profile_by_name(self, profilename):
-        if not profilename:
-            print "You must provide a profile name"
-            return
-        pprint(self.datastore.get_profile(profilename.strip("'")))
-
-    def do_old_get_node(self, mac=None):
-        mac = mac or self.mac
-        pprint(self.datastore.get_node(mac))
-
-    def do_old_get_service_by_name(self, name):
-        if not name:
-            print "You must provide a name"
-            return
-        service_entry = self.datastore.get_service(name)
-        print pformat(service_entry)
 
     #
     # Wipe functions
@@ -960,76 +1060,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     def do_old_wipe_blob(self, _):
         self.datastore.wipe_blobs()
 
-    #
-    # List functions
-    #
-    def do_old_list_profiles(self, _):
-        pprint(self.datastore.list_profile_keys())
 
-    def do_old_list_services(self, _):
-        for service in self.datastore.list_service_keys():
-            print service
-
-    def do_old_list_nodes(self, _):
-        agents = self.datastore.list_node_keys()
-        for agent in agents:
-            reg = self.datastore.get_node(agent) or {}
-            host, ip, enabled = reg.get('hostname', None), reg.get('ip', None), reg.get('enabled', None)
-            print '%s (host:%s ip:%s enabled:%s)' % (agent, host, ip, enabled)
-
-    def do_old_list_users(self, _):
-        for u in self.datastore.list_user_keys():
-            if "_options" not in u and "_favorites" not in u and "_avatar" not in u:
-                print u
-
-    #
-    # List functions
-    #
-    def do_old_change_signature_status_by_query(self, args):
-        valid_statuses = ["TESTING", "STAGING", "DISABLED", "DEPLOYED", "NOISY"]
-        pool = multiprocessing.Pool(processes=PROCESSES_COUNT, initializer=init)
-        try:
-            status, query = args.split(" ", 1)
-        except:
-            status = raw_input("New status?: ")
-            query = raw_input("Query to run: ")
-
-        if status not in valid_statuses:
-            print "Status must be one of the following: %s" % ", ".join(valid_statuses)
-
-        try:
-            prompt = True
-            cont = True
-            print "\nNumber of items matching this query: %s\n\n" % \
-                self.datastore._search_bucket(self.datastore.get_bucket("signature"),
-                                              query, start=0, rows=0)["total"]
-
-            for data in self.datastore.stream_search("signature", query, item_buffer_size=COUNT_INCREMENT):
-                if prompt:
-                    print "This is an exemple of the data that will be deleted:\n"
-                    print data, "\n"
-                    cont = raw_input("Are your sure you want to continue? (y/N) ")
-                    cont = cont == "y"
-                    prompt = False
-
-                if not cont:
-                    print "\n**ABORTED**\n"
-                    break
-
-                pool.apply_async(update_signature_status, (status, data["_yz_rk"]))
-        except KeyboardInterrupt, e:
-            print "Interrupting jobs..."
-            pool.terminate()
-            pool.join()
-            raise e
-        except Exception, e:
-            print "Something when wrong, retry!\n\n %s\n" % e
-        else:
-            if prompt:
-                print "\nNothing matches that query...\n"
-
-            pool.close()
-            pool.join()
 
 
 def print_banner():
