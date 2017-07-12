@@ -762,142 +762,132 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         else:
             self._print_error("Invalid command parameters")
 
-
-
-
-
-
-
-
-
-
-
-
     #
-    # Re-index functions
+    # Index actions
     #
-    def do_old_reindex_alerts(self, _):
-        _reindex_template("alert", self.datastore.list_alert_debug_keys, self.datastore.get_alert,
-                          self.datastore.save_alert)
+    def do_index(self, args):
+        """
+        index commit   [<bucket>]
+              reindex  [<bucket>]
+              reset
 
-    def do_old_reindex_errors(self, _):
-        _reindex_template("error", self.datastore.list_error_debug_keys, self.datastore._get_bucket_item,
-                          self.datastore._save_bucket_item, self.datastore.errors)
+        """
+        _reindex_map = {
+            "alert": [self.datastore.list_alert_debug_keys, self.datastore.get_alert, self.datastore.save_alert,
+                      None, None],
+            "error": [self.datastore.list_error_debug_keys, self.datastore._get_bucket_item,
+                      self.datastore._save_bucket_item, self.datastore.errors, None],
+            "file": [self.datastore.list_file_debug_keys, self.datastore._get_bucket_item,
+                     self.datastore._save_bucket_item, self.datastore.files, None],
+            "filescore": [self.datastore.list_filescore_debug_keys, self.datastore._get_bucket_item,
+                          self.datastore._save_bucket_item, self.datastore.filescores, None],
+            "node": [self.datastore.list_node_debug_keys, self.datastore.get_node, self.datastore.save_node,
+                     None, None],
+            "profile": [self.datastore.list_profile_debug_keys, self.datastore.get_profile, self.datastore.save_profile,
+                        None, None],
+            "result": [self.datastore.list_result_debug_keys, self.datastore._get_bucket_item,
+                       self.datastore._save_bucket_item, self.datastore.results, None],
+            "signature": [self.datastore.list_signature_debug_keys, self.datastore.get_signature,
+                          self.datastore.save_signature, None, None],
+            "submission": [self.datastore.list_submission_debug_keys, self.datastore.get_submission,
+                           self.datastore.save_submission, None, ["_tree", "_summary"]],
+            "user": [self.datastore.list_user_debug_keys, self.datastore.get_user, self.datastore.save_user,
+                     None, None],
+            "workflow": [self.datastore.list_workflow_debug_keys, self.datastore.get_workflow,
+                         self.datastore.save_workflow, None, None]
+        }
 
-    def do_old_reindex_files(self, _):
-        _reindex_template("file", self.datastore.list_file_debug_keys, self.datastore._get_bucket_item,
-                          self.datastore._save_bucket_item, self.datastore.files)
+        valid_buckets = sorted(self.datastore.INDEXED_BUCKET_LIST + self.datastore.ADMIN_INDEXED_BUCKET_LIST)
+        valid_actions = ['commit', 'reindex', 'reset']
 
-    def do_old_reindex_filescores(self, _):
-        _reindex_template("filescore", self.datastore.list_filescore_debug_keys, self.datastore._get_bucket_item,
-                          self.datastore._save_bucket_item, self.datastore.filescores)
+        args = self._parse_args(args)
 
-    def do_old_reindex_nodes(self, _):
-        _reindex_template("node", self.datastore.list_node_debug_keys, self.datastore.get_node,
-                          self.datastore.save_node)
+        if len(args) == 1:
+            action_type = args[0]
+            bucket = None
+        elif len(args) == 2:
+            action_type, bucket = args
+        else:
+            self._print_error("Wrong number of arguments for delete command.")
+            return
 
-    def do_old_reindex_profiles(self, _):
-        _reindex_template("profile", self.datastore.list_profile_debug_keys, self.datastore.get_profile,
-                          self.datastore.save_profile)
+        if action_type not in valid_actions:
+            self._print_error("\nInvalid action specified: %s\n\n"
+                              "Valid actions are:\n%s" % (action_type, "\n".join(valid_actions)))
+            return
 
-    def do_old_reindex_results(self, _):
-        _reindex_template("result", self.datastore.list_result_debug_keys, self.datastore._get_bucket_item,
-                          self.datastore._save_bucket_item, self.datastore.results)
+        if bucket and bucket not in valid_buckets:
+            self._print_error("\nInvalid bucket specified: %s\n\n"
+                              "Valid buckets are:\n%s" % (bucket, "\n".join(valid_buckets)))
+            return
 
-    def do_old_reindex_signatures(self, _):
-        _reindex_template("signature", self.datastore.list_signature_debug_keys, self.datastore.get_signature,
-                          self.datastore.save_signature)
+        if action_type == 'reindex':
+            if bucket:
+                reindex_args = _reindex_map[bucket]
+                _reindex_template(bucket, reindex_args[0], reindex_args[1],
+                                  reindex_args[2], reindex_args[3], reindex_args[4])
+            else:
+                for bucket in valid_buckets:
+                    reindex_args = _reindex_map[bucket]
+                    _reindex_template(bucket, reindex_args[0], reindex_args[1],
+                                      reindex_args[2], reindex_args[3], reindex_args[4])
+        elif action_type == 'commit':
+            if bucket:
+                self.datastore.commit_index(bucket)
+                print "Index %s was commited." % bucket.upper()
+            else:
+                print "Forcing commit procedure for all indexes..."
+                for bucket in valid_buckets:
+                    print "    Index %s was commited." % bucket.upper()
+                    self.datastore.commit_index(bucket)
+                print "All indexes commited."
+        elif action_type == 'reset':
+            print "Recreating indexes:"
 
-    def do_old_reindex_submissions(self, _):
-        _reindex_template("submission", self.datastore.list_submission_debug_keys, self.datastore.get_submission,
-                          self.datastore.save_submission, filter_out=["_tree", "_summary"])
+            indexes = [
+                {'n_val': 0, 'name': 'filescore', 'schema': 'filescore'},
+                {'n_val': 0, 'name': 'node', 'schema': 'node'},
+                {'n_val': 0, 'name': 'signature', 'schema': 'signature'},
+                {'n_val': 0, 'name': 'user', 'schema': 'user'},
+                {'n_val': 0, 'name': 'file', 'schema': 'file'},
+                {'n_val': 0, 'name': 'submission', 'schema': 'submission'},
+                {'n_val': 0, 'name': 'error', 'schema': 'error'},
+                {'n_val': 0, 'name': 'result', 'schema': 'result'},
+                {'n_val': 0, 'name': 'profile', 'schema': 'profile'},
+                {'n_val': 0, 'name': 'alert', 'schema': 'alert'},
+            ]
 
-    def do_old_reindex_users(self, _):
-        _reindex_template("user", self.datastore.list_user_debug_keys, self.datastore.get_user,
-                          self.datastore.save_user)
+            print "\tDisabling bucket association:"
+            for index in indexes:
+                bucket = self.datastore.client.bucket(index['name'], bucket_type="data")
+                props = self.datastore.client.get_bucket_props(bucket)
+                index['n_val'] = props['n_val']
+                self.datastore.client.set_bucket_props(bucket, {"search_index": "_dont_index_",
+                                                                "dvv_enabled": False,
+                                                                "last_write_wins": True,
+                                                                "allow_mult": False})
+                print "\t\t%s" % index['name'].upper()
 
-    def do_old_commit_all_index(self, _):
-        print "Forcing commit procedure for all indexes"
-        indexed_buckets = self.datastore.INDEXED_BUCKET_LIST + self.datastore.ADMIN_INDEXED_BUCKET_LIST
+            print "\tDeleting indexes:"
+            for index in indexes:
+                try:
+                    self.datastore.client.delete_search_index(index['name'])
+                except:
+                    pass
+                print "\t\t%s" % index['name'].upper()
 
-        for bucket in indexed_buckets:
-            self.datastore.commit_index(bucket)
+            print "\tCreating indexes:"
+            for index in indexes:
+                self.datastore.client.create_search_index(index['name'], schema=index['schema'], n_val=index['n_val'])
+                print "\t\t%s" % index['name'].upper()
 
-    def do_old_recreate_search_indexes(self, _):
-        print "Recreating indexes:"
+            print "\tAssociating bucket to index:"
+            for index in indexes:
+                bucket = self.datastore.client.bucket(index['name'], bucket_type="data")
+                self.datastore.client.set_bucket_props(bucket, {"search_index": index['name']})
+                print "\t\t%s" % index['name'].upper()
 
-        indexes = [
-            {'n_val': 0, 'name': 'filescore', 'schema': 'filescore'},
-            {'n_val': 0, 'name': 'node', 'schema': 'node'},
-            {'n_val': 0, 'name': 'signature', 'schema': 'signature'},
-            {'n_val': 0, 'name': 'user', 'schema': 'user'},
-            {'n_val': 0, 'name': 'file', 'schema': 'file'},
-            {'n_val': 0, 'name': 'submission', 'schema': 'submission'},
-            {'n_val': 0, 'name': 'error', 'schema': 'error'},
-            {'n_val': 0, 'name': 'result', 'schema': 'result'},
-            {'n_val': 0, 'name': 'profile', 'schema': 'profile'},
-            {'n_val': 0, 'name': 'alert', 'schema': 'alert'},
-        ]
-
-        print "\tDisabling bucket association:"
-        for index in indexes:
-            bucket = self.datastore.client.bucket(index['name'], bucket_type="data")
-            props = self.datastore.client.get_bucket_props(bucket)
-            index['n_val'] = props['n_val']
-            self.datastore.client.set_bucket_props(bucket, {"search_index": "_dont_index_",
-                                                            "dvv_enabled": False,
-                                                            "last_write_wins": True,
-                                                            "allow_mult": False})
-            print "\t\t%s" % index['name'].upper()
-
-        print "\tDeleting indexes:"
-        for index in indexes:
-            try:
-                self.datastore.client.delete_search_index(index['name'])
-            except:
-                pass
-            print "\t\t%s" % index['name'].upper()
-
-        print "\tCreating indexes:"
-        for index in indexes:
-            self.datastore.client.create_search_index(index['name'], schema=index['schema'], n_val=index['n_val'])
-            print "\t\t%s" % index['name'].upper()
-
-        print "\tAssociating bucket to index:"
-        for index in indexes:
-            bucket = self.datastore.client.bucket(index['name'], bucket_type="data")
-            self.datastore.client.set_bucket_props(bucket, {"search_index": index['name']})
-            print "\t\t%s" % index['name'].upper()
-
-        print "All indexes successfully recreated!"
-
-    def do_old_reindex_all_buckets(self, _):
-        self.do_old_reindex_alerts(None)
-        self.do_old_reindex_errors(None)
-        self.do_old_reindex_files(None)
-        self.do_old_reindex_filescores(None)
-        self.do_old_reindex_nodes(None)
-        self.do_old_reindex_profiles(None)
-        self.do_old_reindex_results(None)
-        self.do_old_reindex_signatures(None)
-        self.do_old_reindex_submissions(None)
-        self.do_old_reindex_users(None)
-
-    def do_old_reindex_non_essential_buckets(self, _):
-        self.do_old_reindex_alerts(None)
-        self.do_old_reindex_errors(None)
-        self.do_old_reindex_files(None)
-        self.do_old_reindex_filescores(None)
-        self.do_old_reindex_results(None)
-        self.do_old_reindex_submissions(None)
-
-    def do_old_reindex_essential_buckets(self, _):
-        self.do_old_reindex_nodes(None)
-        self.do_old_reindex_profiles(None)
-        self.do_old_reindex_signatures(None)
-        self.do_old_reindex_users(None)
-
-
+            print "All indexes successfully recreated!"
 
     #
     # Host functions
