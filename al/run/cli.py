@@ -12,6 +12,8 @@ import os
 import re
 import signal
 import time
+import uuid
+import shutil
 
 from pprint import pprint
 
@@ -141,6 +143,23 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         if show_prompt:
             self._update_context()
 
+        self.wipe_map = {
+            'result': self.datastore.wipe_results,
+            'alert': self.datastore.wipe_alerts,
+            'submission': self.datastore.wipe_submissions,
+            'error': self.datastore.wipe_errors,
+            'file': self.datastore.wipe_files,
+            'user': self.datastore.wipe_users,
+            'signature': self.datastore.wipe_signatures,
+            'profile': self.datastore.wipe_profiles,
+            'emptyresult': self.datastore.wipe_emptyresults,
+            'filescore': self.datastore.wipe_filescores,
+            'vm': self.datastore.wipe_vm_nodes,
+            'node': self.datastore.wipe_nodes,
+            'blob': self.datastore.wipe_blobs,
+            'workflow': self.datastore.wipe_workflows
+        }
+
     def _update_context(self):
         label = 'local' if self.mac == self.local_mac else 'remote'
         self.prompt = '%s (%s)> ' % (self.mac, label)
@@ -215,7 +234,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         if stack_func:
             function_doc = inspect.getdoc(getattr(self, stack_func))
             if function_doc:
-                print "Usage:\n" + function_doc + "\n"
+                print "Usage:\n\n" + function_doc + "\n"
 
     #
     # Exit actions
@@ -916,7 +935,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             print "All indexes successfully recreated!"
 
     #
-    # Dispatcher functions
+    # Dispatcher actions
     #
     def do_dispatcher(self, args):
         """
@@ -1009,86 +1028,76 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             self._print_error("'%s' is not a valid dispatcher ID. [%s]" % (item, e.message))
 
     #
-    # Wipe functions
+    # Wipe actions
     #
-    def do_old_wipe_non_essential(self, _):
-        self.do_old_wipe_files(None)
-        self.do_old_wipe_submissions(None)
-        self.do_old_wipe_errors(None)
-        self.do_old_wipe_results(None)
-        self.do_old_wipe_alerts(None)
-        self.do_old_wipe_emptyresult(None)
-        self.do_old_wipe_filescore(None)
+    def do_wipe(self, args):
+        """
+        wipe bucket <bucket_name>
+             non_system
+             submission_data
+        """
+        args = self._parse_args(args)
+        valid_actions = ['bucket', 'non_system', 'submission_data']
 
-    def do_old_wipe_data_except_alerts(self, _):
-        self.do_old_wipe_submissions(None)
-        self.do_old_wipe_files(None)
-        self.do_old_wipe_errors(None)
-        self.do_old_wipe_results(None)
-        self.do_old_wipe_emptyresult(None)
-        self.do_old_wipe_filescore(None)
+        if len(args) == 1:
+            action_type = args[0]
+            bucket = None
+        elif len(args) == 2:
+            action_type, bucket = args
+        else:
+            self._print_error("Wrong number of arguments for wipe command.")
+            return
 
-    def do_old_data_reset(self, full):
-        self.do_old_backup("/tmp/riak_cli_backup.tmp")
+        if action_type not in valid_actions:
+            self._print_error("\nInvalid action specified: %s\n\n"
+                              "Valid actions are:\n%s" % (action_type, "\n".join(valid_actions)))
+            return
 
-        self.do_old_wipe_nodes(None)
-        self.do_old_wipe_profiles(None)
-        self.do_old_wipe_signatures(None)
-        self.do_old_wipe_users(None)
-        self.do_old_wipe_blob(None)
+        if action_type == 'bucket':
+            if bucket not in self.wipe_map.keys():
+                self._print_error("\nInvalid bucket: %s\n\n"
+                                  "Valid buckets are:\n%s" % (bucket, "\n".join(self.wipe_map.keys())))
+                return
 
-        if full == "full":
-            self.do_old_wipe_files(None)
-            self.do_old_wipe_submissions(None)
-            self.do_old_wipe_errors(None)
-            self.do_old_wipe_results(None)
-            self.do_old_wipe_alerts(None)
-            self.do_old_wipe_emptyresult(None)
-            self.do_old_wipe_filescore(None)
-            self.do_old_commit_all_index(None)
+            self.wipe_map[bucket]()
+            print "Done wipping %s." % bucket
+        elif action_type == 'non_system':
+            for bucket in ['alert', 'emptyresult', 'error', 'file', 'filescore', 'result', 'submission', 'workflow']:
+                self.wipe_map[bucket]()
+                print "Done wipping %s." % bucket
+        elif action_type == 'submission_data':
+            for bucket in ['emptyresult', 'error', 'file', 'filescore', 'result', 'submission']:
+                self.wipe_map[bucket]()
+                print "Done wipping %s." % bucket
+        else:
+            self._print_error("Invalid command parameters")
 
-        self.do_old_restore("/tmp/riak_cli_backup.tmp")
+    def do_data_reset(self, args):
+        """
+        data_reset [full]
+        """
+        args = self._parse_args(args)
 
-    def do_old_wipe_results(self, _):
-        self.datastore.wipe_results()
+        if 'full' in args:
+            full = True
+        else:
+            full = False
 
-    def do_old_wipe_alerts(self, _):
-        self.datastore.wipe_alerts()
+        backup_file = "/tmp/al_backup_%s" % str(uuid.uuid4())
+        self.do_backup(backup_file)
+        seed = self.datastore.get_blob('seed')
 
-    def do_old_wipe_submissions(self, _):
-        self.datastore.wipe_submissions()
+        for bucket in ['blob', 'node', 'profile', 'signature', 'user', 'workflow']:
+            self.wipe_map[bucket]()
 
-    def do_old_wipe_errors(self, _):
-        self.datastore.wipe_errors()
+        if full:
+            for bucket in ['alert', 'emptyresult', 'error', 'file', 'filescore', 'result', 'submission']:
+                self.wipe_map[bucket]()
 
-    def do_old_wipe_files(self, _):
-        self.datastore.wipe_files()
-
-    def do_old_wipe_users(self, _):
-        self.datastore.wipe_users()
-
-    def do_old_wipe_signatures(self, _):
-        self.datastore.wipe_signatures()
-
-    def do_old_wipe_profiles(self, _):
-        self.datastore.wipe_profiles()
-
-    def do_old_wipe_emptyresult(self, _):
-        self.datastore.wipe_emptyresults()
-
-    def do_old_wipe_filescore(self, _):
-        self.datastore.wipe_filescores()
-
-    def do_old_wipe_vm_nodes(self, _):
-        self.datastore.wipe_vm_nodes()
-
-    def do_old_wipe_nodes(self, _):
-        self.datastore.wipe_nodes()
-
-    def do_old_wipe_blob(self, _):
-        self.datastore.wipe_blobs()
-
-
+        self.do_index("commit")
+        self.datastore.save_blob('seed', seed)
+        self.do_restore(backup_file)
+        shutil.rmtree(backup_file)
 
 
 def print_banner():
