@@ -234,7 +234,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         if stack_func:
             function_doc = inspect.getdoc(getattr(self, stack_func))
             if function_doc:
-                print "Usage:\n\n" + function_doc + "\n"
+                print "Function help:\n\n" + function_doc + "\n"
 
     #
     # Exit actions
@@ -259,8 +259,32 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_backup(self, args):
         """
-        backup <destination_file>
-               <destination_file> <bucket_name> [follow] [force] <query>
+        Backup the database content to a set of json files
+
+        Usage:
+            backup <destination_folder>
+                   <destination_folder> <bucket_name> [follow] [force] <query>
+
+        Parameters:
+            <destination_folder> Path to the destination folder [required]
+
+            <bucket_name>        Name of the bucket to backup [required in backup by query]
+
+            follow               Follow IDs to backup more then the specified bucket
+                                 [optional, only used in backup by query]
+
+            force                Automatically perform backup without asking for confirmation
+                                 [optional, only used in backup by query]
+
+            <query>              Query that the data need to match
+                                 [optional, only used in backup by query]
+
+        Examples:
+            # Create a backup of the system buckets
+            backup /tmp/backup_folder
+
+            # Created a backup of all alerts
+            backup /tmp/alerts_backup alert "*:*"
         """
         args = self._parse_args(args)
 
@@ -330,7 +354,16 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_restore(self, args):
         """
-        restore <backup_directory>
+        Restore a backup created by the backup command
+
+        Usage:
+            restore <backup_directory>
+
+        Parameters:
+            <backup_directory> Path to the backup folder [required]
+
+        Examples:
+            restore /tmp/backup_folder
         """
         args = self._parse_args(args)
 
@@ -494,7 +527,7 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             print "Data of bucket '%s' matching query '%s' has been deleted." % (bucket, query)
 
     #
-    # bucket actions
+    # Bucket actions
     #
     def do_node(self, args):
         """
