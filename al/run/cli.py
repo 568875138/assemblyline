@@ -385,9 +385,24 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_reseed(self, args):
         """
-        reseed    current
-                  previous
-                  module <python_path_of_seed> [<destination_blob>]
+        Change your current seed from a code based seed or a previous backup
+
+        Usage:
+            reseed current
+                   previous
+                   module <python_path_of_seed> [<destination_blob>]
+
+        Parameters:
+            current   reload the current seed from it's code version
+            previous  reload the previous iteration of your seed
+            module    load a code seed file into the system
+            <python_path_of_seed>  python package path to the seed file
+            [<destination_blob>]   destination where the module will be loaded
+                                   [default: seed]
+
+        Examples:
+            # reload your deployment seed
+            reseed module al_private.seeds.deployment.seed
         """
         args = self._parse_args(args)
 
@@ -450,7 +465,21 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_delete(self, args):
         """
-        delete <bucket> [full] [force] <query>
+        Delete all data from a bucket that match a given query
+
+        Usage:
+            delete <bucket> [full] [force] <query>
+
+        Parameters:
+            <bucket>  Name of the bucket to delete from
+            full      Follow IDs and remap classification
+                      [Optional: Only work while deleting submissions]
+            force     Automatically perform deletion without asking for confirmation [optional]
+            <query>   Query to run to find the data to delete
+
+        Examples:
+            # Delete all submission for "user" with all associated results
+            delete submission full "submission.submitter:user"
         """
         valid_buckets = self.datastore.INDEXED_BUCKET_LIST + self.datastore.ADMIN_INDEXED_BUCKET_LIST
         args = self._parse_args(args)
@@ -531,16 +560,38 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_node(self, args):
         """
-        node list
-             disable  <id>
-             enable   <id>
-             hearbeat <id>
-             remove   <id>
-             restart  <id>
-             show     <id>
-             stop     <id>
-             start    <id>
-             status   <id>
+        Perform operation on a worker node
+
+        Usage:
+            node list
+                 disable  <id>
+                 enable   <id>
+                 hearbeat <id>
+                 remove   <id>
+                 restart  <id>
+                 show     <id>
+                 stop     <id>
+                 start    <id>
+                 status   <id>
+
+        Actions:
+            list      List all nodes on the system
+            disable   Disable the node
+            enable    Enable the node
+            hearbeat  Show the next heartbeat from the node (CPU, RAM and disk usage)
+            remove    Remove the node from the system
+            restart   Restart processing on the node
+            show      Show the node description
+            stop      Stop processing on the node
+            start     Start processing on the node
+            status    Get the status of processing on the node
+
+        Parameters:
+            <id>   ID of the worker node, mac address, to perform the action on
+
+        Examples:
+            # Restart processing on the node
+            node restart 52540027629C
         """
         valid_actions = ['list', 'show', 'disable', 'enable', 'remove', 'start',
                          'stop', 'restart', 'status', 'heartbeat']
@@ -598,9 +649,24 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_profile(self, args):
         """
-        profile list
-                show    <id>
-                remove  <id>
+        Perform operation on worker profiles
+
+        Usage:
+            profile list
+                    show    <name>
+                    remove  <name>
+
+        Actions:
+            list      List all profiles on the system
+            remove    Remove the profile from the system
+            show      Show the profile description
+
+        Parameters:
+            <name>   Name of the profile to perform the action on
+
+        Examples:
+            # Show profile 'sync_only'
+            profile show sync_only
         """
         valid_actions = ['list', 'show', 'remove']
         args = self._parse_args(args)
@@ -631,11 +697,28 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_service(self, args):
         """
-        service list
-                show    <id>
-                disable <id>
-                enable  <id>
-                remove  <id>
+        Perform operation on the different services on the system
+
+        Usage:
+            service list
+                    show    <name>
+                    disable <name>
+                    enable  <name>
+                    remove  <name>
+
+        Actions:
+            list      List all services on the system
+            disable   Disable the service in the system
+            enable    Enable the service in the system
+            remove    Remove the service from the system
+            show      Show the service description
+
+        Parameters:
+            <name>   Name of the service to perform the action on
+
+        Examples:
+            # Show profile 'sync_only'
+            profile show sync_only
         """
         valid_actions = ['list', 'show', 'disable', 'enable', 'remove']
         args = self._parse_args(args)
@@ -682,11 +765,30 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_signature(self, args):
         """
-        signature change_status by_id    [force] <status_value> <id>
-                  change_status by_query [force] <status_value> <query>
+        Perform operation on a signature in the system
 
-                  remove        <id>
-                  show          <id>
+        Usage:
+            signature change_status by_id    [force] <status_value> <id>
+                      change_status by_query [force] <status_value> <query>
+                      remove        <id>
+                      show          <id>
+
+        Actions:
+            change_status  Change the status of a signature
+            remove         Remove the signature from the system
+            show           Show the signature description
+
+        Parameters:
+            <id>           ID of the signature to perform the action on
+            <query>        Query to match the signature
+            <status_value> New status value for the signature
+            force          Automatically perform status change without asking for confirmation [optional]
+            by_id          Use an ID to choose the signature
+            by_query       Use a search query to choose the signatures
+
+        Examples:
+            # Change the status of all STAGING signatures to DEPLOYED
+            signature change_status by_query DEPLOYED "meta.al_status:STAGING"
         """
         valid_actions = ['show', 'change_status', 'remove']
         args = self._parse_args(args)
@@ -772,13 +874,33 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_user(self, args):
         """
-        user list
-             show        <id>
-             disable     <id>
-             enable      <id>
-             set_admin   <id>
-             unset_admin <id>
-             remove      <id>
+        Perform operation on a user in the system
+
+        Usage:
+            user list
+                 show        <uname>
+                 disable     <uname>
+                 enable      <uname>
+                 set_admin   <uname>
+                 unset_admin <uname>
+                 remove      <uname>
+
+        Actions:
+            list         List all the users
+            show         Describe a user
+            disable      Disable a user
+            enable       Enable a user
+            set_admin    Make a user admin
+            unset_admin  Remove admin priviledges to a user
+            remove       Remove a user
+
+        Parameters:
+            <uname>      Username of the user to perform the action on
+
+
+        Examples:
+            # Disable user 'user'
+            user disable user
         """
         valid_actions = ['list', 'show', 'disable', 'enable', 'remove', 'set_admin', 'unset_admin']
         args = self._parse_args(args)
@@ -844,11 +966,28 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_index(self, args):
         """
-        index commit   [<bucket>]
-              reindex  [<bucket>]
+        Perform operations on the search index
 
-              reset
+        Usage:
+            index commit   [<bucket>]
+                  reindex  [<bucket>]
 
+                  reset
+
+        Actions:
+            commit       Force SOLR to commit the index
+            reindex      Read all keys and reindex them (Really slow)
+            reset        Delete and recreate all search indexes
+
+        Parameters:
+            <bucket>     Bucket to do the opration on [optional]
+
+
+        Examples:
+            # Force commit on file bucket
+            index commit file
+            # Force commit on all bucket
+            index commit
         """
         _reindex_map = {
             "alert": [self.datastore.list_alert_debug_keys, self.datastore.get_alert, self.datastore.save_alert,
@@ -972,12 +1111,30 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_dispatcher(self, args):
         """
-        dispatcher get_time      <dispatcher_id>
-                   list_services <dispatcher_id>
-                   outstanding   <dispatcher_id>
+        Perform operations on the running dispatchers
 
-                   explain_state <sid>
-                   services      <sid>
+        Usage:
+            dispatcher get_time      [<dispatcher_id>]
+                       list_services [<dispatcher_id>]
+                       outstanding   [<dispatcher_id>]
+
+                       explain_state <sid>
+                       services      <sid>
+
+        Actions:
+            get_time         Get the epoch time form the dispatchers
+            list_services    List all registered services
+            outstanding      List outstanding tasks
+            explain_state    Explain the state of a given running submission
+            services         List all outstanding services for a submission
+
+        Parameters:
+            <dispatcher_id>  ID of the dispatcher to query (Default: all)
+            <sid>            Submission ID
+
+        Examples:
+            # List outstanding services for submission id 3204cf2f-9411-4ea6-b260-cbfe8f803793
+            dispatcher service 3204cf2f-9411-4ea6-b260-cbfe8f803793
         """
         class DispatcherException(Exception):
             pass
@@ -1065,9 +1222,40 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
     #
     def do_wipe(self, args):
         """
-        wipe bucket <bucket_name>
-             non_system
-             submission_data
+        Wipe all data from one or many buckets
+
+        DO NOT USE ON PRODUCTION SYSTEM
+
+        Usage:
+            wipe bucket <bucket_name>
+                 non_system
+                 submission_data
+
+        Actions:
+            bucket           Single bucket wipe mode
+            non_system       Delete all data from:
+                                 alert
+                                 emptyresult
+                                 error
+                                 file
+                                 filescore
+                                 result
+                                 submission
+                                 workflow
+            submission_data  Delete all data from:
+                                 emptyresult
+                                 error
+                                 file
+                                 filescore
+                                 result
+                                 submission
+
+        Parameters:
+            <bucket_name>  Name of the bucket to wipe
+
+        Examples:
+            # Wipe all files
+            wipe bucket file
         """
         args = self._parse_args(args)
         valid_actions = ['bucket', 'non_system', 'submission_data']
@@ -1107,7 +1295,20 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
 
     def do_data_reset(self, args):
         """
-        data_reset [full]
+        Completely resets the database. Does a backup of the system data, wipe every buckets then
+        restores the backup.
+
+        DO NOT USE ON PRODUCTION SYSTEM
+
+        Usage:
+            data_reset [full]
+
+        Parameters:
+            full   Does not just wipe the system bucket, also wipe all submissions and results
+
+        Examples:
+            # Reset the database
+            data_reset full
         """
         args = self._parse_args(args)
 
