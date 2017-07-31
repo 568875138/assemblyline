@@ -1200,7 +1200,7 @@ class RiakStore(DataStoreBase):
         lock = threading.Lock()
         sf_t = threading.Thread(target=_auto_fill,
                                 args=[self, item_buffer_size, items, lock, bucket, query, args, df, access_control],
-                                name="stream_search_%s" % md5(bucket + query).hexdigest()[:7])
+                                name="stream_search_%s" % md5(bucket + safe_str(query)).hexdigest()[:7])
         sf_t.setDaemon(True)
         sf_t.start()
         while not yield_done:
