@@ -159,7 +159,7 @@ class FileStore(object):
                 download_errors.append((str(t), get_stacktrace_info(ex)))
 
         if not successful:
-            raise FileStoreException('No transport succeeded:\n%s', pprint.pformat((download_errors)))
+            raise FileStoreException('No transport succeeded:\n%s' % pprint.pformat((download_errors)))
         return transports
 
     def exists(self, path, location='any'):
@@ -212,7 +212,8 @@ class FileStore(object):
                 transports.append(t)
                 t.put(src_path, dst_path)
                 if not t.exists(dst_path):
-                    raise FileStoreException('File transfer failed. Remote file does not exist for %s on %s (%s)', dst_path, location, t)
+                    raise FileStoreException('File transfer failed. Remote file does not '
+                                             'exist for %s on %s (%s)' % (dst_path, location, t))
         return transports
 
     def put_batch(self, local_remote_tuples, location='all'):
