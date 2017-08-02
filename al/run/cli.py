@@ -310,28 +310,28 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             backup_manager.backup(["blob", "node", "profile", "signature", "user"])
         else:
             data = self.datastore._search_bucket(self.datastore.get_bucket(bucket), query, start=0, rows=1)
+            total = data['total']
+            if not total:
+                print "\nNothing in '%s' matches the query:\n\n  %s\n" % (bucket.upper(), query)
+                return
+            else:
+                print "\nNumber of items matching this query: %s\n" % data["total"]
 
             if not force:
-                print "\nNumber of items matching this query: %s\n\n" % data["total"]
-
-                if data['total'] > 0:
-                    print "This is an exemple of the data that will be backuped:\n"
-                    print data['items'][0], "\n"
-                    if self.prompt:
-                        cont = raw_input("Are your sure you want to continue? (y/N) ")
-                        cont = cont == "y"
-                    else:
-                        print "You are not in interactive mode therefor the backup was not executed. " \
-                              "Add 'force' to your commandline to execute the backup."
-                        cont = False
+                print "This is an exemple of the data that will be backuped:\n"
+                print data['items'][0], "\n"
+                if self.prompt:
+                    cont = raw_input("Are your sure you want to continue? (y/N) ")
+                    cont = cont == "y"
                 else:
+                    print "You are not in interactive mode therefor the backup was not executed. " \
+                          "Add 'force' to your commandline to execute the backup."
                     cont = False
 
                 if not cont:
                     print "\n**ABORTED**\n"
                     return
 
-            total = data['total']
             if follow:
                 total *= 100
 
@@ -344,7 +344,12 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                 return
 
             backup_manager = DistributedBackup(dest, worker_count=max(1, min(total / 1000, 50)))
-            backup_manager.backup([bucket], follow_keys=follow, query=query)
+
+            try:
+                backup_manager.backup([bucket], follow_keys=follow, query=query)
+            except KeyboardInterrupt:
+                backup_manager.terminate()
+                raise
 
     def do_restore(self, args):
         """
@@ -371,8 +376,14 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             return
 
         workers = len([x for x in os.listdir(path) if '.part' in x])
+
         backup_manager = DistributedBackup(path, worker_count=workers)
-        backup_manager.restore()
+
+        try:
+            backup_manager.restore()
+        except KeyboardInterrupt:
+            backup_manager.terminate()
+            raise
 
     #
     # Seed actions
@@ -1345,6 +1356,10 @@ def shell_main():
 
 
 if __name__ == '__main__':
+    def signal_handler(signal_p, frame_p):
+        raise KeyboardInterrupt("Interrupting shell...")
+    signal.signal(signal.SIGINT, signal_handler)
+
     try:
         shell_main()
     except KeyboardInterrupt:
