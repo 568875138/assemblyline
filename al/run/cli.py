@@ -248,12 +248,6 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         """Quits the CLI"""
         self.do_exit(arg)
 
-    # noinspection PyPep8Naming
-    def do_EOF(self, _):
-        """Stops CLI loop when called from shell"""
-        print
-        self.do_exit(0)
-
     #
     # Backup actions
     #
@@ -1341,12 +1335,13 @@ def print_banner():
 
 
 def shell_main():
-    show_prompt = False
-    if sys.stdin.isatty():
+    cli = ALCommandLineInterface(len(sys.argv) == 1)
+
+    if len(sys.argv) != 1:
+        cli.onecmd(" ".join([{True: '"%s"' % x, False: x}[" " in x] for x in sys.argv[1:]]))
+    else:
         print_banner()
-        show_prompt = True
-    cli = ALCommandLineInterface(show_prompt)
-    cli.cmdloop()
+        cli.cmdloop()
 
 
 if __name__ == '__main__':

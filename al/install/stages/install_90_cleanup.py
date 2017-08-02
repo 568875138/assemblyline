@@ -60,15 +60,26 @@ def install_al_cli(alsi):
     cli_path = os.path.join(alsi.alroot, 'pkg/assemblyline/al/run/cli.py')
     target = '/tmp/{script_name}'.format(script_name=script_name)
 
-    alsi.runcmd('echo \'#!/bin/sh\n\n'
+    alsi.runcmd('echo \'#!/bin/bash\n\n'
                 'run_al_cli(){{\n'
                 '    if [ $# = 0 ]; then\n'
-                '        sudo su al -c "{invoke} {cli}"\n'
+                '        invoke="{invoke}"\n'
+                '        args="$@"\n'
                 '    else\n'
-                '        echo ${{@}} | sudo su al -c ". /etc/default/al && {cli}"\n'
+                '        invoke=". /etc/default/al && "\n'
+                '        args=""\n'
+                '        for i in "$@"; do\n'
+                '            if [[ $i =~ \ + ]] ;then\n'
+                '               args="$args \\"$i\\""\n'
+                '            else\n'
+                '               args="$args $i"\n'
+                '            fi\n'
+                '        done\n'
                 '    fi\n'
+                '    cli="{cli}"\n'
+                '    sudo su {user} -c "${{invoke}} ${{cli}} ${{args}}"\n'
                 '}}\n\n'
-                'run_al_cli $@\' > {target}'.format(user=user, invoke=invoke_path, cli=cli_path, target=target),
+                'run_al_cli "$@"\' > {target}'.format(user=user, invoke=invoke_path, cli=cli_path, target=target),
                 raise_on_error=False)
     alsi.runcmd("chmod +x {target}".format(target=target))
     alsi.runcmd("sudo mv {target} {exec_path}/{script_name}".format(target=target,
