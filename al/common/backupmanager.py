@@ -262,6 +262,7 @@ class DistributedBackup(object):
 
             # Start done thread
             t = threading.Thread(target=self._done_thread, args=(TYPE_BACKUP,), name="Done thread")
+            t.setDaemon(True)
             t.start()
 
             # Process data buckets
@@ -327,6 +328,7 @@ class DistributedBackup(object):
 
             # Start done thread
             t = threading.Thread(target=self._done_thread, args=(TYPE_RESTORE,), name="Done thread")
+            t.setDaemon(True)
             t.start()
 
             # Wait for workers to finish
