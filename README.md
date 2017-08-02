@@ -2,7 +2,7 @@
 
 Assemblyline is a scalable *__distributed file analysis framework__*. It is designed to process millions of files per day but can also be installed on a single box.
 
-An Assemblyline cluster consist of 3 types of boxes: Core, Datastore and Worker.
+An Assemblyline cluster consists of 3 types of boxes: Core, Datastore and Worker.
 
 ## Components
 
@@ -15,7 +15,7 @@ The Assemblyline Core server runs all the required components to receive/dispatc
 * Dispatcher (Worker tasking and job completion)
 * Ingester (High volume task insgestion)
 * Expiry (Data deletion)
-* Alerter (Creates alert when score threshold is met)
+* Alerter (Creates alerts when score threshold is met)
 * UI/API (NGINX, UWSGI, Flask, AngularJS)
 * Websocket (NGINX, Gunicorn, GEvent)
 
@@ -25,49 +25,49 @@ Assemblyline uses Riak as its persistent data storage. Riak is a Key/Value pair 
 
 ### Assemblyline Workers
 
-Workers are actually responsible to process the given files.
-Each worker has a hostagent process that starts the different service to be run on the current worker and make sure that those service behave.
-The hostagent is also responsible to download and run virtual machines for service that are required to run inside of a virtual machine or that only run under windows.
+Workers are responsible for processing the given files.
+Each worker has a hostagent process that starts the different services to be run on the current worker and makes sure that those service behave.
+The hostagent is also responsible for downloading and running virtual machines for services that are required to run inside of a virtual machine or that only run on Windows.
 
 ### Assemblyline reference manual
 
-If you want to know more about Assemblyline, you can get a copy and read the full [reference manual](https://bitbucket.org/cse-assemblyline/assemblyline/src/master/manuals/). Can also be found in the `assemblyline/manuals` directory of your installation.
+If you want to know more about Assemblyline, you can get a copy of the full [reference manual](https://bitbucket.org/cse-assemblyline/assemblyline/src/master/manuals/). It can also be found in the `assemblyline/manuals` directory of your installation.
 
-## Get started
+## Getting started
 
 ### Use as an appliance
 
-An appliance is a full deployment self contained on one box/vm. You can easily deploy an assemblyline appliance by following the appliance creation documentation.
+An appliance is a full deployment that's self contained on one box/vm. You can easily deploy an Assemblyline appliance by following the appliance creation documentation.
 
 [Install Appliance Documentation](docs/install_appliance.md)
 
 ### Deploy a production cluster
 
-You want to scan a massive amount of files then you can deploy assemblyline as a production cluster. Follow the cluster deployment documentation to do so.
+If you want to scan a massive amount of files then you can deploy Assemblyline as a production cluster. Follow the cluster deployment documentation to do so.
 
 [Install Cluster Documentation](docs/install_cluster.md)
 
 ### Development
 
-You can help us out by creating new services, adding functionalities to the infrastructures or fixing bugs that we currently have in the system.
+You can help us out by creating new services, adding functionality to the infrastructure or fixing bugs that we currently have in the system.
 
-You can follow this documentation to get you started developping.
+You can follow this documentation to get started with development.
 
 #### Setup your development desktop
 
-Setting up your developement desktop can be done in two easy steps:
+Setting up your development desktop can be done in two easy steps:
 
-* Clone the assemblyline repo
+* Clone the Assemblyline repo
 * run the setup script
 
 ##### Clone repo
 
-First create your assemblyline working directory:
+First, create your Assemblyline working directory:
 
     export ASSEMBLYLINE_DIR=~/git/al
     mkdir -p ${ASSEMBLYLINE_DIR}
 
-Then clone assemblyline repo with one of those two techniques:
+Then clone the Assemblyline repo with one of those two techniques:
 
 ###### SSH Keys
 
@@ -84,7 +84,7 @@ Then clone assemblyline repo with one of those two techniques:
 
 ###### App password
 
-First you need to create an app password for your user in bitbucket then:
+First you need to create an app password for your user on bitbucket, then:
 
     export GIT_USER=<your git user>
     export GIT_PASS=<your app password>
@@ -95,45 +95,45 @@ First you need to create an app password for your user in bitbucket then:
 
     ${ASSEMBLYLINE_DIR}/assemblyline/al/run/setup_dev_environment.py
 
-**NOTE**: The setup script will use the same git remote that you've use to clone the assemblyline repo
+**NOTE**: The setup script will use the same git remote that you've used to clone the Assemblyline repo
 
 #### Setup your development VM
 
-After your done setting up your Desktop, you can setup the VM from which your gonna run your personal assemblyline instance.
+After you're done setting up your Desktop, you can setup the VM from which you're going to run your personal Assemblyline instance.
 
 ##### Local VM
 
-If you want to use a local VM make sure your desktop is powerful enough to run a VM with 2 cores and 8 GB.
+If you want to use a local VM make sure your desktop is powerful enough to run a VM with 2 cores and 8 GB of memory.
 
 You can install the OS by following this doc: [Install Ubuntu Server](docs/install_ubuntu_server.md)
 
 ##### (Alternative) Amazon AWS or other cloud providers
 
-Alternatively you can use a cloud provider like Amazon AWS. We recommend 2 core and 8 GB of ram for you dev VM. In the case of AWS this is the equivalent to an m4.large EC2 node.
+Alternatively you can use a cloud provider like Amazon AWS. We recommend 2 cores and 8 GB of ram for you Dev VM. In the case of AWS this is the equivalent to an m4.large EC2 node.
 
-Whatever provider and VM size you use, make sure you have a VM with Ubuntu 14.04 installed.
+Whatever provider and VM size you use, make sure you have a VM with Ubuntu 14.04.3 installed.
 
 ##### Installing the assemblyline code on the dev VM
 
-When your done installing the OS on your VM, you need to install all assemblyline components on that VM.
+When you're done installing the OS on your VM, you need to install all Assemblyline components on that VM.
 
 To do so, follow the documentation: [Install a Development VM](docs/install_development_vm.md)
 
 #### Finishing setup
 
-Now that the code is synced on your desktop and your Dev VM is installed. You should setup you development UI. Make sure that you ran the tweak on your Dev VM to remove the id_rsa keys because you'll want you desktop to drive the code in your VM not the git repos.
+Now that the code is synced on your desktop and your Dev VM is installed, you should setup your development UI. Make sure to run the tweaks on your Dev VM to remove the id_rsa keys in order to have your desktop drive the code in your VM instead of the git repos.
 
-If you have a copy of pycharm pro, you can use the remote python interpreter and remote deployment features to automatically sync code to your Dev VM. Alternatively, you can just manually rsync your code to your Dev VM every time you want to test your changes.
+If you have a copy of PyCharm Pro, you can use the remote python interpreter and remote deployment features to automatically sync code to your Dev VM. Alternatively, you can just manually rsync your code to your Dev VM every time you want to test your changes.
 
 ##### Setting up pycharm
 
-Open pycharm and open your project: ~/git/al (or ASSEMBLYLINE_DIR if you change the directory)
+Open PyCharm and open your project: ~/git/al (or ASSEMBLYLINE_DIR if you change the directory)
 
-Pycharm will tell you there are unregistered git repos, click the 'add roots' button
+Pycharm will tell you there are unregistered git repos, click the 'add roots' button and add the unregistered repos.
 
 ###### Remote interpreter (pro only)
 
-If you have the pro version you can setup the remote interpreter.
+If you have the PyCharm Pro version you can set up the remote interpreter:
 
     file -> settings
     Project: al -> Project Interpreter
@@ -148,11 +148,11 @@ If you have the pro version you can setup the remote interpreter.
 
     click ok
 
-**NOTE**: Leave settings page opened for remote deployment. At this point you should be done with your remote interpreter. Whenever you click the play or debug button it should run the code on the remote Dev VM.
+**NOTE**: Leave the settings page opened for remote deployments. At this point you should be done with your remote interpreter. Whenever you click the play or debug button it should run the code on the remote Dev VM.
 
-###### Remote Deployment (pro only)
+###### Remote Deployment (PyCharm Pro only)
 
-Still in the settings page
+Still in the settings page:
 
     Build, Execution, Deployment - > Deployment
 
@@ -175,7 +175,7 @@ Still in the settings page
     choose pkg
     click ok
 
-**NOTE**: At this point you should be done with your remote deployment. When you make changes to you code, to sync it to the remote Dev VM, open the 'Version Control' tab at the bottom of the interface, select 'Local changes', right click on Default and select upload to 'assemblyline dev_vm'
+**NOTE**: At this point you should be done with your remote deployment. When you make changes to your code, you can sync it to the remote Dev VM by opening the 'Version Control' tab at the bottom of the interface, selecting 'Local changes', right clicking on Default and selecting upload to 'assemblyline dev_vm'
 #### Create a new service
 
 To create a new service, follow the create service tutorial.
