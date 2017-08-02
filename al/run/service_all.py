@@ -4,7 +4,7 @@ import sys
 from assemblyline.al.install import SiteInstaller
 from assemblyline.al.install.stages import cmd_service_all
 
-VALID_COMMANDS = ['start', 'stop', 'restart']
+VALID_COMMANDS = ['start', 'stop', 'restart', 'status']
 
 
 def exec_on_all(cmd):

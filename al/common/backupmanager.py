@@ -202,7 +202,7 @@ class DistributedBackup(object):
         summary += "%s DONE! (%s keys backed up - %s errors - %s secs)\n" % \
                    (title, t_count, e_count, time.time() - t0)
         summary += "\n############################################\n"
-        summary += "########## %s SUMMARY ################\n" % title.upper()
+        summary += "########## %08s SUMMARY ################\n" % title.upper()
         summary += "############################################\n\n"
 
         for k, v in map_count.iteritems():
@@ -473,6 +473,7 @@ class BackupWorker(object):
                                       "bucket_name": data['bucket_name'],
                                       "key": data['key']})
 
+    # noinspection PyUnresolvedReferences
     def _restore(self):
         with open(os.path.join(self.working_dir, "backup.part%s" % self.worker_id), "rb") as input_file:
             for l in input_file.xreadlines():
@@ -500,5 +501,12 @@ class BackupWorker(object):
         self.done_queue.push({"is_done": True})
 
 if __name__ == "__main__":
-    backup_manager = DistributedBackup("/tmp/backup_test/", worker_count=1, spawn_workers=False)
-    backup_manager.backup('alert', follow_keys=True)
+    import sys
+
+    # noinspection PyBroadException
+    try:
+        backup = sys.argv[1]
+        backup_manager = DistributedBackup(backup, worker_count=1, spawn_workers=False)
+        backup_manager.restore()
+    except:
+        print "No backup to restore"

@@ -60,11 +60,15 @@ def install_al_cli(alsi):
     cli_path = os.path.join(alsi.alroot, 'pkg/assemblyline/al/run/cli.py')
     target = '/tmp/{script_name}'.format(script_name=script_name)
 
-    alsi.runcmd('echo "#!/bin/sh\n\n'
-                'sudo su {user} -c \\"{invoke} {cli}\\"" > {target}'.format(user=user,
-                                                                            invoke=invoke_path,
-                                                                            cli=cli_path,
-                                                                            target=target),
+    alsi.runcmd('echo \'#!/bin/sh\n\n'
+                'run_al_cli(){{\n'
+                '    if [ $# = 0 ]; then\n'
+                '        sudo su al -c "{invoke} {cli}"\n'
+                '    else\n'
+                '        echo ${{@}} | sudo su al -c ". /etc/default/al && {cli}"\n'
+                '    fi\n'
+                '}}\n\n'
+                'run_al_cli $@\' > {target}'.format(user=user, invoke=invoke_path, cli=cli_path, target=target),
                 raise_on_error=False)
     alsi.runcmd("chmod +x {target}".format(target=target))
     alsi.runcmd("sudo mv {target} {exec_path}/{script_name}".format(target=target,
