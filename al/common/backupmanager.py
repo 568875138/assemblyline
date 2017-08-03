@@ -4,6 +4,7 @@ import time
 import os
 import subprocess
 import threading
+import uuid
 
 from assemblyline.al.common import forge, queue, remote_datatypes
 from assemblyline.al.common.error_template import ERROR_MAP
@@ -102,11 +103,12 @@ class DistributedBackup(object):
         self.working_dir = working_dir
         self.ds = forge.get_datastore()
         self.plist = []
-        self.follow_queue = queue.NamedQueue("r-follow", db=DATABASE_NUM)
-        self.hash_queue = remote_datatypes.Hash("r-hash", db=DATABASE_NUM)
-        self.backup_queue = queue.NamedQueue('r-backup', db=DATABASE_NUM)
-        self.backup_done_queue = queue.NamedQueue("r-backup-done", db=DATABASE_NUM)
-        self.restore_done_queue = queue.NamedQueue("r-restore-done", db=DATABASE_NUM)
+        self.instance_id = str(uuid.uuid4())
+        self.follow_queue = queue.NamedQueue("r-follow_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
+        self.hash_queue = remote_datatypes.Hash("r-hash_%s" % self.instance_id, db=DATABASE_NUM)
+        self.backup_queue = queue.NamedQueue('r-backup_%s' % self.instance_id, db=DATABASE_NUM, ttl=1800)
+        self.backup_done_queue = queue.NamedQueue("r-backup-done_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
+        self.restore_done_queue = queue.NamedQueue("r-restore-done_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
         self.bucket_error = []
 
         self.BUCKET_MAP = {
@@ -126,10 +128,14 @@ class DistributedBackup(object):
         self.VALID_BUCKETS = sorted(self.BUCKET_MAP.keys())
         self.worker_count = worker_count
         self.spawn_workers = spawn_workers
+        self.current_type = None
+
+    def terminate(self):
+        self._cleanup_queues(self.current_type)
 
     def _cleanup_queues(self, task_type):
         if task_type == TYPE_BACKUP:
-            print "\nCleaning up backup and done queues..."
+            print "\nCleaning up backup queues for ID: %s..." % self.instance_id
             self.backup_queue.delete()
             for _ in xrange(100):
                 self.backup_queue.push({"is_done": True})
@@ -137,7 +143,7 @@ class DistributedBackup(object):
             self.backup_queue.delete()
             self.backup_done_queue.delete()
         else:
-            print "\nCleaning up restore done queue..."
+            print "\nCleaning up restore queues for ID: %s..." % self.instance_id
             self.restore_done_queue.delete()
 
         self.follow_queue.delete()
@@ -162,7 +168,11 @@ class DistributedBackup(object):
             done_queue = self.restore_done_queue
 
         while True:
-            _, data = queue.select(done_queue)
+            msg = queue.select(done_queue, timeout=1)
+            if not msg:
+                continue
+
+            _, data = msg
             if data.get("is_done", False):
                 done_count += 1
             else:
@@ -202,7 +212,7 @@ class DistributedBackup(object):
         summary += "%s DONE! (%s keys backed up - %s errors - %s secs)\n" % \
                    (title, t_count, e_count, time.time() - t0)
         summary += "\n############################################\n"
-        summary += "########## %s SUMMARY ################\n" % title.upper()
+        summary += "########## %08s SUMMARY ################\n" % title.upper()
         summary += "############################################\n\n"
 
         for k, v in map_count.iteritems():
@@ -240,7 +250,7 @@ class DistributedBackup(object):
                 return
         try:
             # Cleaning queues
-            self._cleanup_queues(TYPE_BACKUP)
+            self.current_type = TYPE_BACKUP
 
             # Spawning workers
             if self.spawn_workers:
@@ -252,7 +262,8 @@ class DistributedBackup(object):
                                           os.path.join(run_dir, "run", "distributed_worker.py"),
                                           str(TYPE_BACKUP),
                                           str(x),
-                                          self.working_dir],
+                                          self.working_dir,
+                                          self.instance_id],
                                          stderr=devnull,
                                          stdout=devnull)
                     self.plist.append(p)
@@ -262,6 +273,7 @@ class DistributedBackup(object):
 
             # Start done thread
             t = threading.Thread(target=self._done_thread, args=(TYPE_BACKUP,), name="Done thread")
+            t.setDaemon(True)
             t.start()
 
             # Process data buckets
@@ -308,7 +320,7 @@ class DistributedBackup(object):
 
     def restore(self):
         try:
-            self._cleanup_queues(TYPE_RESTORE)
+            self.current_type = TYPE_RESTORE
 
             # Spawning workers
             print "Spawning %s restore workers ..." % self.worker_count
@@ -319,7 +331,8 @@ class DistributedBackup(object):
                                       os.path.join(run_dir, "run", "distributed_worker.py"),
                                       str(TYPE_RESTORE),
                                       str(x),
-                                      self.working_dir],
+                                      self.working_dir,
+                                      self.instance_id],
                                      stderr=devnull,
                                      stdout=devnull)
                 self.plist.append(p)
@@ -327,6 +340,7 @@ class DistributedBackup(object):
 
             # Start done thread
             t = threading.Thread(target=self._done_thread, args=(TYPE_RESTORE,), name="Done thread")
+            t.setDaemon(True)
             t.start()
 
             # Wait for workers to finish
@@ -406,22 +420,23 @@ FOLLOW_KEYS = {
 
 # noinspection PyProtectedMember,PyBroadException
 class BackupWorker(object):
-    def __init__(self, wid, worker_type, working_dir):
+    def __init__(self, wid, worker_type, working_dir, instance_id):
         self.working_dir = working_dir
         self.worker_id = wid
         self.ds = forge.get_datastore()
         self.worker_type = worker_type
+        self.instance_id = instance_id
 
         if worker_type == TYPE_BACKUP:
-            self.hash_queue = remote_datatypes.Hash("r-hash", db=DATABASE_NUM)
-            self.follow_queue = queue.NamedQueue("r-follow", db=DATABASE_NUM)
-            self.queue = queue.NamedQueue('r-backup', db=DATABASE_NUM)
-            self.done_queue = queue.NamedQueue("r-backup-done", db=DATABASE_NUM)
+            self.hash_queue = remote_datatypes.Hash("r-hash_%s" % self.instance_id, db=DATABASE_NUM)
+            self.follow_queue = queue.NamedQueue("r-follow_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
+            self.queue = queue.NamedQueue("r-backup_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
+            self.done_queue = queue.NamedQueue("r-backup-done_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
         else:
             self.hash_queue = None
             self.follow_queue = None
             self.queue = None
-            self.done_queue = queue.NamedQueue("r-restore-done", db=DATABASE_NUM)
+            self.done_queue = queue.NamedQueue("r-restore-done_%s" % self.instance_id, db=DATABASE_NUM, ttl=1800)
 
     def _backup(self):
         done = False
@@ -473,6 +488,7 @@ class BackupWorker(object):
                                       "bucket_name": data['bucket_name'],
                                       "key": data['key']})
 
+    # noinspection PyUnresolvedReferences
     def _restore(self):
         with open(os.path.join(self.working_dir, "backup.part%s" % self.worker_id), "rb") as input_file:
             for l in input_file.xreadlines():
@@ -500,5 +516,12 @@ class BackupWorker(object):
         self.done_queue.push({"is_done": True})
 
 if __name__ == "__main__":
-    backup_manager = DistributedBackup("/tmp/backup_test/", worker_count=1, spawn_workers=False)
-    backup_manager.backup('alert', follow_keys=True)
+    import sys
+
+    # noinspection PyBroadException
+    try:
+        backup = sys.argv[1]
+        backup_manager = DistributedBackup(backup, worker_count=1, spawn_workers=False)
+        backup_manager.restore()
+    except:
+        print "No backup to restore"
