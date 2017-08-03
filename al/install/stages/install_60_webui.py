@@ -134,6 +134,8 @@ def install(alsi):
     if not os.path.exists('/etc/init.d/gunicorn'):
         alsi.runcmd('sudo ln -s /lib/init/upstart-job /etc/init.d/gunicorn')
 
+    alsi.install_yara_3()
+
     nginx_processes = max(1, int(psutil.cpu_count() / 3))
     alsi.sudo_sed_inline('/etc/nginx/nginx.conf', [
         's/worker_connections 768/worker_connections 1024/g',
@@ -142,6 +144,7 @@ def install(alsi):
 
     if os.path.exists('/etc/nginx/sites-enabled/default'):
         alsi.runcmd('sudo rm /etc/nginx/sites-enabled/default')
+
 
     alsi.append_line_if_doesnt_exist('/etc/security/limits.conf', "*                soft    nofile          16384")
     alsi.append_line_if_doesnt_exist('/etc/security/limits.conf', "*                hard    nofile          16384")
