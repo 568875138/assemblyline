@@ -1356,10 +1356,6 @@ def shell_main():
 
 
 if __name__ == '__main__':
-    def signal_handler(signal_p, frame_p):
-        raise KeyboardInterrupt("Interrupting shell...")
-    signal.signal(signal.SIGINT, signal_handler)
-
     try:
         shell_main()
     except KeyboardInterrupt:

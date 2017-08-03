@@ -168,7 +168,11 @@ class DistributedBackup(object):
             done_queue = self.restore_done_queue
 
         while True:
-            _, data = queue.select(done_queue)
+            msg = queue.select(done_queue, timeout=1)
+            if not msg:
+                continue
+
+            _, data = msg
             if data.get("is_done", False):
                 done_count += 1
             else:
