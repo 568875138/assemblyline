@@ -54,6 +54,7 @@ emptyresult_queue = NamedQueue(
 )
 field_sanitizer = re.compile("^[a-z][a-z0-9_\-.]+$")
 log = logging.getLogger('assemblyline.datastore')
+riak = None
 
 
 def compress_riak_key(uncompressed, srl):
@@ -399,15 +400,17 @@ class RiakStore(DataStoreBase):
 
     # noinspection PyUnresolvedReferences
     def __init__(self, hosts=None, port=None, protocol_used=RIAK_PROTOCOL_USED):
-        import riak
+        global riak
+        if riak is None:
+            import riak
 
         super(RiakStore, self).__init__()
         self.hosts = hosts or config.datastore.hosts
         self.port = port or config.datastore.port
 
         # Init Client
-        nodes = [{'host': n, 'pb_port': self.port, 'http_port': DATASTORE_STREAM_PORT} for n in self.hosts]
-        self.client = riak.RiakClient(protocol=protocol_used, nodes=nodes)
+        self.riak_nodes = [{'host': n, 'pb_port': self.port, 'http_port': DATASTORE_STREAM_PORT} for n in self.hosts]
+        self.client = riak.RiakClient(protocol=protocol_used, nodes=self.riak_nodes)
         log.debug('riakclient opened...')
 
         # Set default encoders
@@ -431,6 +434,8 @@ class RiakStore(DataStoreBase):
         self._submissions = self._create_monkey_bucket("submission")
         self._users = self._create_monkey_bucket("user")
         self._workflows = self._create_monkey_bucket("workflow")
+
+        self.protocol_used = protocol_used
 
     ################################################################
     # Control Functions
@@ -517,9 +522,15 @@ class RiakStore(DataStoreBase):
         return session, host, port
 
     def wake_up_riak(self):
+        global riak
+        if riak is None:
+            import riak
+
         try:
-            self.client.close()
-            self.client.ping()
+            if not self.client.ping():
+                self.client.close()
+                self.client = None
+                self.client = riak.RiakClient(protocol=self.protocol_used, nodes=self.riak_nodes)
         except:
             pass
 
