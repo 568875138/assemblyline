@@ -579,7 +579,7 @@ class SiteInstaller(object):
             wd = os.getcwd()
             local_yara_support = os.path.join(self.alroot, 'support/yara/')
             local_yara_python = os.path.join(local_yara_support, 'yara-python-3.6.3.tar.gz')
-            self.fetch_package('yara-python-3.6.3.tar.gz', local_yara_python)
+            self.fetch_package('yara/yara-python-3.6.3.tar.gz', local_yara_python)
 
             os.chdir(local_yara_support)
             self.runcmd("tar -zxf yara-python-3.6.3.tar.gz")
