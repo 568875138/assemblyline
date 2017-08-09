@@ -569,19 +569,23 @@ class SiteInstaller(object):
         self.runcmd(cmdline)
 
     def install_yara_3(self):
-        yara_pkg = 'yara-3.4.0.tar.gz'
-        remote_path = 'yara/' + yara_pkg
-        local_path = '/tmp/' + yara_pkg
-        self.fetch_package(remote_path, local_path)
+        # Check if yara-python version already installed
+        try:
+            cmd_output = self.runcmd('pip show yara-python')[1]
+        except:
+            cmd_output = ''
+        if "Version: 3.6.3" not in cmd_output:
+            wd = os.getcwd()
+            local_yara_support = os.path.join(self.alroot, 'support/yara/')
+            local_yara_python = os.path.join(local_yara_support, 'yara-python-3.6.3.tar.gz')
+            self.fetch_package('yara-python-3.6.3.tar.gz', local_yara_python)
 
-        self.sudo_apt_install([
-            'libpcre3-dev',
-            'automake',
-            'libtool',
-        ])
-
-        yara_sh_helper = os.path.join(self.alroot, 'pkg/al_services/alsvc_yara/build_install_yara.sh')
-        self.runcmd(' '.join([yara_sh_helper, local_path]))
+            os.chdir(local_yara_support)
+            self.runcmd("tar -zxf yara-python-3.6.3.tar.gz")
+            os.chdir(os.path.join(local_yara_support, "yara-python-3.6.3"))
+            self.runcmd("python setup.py build --enable-dotnet")
+            self.runcmd("sudo python setup.py install")
+            os.chdir(wd)
 
     def install_oracle_java8(self):
         self.milestone("Installing Oracle Java 8...")

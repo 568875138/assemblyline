@@ -74,8 +74,8 @@ class YaraValidator(object):
               "try: " \
               "yara.compile('%s', externals=%s).match(data='');" \
               "print '%s'\n" \
-              "except yara.SyntaxError as e:" \
-              "print 'yara.SyntaxError.{}' .format(e)\""
+              "except yara.YaraSyntaxError as e:" \
+              "print 'yara.YaraSyntaxError.{}' .format(e)\""
         p = subprocess.Popen(cmd % (rulefile, self.externals, print_val), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True, cwd="/tmp")
 
