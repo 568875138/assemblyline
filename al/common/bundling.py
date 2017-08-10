@@ -117,12 +117,12 @@ def recursive_flatten_tree(tree):
 
 # noinspection PyBroadException
 def create_bundle(sid, working_dir=WORK_DIR):
+    current_working_dir = os.path.join(working_dir, sid)
     try:
         submission = STORAGE.get_submission(sid)
         if submission is None:
             raise SubmissionNotFound("Can't find submission %s, skipping." % sid)
         else:
-            current_working_dir = os.path.join(working_dir, sid)
             target_file = os.path.join(working_dir, "%s.tgz" % sid)
 
             try:
@@ -136,8 +136,9 @@ def create_bundle(sid, working_dir=WORK_DIR):
             file_infos = get_file_infos(flatten_tree)
 
             # Add bundling metadata
-            submission['submission']['metadata']['al_originate_from'] = config.ui.fqdn
-            submission['submission']['metadata']['al_original_classification'] = submission['classification']
+            if 'al_originate_from' not in submission['submission']['metadata']:
+                submission['submission']['metadata']['al_originate_from'] = config.ui.fqdn
+                submission['submission']['metadata']['al_original_classification'] = submission['classification']
 
             data = {
                 'submission': submission,
@@ -156,12 +157,14 @@ def create_bundle(sid, working_dir=WORK_DIR):
 
             # Create the bundle
             subprocess.check_call("tar czf %s *" % target_file, shell=True, cwd=current_working_dir)
-            subprocess.check_call(["rm", "-rf", current_working_dir])
 
             return target_file
 
     except Exception as e:
         raise BundlingException("Could not bundle submission '%s'. [%s: %s]" % (sid, type(e).__name__, e.message))
+    finally:
+        if current_working_dir:
+            subprocess.check_call(["rm", "-rf", current_working_dir])
 
 
 # noinspection PyBroadException,PyProtectedMember
