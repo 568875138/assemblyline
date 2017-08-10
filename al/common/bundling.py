@@ -225,8 +225,6 @@ def import_bundle(path, working_dir=WORK_DIR, min_classification=Classification.
 
         # Make sure errors meet minimum classification and save the errors
         for ekey, err in errors['errors'].iteritems():
-            err['classification'] = Classification.max_classification(err['classification'], min_classification)
-            err.update(Classification.get_access_control_parts)
             STORAGE._save_bucket_item(STORAGE.errors, ekey, err)
 
     finally:
