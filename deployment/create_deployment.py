@@ -70,7 +70,7 @@ def save_seed_template(templating_directory, template_name, values, target):
 
 
 def save_site_spec_template(templating_directory, template_name, values, target):
-    print("\t* Creating site_pecific from template")
+    print("\t* Creating site_specific from template")
 
     site_spec_template = open(os.path.join(templating_directory, "templates", template_name)).read()
     site_spec_template = site_spec_template.format(**values)

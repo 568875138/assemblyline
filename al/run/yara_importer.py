@@ -304,7 +304,7 @@ if __name__ == "__main__":
         "info": "<NAME>",
         "technique": "<NAME>",
         "tool": "<NAME>",
-        "yara_version": "3.4"
+        "yara_version": "3.6"
     }
     actions = {}
 
