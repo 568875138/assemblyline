@@ -1,5 +1,24 @@
 [
   {
+    "_id": "Cluster-Overview",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Cluster Overview",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"Metrics-Ingest-Distribution\",\"panelIndex\":1,\"row\":1,\"size_x\":8,\"size_y\":2,\"type\":\"visualization\"},{\"col\":9,\"id\":\"Metrics-Overview\",\"panelIndex\":2,\"row\":1,\"size_x\":4,\"size_y\":2,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Riak-PUTs-and-GETs-slash-Minute\",\"panelIndex\":3,\"row\":3,\"size_x\":4,\"size_y\":2,\"type\":\"visualization\"},{\"col\":5,\"id\":\"Riak-Cluster-GET-MEAN-Latency\",\"panelIndex\":4,\"row\":3,\"size_x\":4,\"size_y\":2,\"type\":\"visualization\"},{\"col\":9,\"id\":\"Riak-Cluster-PUT-MEAN-Latency\",\"panelIndex\":5,\"row\":3,\"size_x\":4,\"size_y\":2,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Metrics-Alert-Created\",\"panelIndex\":6,\"row\":5,\"size_x\":6,\"size_y\":2,\"type\":\"visualization\"},{\"col\":7,\"id\":\"Log-Events-by-Severity\",\"panelIndex\":7,\"row\":5,\"size_x\":6,\"size_y\":2,\"type\":\"visualization\"},{\"col\":1,\"columns\":[\"al_severity\",\"component\",\"al_host\",\"message\"],\"id\":\"AL-Logs\",\"panelIndex\":8,\"row\":7,\"size_x\":12,\"size_y\":5,\"sort\":[\"@timestamp\",\"desc\"],\"type\":\"search\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{}",
+      "version": 1,
+      "timeRestore": true,
+      "timeTo": "now",
+      "timeFrom": "now-24h",
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}}}]}"
+      }
+    }
+  },
+  {
     "_id": "UI-Audit-Logs",
     "_type": "dashboard",
     "_source": {
