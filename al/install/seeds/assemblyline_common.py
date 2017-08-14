@@ -729,7 +729,8 @@ DEFAULT_SEED = {
                 'ca': None,
                 'crl': None,
                 'crt': None,
-                'key': None
+                'key': None,
+                'tc': None
             }
         },
         'tos': None,
