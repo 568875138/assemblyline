@@ -12,7 +12,7 @@ server {
 
     ssl_certificate           /etc/ssl/al_certs/al.crt;
     ssl_certificate_key       /etc/ssl/al_certs/al.key;
-    {% if seed['ui']['ssl']['certs']['trusted'] %}ssl_trusted_certificate   /etc/ssl/al_certs/tc.crt;{% endif %}
+    {% if seed['ui']['ssl']['certs']['tc'] %}ssl_trusted_certificate   /etc/ssl/al_certs/tc.crt;{% endif %}
     {% if seed['ui']['ssl']['certs']['ca'] %}ssl_client_certificate    /etc/ssl/al_certs/ca.crt;{% endif %}
     {% if seed['ui']['ssl']['certs']['crl'] %}ssl_crl                   /etc/ssl/al_certs/crl.crt;{% endif %}
     {% if seed['ui']['ssl']['certs']['ca'] %}ssl_verify_client         optional;
