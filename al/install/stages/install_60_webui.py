@@ -118,6 +118,11 @@ def install(alsi):
                 if not os.path.exists('/etc/ssl/al_certs/crl.crt'):
                     alsi.runcmd('sudo cp %s /etc/ssl/al_certs/crl.crt' % os.path.join(alsi.alroot, 'pkg', ssl_crl))
 
+        ssl_trusted = ssl_config['certs'].get('tc', None)
+        if ssl_trusted:
+            if not os.path.exists('/etc/ssl/al_certs/tc.crt'):
+                alsi.runcmd('sudo cp %s /etc/ssl/al_certs/tc.crt' % os.path.join(alsi.alroot, 'pkg', ssl_trusted))
+
         alsi.runcmd('sudo chmod 600 /etc/ssl/al_certs')
 
     alsi.sudo_install_file(
