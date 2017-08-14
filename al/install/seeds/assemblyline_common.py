@@ -263,6 +263,7 @@ DEFAULT_SEED = {
                 'dashboards': [
                     "AL-Logs",
                     "AL-Metrics",
+                    "Cluster-Overview",
                     "Riak-Cluster-Health",
                     "SOLR-Shard-Statistics",
                     "UI-Audit-Logs"
