@@ -1,4 +1,11 @@
+import base64
+import hashlib
+import hmac
+import os
 import re
+import struct
+import time
+
 from passlib.hash import bcrypt
 
 MIN_LEN = 8
@@ -6,6 +13,23 @@ UPPERCASE = r'[A-Z]'
 LOWERCASE = r'[a-z]'
 NUMBER = r'[0-9]'
 SPECIAL = r'[ !#$@%&\'()*+,-./[\\\]^_`{|}~"]'
+
+
+def get_hotp_token(secret, intervals_no):
+    key = base64.b32decode(secret, True)
+    msg = struct.pack(">Q", intervals_no)
+    h = hmac.new(key, msg, hashlib.sha1).digest()
+    o = ord(h[19]) & 15
+    h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+    return h
+
+
+def get_totp_token(secret):
+    return get_hotp_token(secret, intervals_no=int(time.time())//30)
+
+
+def generate_random_secret():
+    return base64.b32encode(os.urandom(25))
 
 
 def get_password_hash(password):
@@ -51,10 +75,8 @@ def check_password_requirements(password, strict=True):
     return True
 
 if __name__ == "__main__":
-    print check_password_requirements("hello")
     print check_password_requirements("hello123")
     print check_password_requirements("Hello123", strict=False)
-    print check_password_requirements("Hello123")
     print check_password_requirements("hello123!")
     print check_password_requirements("Hello12!")
-    print get_password_hash("")
+    print generate_random_secret()
