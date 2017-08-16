@@ -1,10 +1,10 @@
 # Creating the Ubuntu 14.04 base VM disk
-This will install the bootstrap code for an assemblyline base VM image. All actions need to be performed from inside de machine your installing.
+This will install the bootstrap code for an assemblyline base VM image. All actions need to be performed on the VM being installed.
 
 **Prerequisites:**
 
-* You have to install the Ubuntu base OS before. See [Install Ubuntu Server](install_ubuntu_server.md)
-* You have saved your al_private directory onto your personal user on bitbucket
+* Installation of the base Ubuntu OS. See [Install Ubuntu Server](install_ubuntu_server.md)
+* You have saved your al_private directory to your personal user account on bitbucket
 
 ## Install bootstrap and source
 
@@ -21,8 +21,10 @@ This will install the bootstrap code for an assemblyline base VM image. All acti
     EOF
     
     source ~/.bashrc
+    
+    # The source command will generate an error, but it will disappear once the install is complete.
 
-### Create repository directory
+### Create the repository directory
 
     sudo mkdir -p ${PYTHONPATH} &&
     sudo chown -R `whoami`:`groups | awk '{print $1}'` ${PYTHONPATH}/.. &&

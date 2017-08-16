@@ -3,8 +3,8 @@
 ### Prerequisites
 
 1. You have KVM and virtmanager installed on your Linux workstation.
-2. You have an ISO for windows 10 enterprise
-3. You have saved your al_private directory onto your personal user on bitbucket
+2. You have an ISO for Windows 10 enterprise
+3. You have saved your al_private directory to your personal user account on bitbucket
 
 ### Create the (initially empty) base disk image:
 
@@ -61,7 +61,7 @@ Inside virt-manager do the following:
 
       Click Begin Installation
 
-This should save the VM configuration and boot the VM into the windows installation.
+This should save the VM configuration and boot the VM into the Windows installation.
 
 ### Install OS
 
@@ -171,7 +171,7 @@ Install downloaded packages:
 
 ### Setup VirtIO drivers
 
-We need to temporarily attach a virtio disk to the virtual machine to kick windows into installing the virtio drivers.
+We need to temporarily attach a virtio disk to the virtual machine to kick Windows into installing the virtio drivers.
 
     Add Hardware
       Storage

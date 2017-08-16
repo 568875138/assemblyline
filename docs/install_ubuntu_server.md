@@ -6,7 +6,7 @@
 * Ubuntu 14.04.x Server x64 installation media.
 * Install machine (or VM) should have at least 8GB RAM and 20GB of disk space
 * Accessible Ubuntu APT repository
-* You should know the assemblyline username and password you will use for the primary account. (we suggest 'user')
+* You should know the Assemblyline username and password that you will use for the primary account. (we suggest 'user')
 * You should know the hostname that will be used for this node.
 
 ## Install the Ubuntu 14.04.x x64 base operating system
@@ -22,7 +22,7 @@
 * Detected Keyboard Layout: No (Default)
 * Keyboard: English US (Default)
 * Select a primary network interface (using the first enumerated interface).
-* Hostname: Your predtermined hostname. Typically of the form al-linux-<N>.
+* Hostname: Your pre-determined hostname. Typically of the form al-linux-<N>.
 * User: user
 * Password: xxxx
 * Encrypt your home directory: No (Default)
@@ -30,7 +30,7 @@
 
 **If it prompts you that a partition is in use, select 'Yes' for unmount partitions.**
 
-* Disk: Guided - use entired disk.
+* Disk: Guided - use entire disk.
 * Write changes to disk: <YES>
 * Choose: No automatic updates
 * Install Grub boot loader: <YES>
@@ -42,7 +42,7 @@ Installation complete <Continue>
 
 ### On first login
 
-#### Make sure your installation is running the lastest version
+#### Make sure your installation is running the latest version
 
     sudo apt-get update
     sudo apt-get dist-upgrade
@@ -51,7 +51,7 @@ Installation complete <Continue>
 
 #### PIP mirror (OPTIONAL)
 
-If your assemblyline cluster is not connected to the internet or cannot get access to the PIP mirrors, you can set pip to be redirected to an internal mirror.
+If your Assemblyline cluster is not connected to the internet or cannot get access to the PIP mirrors, you can set pip to be redirected to an internal mirror.
 
     nano ~/.pip/pip.conf
 

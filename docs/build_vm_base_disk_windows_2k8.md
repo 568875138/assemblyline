@@ -4,7 +4,7 @@
 
 1. You have KVM and virtmanager installed on your Linux workstation.
 2. You have an ISO for windows 2k8 r2 SP1
-3. You have saved your al_private directory onto your personal user on bitbucket
+3. You have saved your al_private directory to your personal user account on bitbucket
 
 ### Create the (initially empty) base disk image:
 
@@ -67,8 +67,8 @@ This should save the VM configuration and boot the VM into the windows installat
 
 ### Install OS
 
-Start the VM. Proceed with Windows Installation. For the windows installation you can you select the defaults. For operating system choose: Windows Server 2008 R2 Standard (Full Installation)
-The rest should be intuitive / default based. The system will reboot once. and complete the install..
+Start the VM and proceed with the Windows Installation. For the Windows installation you can you select the defaults. For operating system choose: Windows Server 2008 R2 Standard (Full Installation) and
+the rest should be intuitive / default based. The system will reboot once and complete the install.
 
 For the initial password use TEMP_ROOT_PASS. We'll tweak password complexity policy later and make it ROOT_PASS.
 
@@ -183,7 +183,7 @@ Install downloaded packages:
 
 ### Setup VirtIO drivers
 
-We need to temporarily attach a virtio disk to the virtual machine to kick windows into installing the virtio drivers.
+We need to temporarily attach a virtio disk to the virtual machine to kick Windows into installing the virtio drivers.
 
     Add Hardware
       Storage
@@ -200,7 +200,7 @@ Delete temporary files and unneeded desktop shortcuts
 
 Empty Recycle Bin
 
-Boot the machine then:
+Boot the machine, then:
 
     Install Drivers
       Start -> Control Panel -> System and Security -> Device Manager
@@ -282,7 +282,7 @@ Boot the machine then:
 
 ### Remove temporary disk
 
-Now that the virtio drivers are installed. We can switch our IDE Disk to VirtIO for better performance.
+Now that the virtio drivers are installed, we can switch our IDE Disk to VirtIO for better performance.
 
     In virt-manager Click 'Disk 1'
        Select advanced options:
