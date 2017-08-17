@@ -1,13 +1,13 @@
 # Assemblyline Development VM installation instruction
-This will install assemblyline in a self contained VirtualMachine. All actions need to be performed from inside de virtual machine your installing.
+This will install Assemblyline in a self contained virtual machine. All actions need to be performed from inside the virtual machine you're installing.
 
-*NOTE: Development VM installation disables Assemblyline VirtualMachine service support.*
+*NOTE: Development VM installation disables Assemblyline virtual machine service support.*
 
 **Prerequisites:**
 
-* You have to install the Ubuntu base OS before. See [Install Ubuntu Server](install_ubuntu_server.md)
+* Installation of base Ubuntu 14.04.x image. See [Install Ubuntu Server](install_ubuntu_server.md)
 * Your machine should have a minimum of 8GB RAM and 20GB of disk space(less is possible through SOLR/Riak configs)
-* You are on a network connected to the internet and can download file from Amazon S3
+* You are on a network connected to the internet and can download files from Amazon S3
 
 ## Install bootstrap and source
 
@@ -88,7 +88,7 @@ This will install assemblyline in a self contained VirtualMachine. All actions n
 
 ## Tweaks (optional but recommended)
 
-You should do this tweak if you don't plan on coding on this VM and instead you want to code on your desktop and sync the code to this VM via SSH or via pycharm remote deployment interface. This will prevent the VM to be able to pull the code when the hostagent is restarted.
+This tweak enables you to code on your desktop and sync your code to the VM via SSH or PyCharm's remote deployment interface rather than the git repository. The tweak will prevent the VM from pulling the code when the hostagent is restarted.
 
 Remove the id_rsa files with the following command:
 
