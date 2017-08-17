@@ -7,7 +7,7 @@ Unless otherwise noted perform these steps in the order listed.
 * All boxes have a fresh ubuntu 14.04.x server install. (See [Install notes](install_ubuntu_server.md))
 
 ## On All Boxes
-We recommend using clusterssh when performing operation on multiple computers so they are all configured the same way.
+We recommend using clusterssh when performing operations on multiple computers to ensure they are all configured the same way.
 
 ### Setup Environment
 
@@ -48,21 +48,21 @@ We recommend using clusterssh when performing operation on multiple computers so
 
 ### Create cluster deployment
 **IMPORTANT**
-While running the following command, you will be asked a series of question concerning your infrastructure.
+While running the following command, you will be asked a series of questions concerning your infrastructure.
 You will need to know the following things before you run the script:
 
 * Name of your deployment
-* Organisation acronym
+* Acronym for your organization
 * Production cluster or not
 * Password you want to give the admin user
 * Fully qualified domain name for your web interface
 * Core server IP
-* IPs and amount of ram of all the riak nodes
+* IPs and amount of RAM on all of the riak nodes
 * IPs of all the worker nodes
-* If the workers are baremetal boxes or VMs (We recommand baremetal)
-* The log server IP and it's amount of ram if you plan having one
+* If the workers are baremetal boxes or VMs (we recommand baremetal)
+* If you plan on having a log server, the server IP and the amount of RAM 
 
-Once you have all that info you can create you deployment.
+Once you have all that info you can create your deployment.
 
     /opt/al/pkg/assemblyline/deployment/create_deployment.py
 
@@ -80,7 +80,7 @@ Once you have all that info you can create you deployment.
     git config user.name "Core server"
     git commit -a -m "Initial commit for al_private"
 
-**NOTE**: You can user real email and user for your private repo and add a remote to push it to your git
+**NOTE**: You can use a real email and user for your private repo and add a remote to push it to your git
 
 ### Clone all other repos
 
@@ -100,7 +100,7 @@ Once you have all that info you can create you deployment.
 ## Riak Nodes (using cluster SSH)
 
 ### Set AL_SEED to an appropriate value and update .bashrc
-**NOTE**: Set AL_CORE_IP to the IP of our CORE node
+**NOTE**: Set AL_CORE_IP to the IP of your CORE node
 
     cat >> ~/.bashrc <<EOF
     export AL_SEED=al_private.seeds.deployment.seed
@@ -139,7 +139,7 @@ Once you have all that info you can create you deployment.
 If a log server is specified in your seed, should should install it now.
 
 ### Update .bashrc
-**NOTE**: Set AL_CORE_IP to the IP of our CORE node
+**NOTE**: Set AL_CORE_IP to the IP of your CORE node
 
     cat >> ~/.bashrc <<EOF
     export AL_CORE_IP=
@@ -161,7 +161,7 @@ If a log server is specified in your seed, should should install it now.
 ## Workers (using cluster SSH)
 
 ### Update .bashrc
-**NOTE**: Set AL_CORE_IP to the IP of our CORE node
+**NOTE**: Set AL_CORE_IP to the IP of your CORE node
 
     cat >> ~/.bashrc <<EOF
     export AL_CORE_IP=

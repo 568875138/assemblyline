@@ -1,9 +1,9 @@
 # Assemblyline appliance installation instruction
-This will install assemblyline on a bare-metal machine. All actions need to be performed from inside de machine your installing.
+This will install Assemblyline on a bare-metal machine. All actions need to be performed from the machine you're installing.
 
 **Prerequisites:**
 
-* You have to install the Ubuntu base OS before. See [Install Ubuntu Server](install_ubuntu_server.md)
+* Installation of base Ubuntu 14.04.x image. See [Install Ubuntu Server](install_ubuntu_server.md)
 
 ## Install bootstrap and source
 

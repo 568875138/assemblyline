@@ -6,7 +6,7 @@ This document will serve as a guide to developers looking to create services for
 
 ### Virtual machine appliance
 
-You can set yourself a Virtual Machine Appliance by following those two guides:
+You can create yourself a Virtual Machine Appliance by following those two guides:
 
 1. [Install Ubuntu Server](install_ubuntu_server.md)
     * __Note:__ You may want to use Ubuntu desktop instead of server if you want to develop with a GUI.
@@ -16,85 +16,86 @@ You can set yourself a Virtual Machine Appliance by following those two guides:
 
 ### What is a service
 
-Services are pieces of code that take a file or metadata about a file at input, analyse said file or metadata to achieve the following results:
+Services are pieces of code that take a file or metadata about a file as input and analyse said file or metadata to achieve the following results:
 
-* Produce a human readable analysis of the data
+* Produce human readable analysis of the data
 * Extract embedded pieces of data for further analysis
 * Tag distinctive features of the data
-* Set a level of confidence if the data is good or bad
+* Set a level of confidence in regards to whether the data is good or bad
 
 ### Type of service
 
-These are the different type of services that we have so far in the system and most likely, your service will fit into one of those categories.
+The following are the different types of services that we have so far in the system. Your service will most likely fit into one of these categories.
 
-**NOTE**: Some service will be hybrid services meaning that they will leverage two type of services.
+**NOTE**: Some services will be hybrid services meaning that they will leverage two types of services.
 
 #### Assemblyline only services
 
-This is a service that was 100% designed for file analysis in the context of Assemblyline. This is a Python only service that has the following properties:
+This is a service that is 100% designed for file analysis in the context of Assemblyline. This is a Python only service that has the following properties:
 
 * It did not exist prior to Assemblyline.
-* It does not just wrap any prior existing library.
+* It does not wrap any prior existing library.
 
 **Example**: Metapeek
 
 #### Python wrappers
 
-This is a service that essentially wrap a pre-existing Python library and parses its output to create Assemblyline results.
+This is a service that essentially wraps a pre-existing Python library and parses its output to create Assemblyline results.
 
 **Example**: PEFile, PeePDF, PDFiD...
 
 #### Command line wrappers
 
-This is a service that will execute a command line tool and wait for its output. The service will then parse said output to produce and Assemblyline result.
+This is a service that will execute a command line tool and wait for its output. The service will then parse said output to produce Assemblyline results.
 
 **Example**: Avg, Mcafee, Suricata, Unpacker ...
 
 #### API wrappers
 
-This is a service that will callout to an external service for processing and wait for the results.
+This is a service that will call out to an external service for processing and wait for the results.
 
-You'll want to avoid this type of service as often as possible because these service are harder to setup and harder to scale. Spinning up new instances of a API wrapper service might not necessarily increase throughput but might actually reduce it depending if the targeted server is overloaded.
+You'll want to avoid this type of service as often as possible because they are harder to set up and harder to scale. Spinning up new instances of an API wrapper service might not necessarily increase throughput but might actually reduce it depending on whether the targeted server is overloaded.
 
-That said, in some case this makes a lot of sense and is the right way to go.
+That said, in some cases this makes a lot of sense and is the right way to go.
 
 **Example**: FSecure, KasperskyIcap, Metadefender, NSRL, VirusTotal...
 
 ### What should I consider before creating a service
 
 1. Think big: You'll want your service to process as fast as possible because it will have to process millions of files per day.
-2. Small footprint: Reduce CPU/Memory consumption as much as you can so we don't waste important resources in the cluster
+2. Small footprint: Reduce CPU/Memory consumption as much as possible so we don't waste important resources in the cluster
 3. Easy installer: The service should have an installer that does it all.
-3.1 Installation documentation: In the case of the API wrapper services, installation documentation of the external component is required
+    
+    3.1 Installation documentation: In the case of the API wrapper services, installation documentation of the external component is required
 4. If needed, think about your updating strategy. (e.g: AV signatures updates, Yara rules updates...)
 
 ### Example of failures
 
-This is a few examples of what not to do when creating a service because it cause to much strain on the system or makes it too complex
+These is a few examples of what not to do when creating a service because it strains the system too much or is unecessarily complex.
 
 #### Asking to much of the workers
 
-The NSRL service was originally supposed to install the NSRL hashset on each of the worker instead of having one central NSRL DB that the service query into.
+The NSRL service was originally supposed to install the NSRL hashset on each of the workers instead of having a central NSRL DB that the service queries.
 
-This caused the following problems
+This caused the following issues:
 
 1. You have to install postgresql server on each worker which takes a lot of resources away from actual processing of files
-2. Pushing updates to NSRL meant few hours of extra resources usage on each worker reducing throughput
-3. Each instances of postgresql on the worker was using a lot of RAM but was actually idle in terms of CPU usage.
+2. Pushing updates to NSRL meant a few hours of extra resource usage on each worker, reducing throughput
+3. Each instance of postgresql on the worker was using a lot of RAM but was actually idle in terms of CPU usage.
 
-We fixed it by having only one support server that hosted the DB (and other services dependancies). Now the service is very light weight because all it does is a SQL query to an external database. Also the database server can easily handle thousands of instances of this service connected at the same time.
+The service was fixed by having only one support server that hosted the DB (and other service dependancies). Now the service is very light weight because it simply performs SQL queries to an external database. The database server can easily handle thousands of instances of this service connected at the same time.
 
 #### Queue to a queue
 
-The Suricata service is a good example of originally over-designing a service. The person came to the DEV team asking for a spare server to run a Suricata processing farm they build using celery. They then wanted to create a service that interface with their celery queue.
+The Suricata service is a good example of originally over-designing a service. The service developer came to the Dev team asking for a spare server to run a Suricata processing farm they planned on building using celery. They then wanted to create a service that interfaced with their celery queue.
 
-The Dev team response to this was the Assemblyline is already a queuing system and that doing it this way would make it really hard to scale.
+The Dev team's response to this was that Assemblyline is already a queuing system and that doing it this way would make it really hard to scale.
 
-We went back to the drawing board and created a Suricata service as a **command line wrapper** service instead of the **API wrapper** original design. This is now a lot easier to manage and to scale.
+We went back to the drawing board and created a Suricata service as a **command line wrapper** service instead of the original **API wrapper** design. The service is now much easier to manage and to scale.
 
 ### Before getting started
 
-Talk to CSE's Assemblyline team before getting started. They may already be working on the same service or know someone that does. The DEV team can help you out planning the design of your service depending of its complexity.
+Talk to CSE's Assemblyline team before getting started. They may already be working on the same service or know someone who is. The Dev team can help with the design of your service -- depending on its complexity.
 
 ## Your First Service
 
@@ -134,7 +135,7 @@ Create the file `service_tutorial.py` in that same directory with the following 
             result.add_section(section)
             request.result = result
 
-Run this command to register your service with assemblyline (you only need to do this once):
+Run this command to register your service with Assemblyline (you only need to do this once):
 
     /opt/al/pkg/assemblyline/al/service/register_service.py al_services.alsvc_tutorial.ServiceTutorial
 
@@ -149,14 +150,14 @@ You can now run your service with the following command:
 
     /opt/al/pkg/assemblyline/al/service/run_service_live.py al_services.alsvc_tutorial.ServiceTutorial
 
-You should see startup and heartbeat messages. If the service doesn't start, then once again, run `service_tutorial.py` through pylint to ensure it has no syntax errors that would prevent it from running.
+You should see start up and heartbeat messages. If the service fails to start, then once again, run `service_tutorial.py` through pylint to ensure it has no syntax errors that would prevent it from running.
 
-Submit a file to the local assemblyline instance using your Chromium/Firefox window, and enable only this service. It should have the result added by the example above.
+Submit a file to your local Assemblyline instance using a Chromium/Firefox window, and enable only this service. It should have the result added by the example above.
 
 
 #### Breaking it Down
 
-Any service will have these three components at a bare minimum:
+All services have these three components at a bare minimum:
 
 ##### Configuration
 
@@ -170,19 +171,19 @@ Any service will have these three components at a bare minimum:
         SERVICE_CPU_CORES = 1
         SERVICE_RAM_MB = 256
 
-Most of this should be self-explanatory. The `SERVICE_ACCEPTS` item specifies a regex of MIME types that your service supports. This service accepts everything. Other examples include `java/jar` or `executable/.*` .
+Most of this should be self-explanatory. The `SERVICE_ACCEPTS` item specifies a regex of MIME types that your service supports. In this example, the service accepts everything. Other examples include `java/jar` or `executable/.*` .
 
 ##### Constructor
 
     def __init__(self, cfg=None):
         super(Example, self).__init__(cfg)
 
-This example simply calls the parent constructor. Use this to set up any default configuration that cannot be statically coded. Don't use this for initialization, instead use...start()
+This example simply calls the parent constructor. Use this to set up any default configuration that cannot be statically coded. Don't use this for initialization, use start() instead:
 
     def start(self):
         self.log.debug("Example service started")
 
-This function is called when the service is being prepared to accept requests and process them. Use this to perform any initialization that your service needs.
+This function is called when the service is being prepared to accept requests and process them. Use start() to perform any initialization that your service needs.
 
 ##### Execute function
 
@@ -193,21 +194,21 @@ This function is called when the service is being prepared to accept requests an
         result.add_section(section)
         request.result = result
 
-This function is called when a file is being passed to your service. The request object has methods for getting information about the submitted file and for accessing it. For this example, we use it simply to report results.
+This function is called when a file is being passed to your service. The request object has methods for getting information about the submitted file and accessing it. For this example, we use it to simply report results.
 
 
 ### Results
 
 For a service to be useful, it must report the results of its analysis. As the above code demonstrates, a Result has one or more ResultSection objects, each of which can have multiple lines.
 
-A ResultSection has a score. The sum of all scores on a submitted file determines its likelihood of being malicious; higher scores mean it's more likely bad. A total score of over 500 will raise an alert for this file.
+Every ResultSection has a score. The sum of all scores from a submitted file determines the likelihood of it being malicious; the higher the score, the more likely it's malicious. A total score of over 500 will raise an alert for a submission if it was submitted via the high volume ingest API.
 
-A score of 0 or `SCORE.NULL` is for informational messages. You should keep those to a minimum, so that important messages do not get lost in the noise, but it makes a good example in this case. A score of `SCORE.OK` is for indicators that the file is probably safe, and a score of `SCORE.NOT` is for files you're certain are not malicious. Other score values, in order of increasing suspicion, are `INFO`, `LOW`, `MED`, `HIGH`, `VHIGH`, and `SURE` (which has a score value of 1000 by itself).
+A score of 0 or `SCORE.NULL` is for informational messages. These messages should be kept to a minimum, so that important messages do not get lost in the noise, but it is very useful in certain scenarios. For example, a score of `SCORE.OK` is for indicators that the file is probably safe, and a score of `SCORE.NOT` is for files you're certain are not malicious. Other score values, in order of increasing suspicion, are `INFO`, `LOW`, `MED`, `HIGH`, `VHIGH`, and `SURE` (which has a score value of 1000 by itself).
 
 
 ### Tags
 
-Another way to make your service useful is to provide tags in your Result object. Tags are key-value pairs which can be used within assemblyline to correlate files. Tags have scores (called weights), types (this is the tag key), an optional usage (e.g. `TAG_USAGE.IDENTIFICATION` or `TAG_USAGE.CORRELATION`), and a classification.
+Another way to make your service useful is to provide tags in your Result object. Tags are key-value pairs which can be used within Assemblyline to correlate files. Tags have scores (called weights), types (this is the tag key), an optional usage (e.g. `TAG_USAGE.IDENTIFICATION` or `TAG_USAGE.CORRELATION`), and a classification.
 
 
 To tag a result, your service should import `TAG_TYPE`, `TAG_WEIGHT` and `TAG_USAGE` from `assemblyline.al.common.result`, and use code such as this:
@@ -245,7 +246,7 @@ If your service depends on python modules which are not standard library modules
 
 #### get_tool_version()
 
-Assemblyline caches the scan results of a file, along with the version of the service that was used to produce those results. If your service depends on an external tool, you can provide this function to return the version of the tool used, and this will allow a file to be re-scanned by a newer version of the tool later, even if the service version stays the same.
+Assemblyline caches the scan results of a file, along with the version of the service that was used to produce those results. If your service depends on an external tool, you can provide this function to return the version of the tool used.  This will allow a file to be re-scanned by a newer version of the tool at a later time, even if the service version stays the same.
 
 The canonical paradigm for defining this function is as follows:
 
@@ -264,12 +265,12 @@ The canonical paradigm for defining this function is as follows:
 
 ### Further Development
 
-As you make changes to your service, you should be able to see them right away by killing and restarting the run_service_live process. You will need to enable the Assemblyline option to bypass the scan cache if you resubmit the same test file repeatedly. (You can set this in your default settings for convenience.) Remember to not use this option in production Assemblyline without a good reason!
+As you make changes to your service, you can test them right away by killing and restarting the run_service_live process. You will need to enable the Assemblyline option to bypass the scan cache if you resubmit the same test file repeatedly. (You can set this in your default settings for convenience.) Caution: don't use this option in production Assemblyline without a good reason!
 
 ## Advanced Topics
 ### Service Configuration
 
-Most services have configurable settings that can be modified by the assemblyline admins. To add such settings to your service, provide them in the class variable list:
+Most services have configurable settings that can be modified by the Assemblyline admins. To add such settings to your service, provide them in the class variable list:
 
     class ServiceTutorial(ServiceBase):
         ...
@@ -282,9 +283,9 @@ Then, to use these settings elsewhere in your service, use the method `self.cfg.
 
 ### Installation Scripts
 
-Before your service is deployed, assemblyline checks for an installation script in your service directory. If your script needs any special package dependancies before it can run, you can put its configuration here.
+Before your service is deployed, Assemblyline checks for an installation script in your service directory. If your script needs any special package dependancies before it can run, you can put its configuration here.
 
-In your service directory create and installer.py and use the SiteInstaller class to configure your service
+In your service directory create an installer.py and use the SiteInstaller class to configure your service:
 
     #!/usr/bin/env python
 
@@ -300,9 +301,9 @@ In your service directory create and installer.py and use the SiteInstaller clas
 
 ### Working with Nested ResultSections
 
-When dealing with large sets of results you might find yourself wanting to group these results together in a hierarchical manner. To do this you can easily create and nest multiple ResultSections by simply calling `add_section()` on each "parent" section. Any scores assigned to each individual section will be displayed on the results page, and the sum of all nested ResultSection scores will also be displayed at the top-level.
+When dealing with large sets of results, you might find yourself wanting to group these results together in a hierarchical manner. To do this you can easily create and nest multiple ResultSections by calling `add_section()` on each "parent" section. Any scores assigned to each individual section will be displayed on the results page, and the sum of all nested ResultSection scores will also be displayed at the top-level.
 
-__Note:__ However this summation only occurs after the `execute()` block of your service has completed. Therefore if you want to say, sort or filter, nested sections off their cumulative score you will have to calculate that manually. This situation is ripe for recursion, and here's an example of that:
+__Note:__ This summation only occurs after the `execute()` block of your service has completed. Therefore if you want to sort or filter nested sections separately from their cumulative score you will have to calculate that manually. This situation is ripe for recursion, and here's an example of that:
 
     def execute():
       ...
@@ -339,7 +340,7 @@ __Note:__ However this summation only occurs after the `execute()` block of your
 
 ### Self-updating services
 
-If your service can automatically update itself you can register and update callback which will be called at an intervale that you choose.
+If your service can automatically update itself, you can register an update callback which will be called at a given interval.
 
     from assemblyline.al.service.base import ServiceBase, UpdaterType, UpdaterFrequency
 
@@ -354,20 +355,20 @@ If your service can automatically update itself you can register and update call
 
 The `_register_update_callback` function can take the following extra parameters:
 
-* `blocking`: Should we stop service execution while updating [default: False]
+* `blocking`: Service execution will stop during update [default: False]
 * `execute_now`: Should we execute the updater while we register the callback [default: True]
 * `utype`: Type of updating strategy (BOX: updates the whole box, CLUSTER: updates the full cluster, PROCESS: updates only this process) [default: PROCESS]
-* `freq`: At which frequency you want to update [default: HOURLY]
+* `freq`: The update frequency [default: HOURLY]
 
 ### Execution gone wild
 
-There are many things that can go wrong by executing an external program/library and making sure that your assemblyline service stays up and still continue processing normally without eating up all the resources. We have some protection classes and functions to help with this.
+There are many ways executing an external program/library can go awry.  To that end, Assemblyline has some built in protection classes and functions to help make sure your service stays up and continues processing normally without over-consuming resources.
 
 #### Subprocess Reaper
 
-Imagine this, you call a subprocess command which in turn calls another command but that second command hangs. Assemblyline service will auto-kill a service that reaches the timeout value but the second command will stay hung forever because the kill command does not follow through childrens.
+Imagine this: you call a subprocess command which in turn calls another command but that second command hangs. Assemblyline services will auto-kill a service that reaches the timeout value but the second command will stay hung forever because the kill command does not follow through child commands.
 
-Thankfully, Linux supports propagating kill signals to the childrens so we've added a special function to kill rogue children processes. Simply add `, preexec_fn=set_death_signal()` to your subprocess calls.
+Thankfully, Linux supports the propagation of kill signals to child processes so Assemblyline uses this for a special function that kills rogue child processes. Simply add `, preexec_fn=set_death_signal()` to your subprocess calls.
 
     from assemblyline.common.reaper import set_death_signal
 
@@ -375,13 +376,13 @@ Thankfully, Linux supports propagating kill signals to the childrens so we've ad
 
 #### Limit execution time
 
-Your assemblyline service may need to process millions of files daily so if your calling functions or subprocess that can go rogue and take ages to run, you may to wrap those up into a timer.
+Since Assemblyline services may need to process millions of files daily, functions or subprocesses that can go rogue and run indefinitely may need to be wrapped with a timer.
 
-Assemblyline provides two types of timers, one for direct python function and one especially made for Subprocess.
+Assemblyline provides two types of timers, one for direct python functions and one tailored specifically for Subprocess.
 
 ##### Python timer
 
-Lets say you want to wrap `my_function` inside a 2 seconds timer you can do the following:
+The following shows an example of wrapping `my_function` inside a timer for two seconds:
 
     from assemblyline.common.timeout import timeout
 
@@ -396,7 +397,7 @@ Lets say you want to wrap `my_function` inside a 2 seconds timer you can do the 
 
 ##### Subprocess timer
 
-If you want to wrap call to a subprocessed function, you should use the SubprocessTimer class instead because that class will take care of killing the process if timer is reached.
+In order to wrap calls to a Subprocessed function, you should use the SubprocessTimer class instead.  This class will take care of killing the process if a timeout is reached:
 
     from assemblyline.common.timeout import SubprocessTimer
 
@@ -409,4 +410,4 @@ If you want to wrap call to a subprocessed function, you should use the Subproce
     except TimeoutException:
         print "Process timeout!"
 
-***Note***: SubprocessTimer can be combined to Subprocess reaper for maximum execution security.
+***Note***: SubprocessTimer can be combined with Subprocess reaper for maximum execution security.
