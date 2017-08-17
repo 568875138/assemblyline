@@ -6,13 +6,26 @@ import re
 import struct
 import time
 
+from Crypto.PublicKey import RSA
+from Crypto import Random
 from passlib.hash import bcrypt
 
 MIN_LEN = 8
 UPPERCASE = r'[A-Z]'
 LOWERCASE = r'[a-z]'
+MIXCASE = r'[a-zA-Z]'
 NUMBER = r'[0-9]'
 SPECIAL = r'[ !#$@%&\'()*+,-./[\\\]^_`{|}~"]'
+
+
+def generate_async_keys():
+    random_generator = Random.new().read
+    key = RSA.generate(4096, random_generator)
+    return key.publickey().exportKey(), key.exportKey()
+
+
+def load_async_key(key_def):
+    return RSA.importKey(key_def)
 
 
 def get_hotp_token(secret, intervals_no):
@@ -39,9 +52,9 @@ def get_password_hash(password):
     return bcrypt.encrypt(password)
 
 
-def verify_password(password, hash):
+def verify_password(password, pw_hash):
     try:
-        return bcrypt.verify(password, hash)
+        return bcrypt.verify(password, pw_hash)
     except ValueError:
         return False
     except TypeError:
@@ -51,6 +64,7 @@ def verify_password(password, hash):
 def check_password_requirements(password, strict=True):
     check_upper = re.compile(UPPERCASE)
     check_lower = re.compile(LOWERCASE)
+    check_mixed = re.compile(MIXCASE)
     check_number = re.compile(NUMBER)
     check_special = re.compile(SPECIAL)
 
@@ -60,10 +74,13 @@ def check_password_requirements(password, strict=True):
     if len(password) < MIN_LEN:
         return False
 
-    if len(check_upper.findall(password)) == 0:
+    if strict and len(check_upper.findall(password)) == 0:
         return False
 
-    if len(check_lower.findall(password)) == 0:
+    if strict and len(check_lower.findall(password)) == 0:
+        return False
+
+    if not strict and len(check_mixed.findall(password)) == 0:
         return False
 
     if len(check_number.findall(password)) == 0:
@@ -77,6 +94,10 @@ def check_password_requirements(password, strict=True):
 if __name__ == "__main__":
     print check_password_requirements("hello123")
     print check_password_requirements("Hello123", strict=False)
+    print check_password_requirements("helloworld1", strict=False)
     print check_password_requirements("hello123!")
     print check_password_requirements("Hello12!")
     print generate_random_secret()
+    pub, priv = generate_async_keys()
+    print pub
+    print priv
