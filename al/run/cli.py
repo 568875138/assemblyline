@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 # Suppress all warnings
 import warnings
@@ -983,7 +984,8 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                 secret_key = item.get('otp_sk', None)
                 if secret_key:
                     while True:
-                        print '\r%06d %02i/30' % (get_totp_token(secret_key), time.time() % 30),
+                        print '\r%06d %s%s' % (get_totp_token(secret_key), "█" * int(time.time() % 30),
+                                               "░" * (29 - int(time.time() % 30))),
                         sys.__stdout__.flush()
 
                         time.sleep(1)
