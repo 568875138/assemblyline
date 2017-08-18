@@ -29,6 +29,7 @@ def load_async_key(key_def, use_pkcs=False):
     key = RSA.importKey(key_def)
 
     if use_pkcs:
+        Random.atfork()
         return PKCS1_v1_5.new(key)
 
     return key
