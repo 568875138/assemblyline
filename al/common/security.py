@@ -7,6 +7,7 @@ import struct
 import time
 
 from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
 from Crypto import Random
 from passlib.hash import bcrypt
 
@@ -20,12 +21,17 @@ SPECIAL = r'[ !#$@%&\'()*+,-./[\\\]^_`{|}~"]'
 
 def generate_async_keys():
     random_generator = Random.new().read
-    key = RSA.generate(4096, random_generator)
+    key = RSA.generate(2048, random_generator)
     return key.publickey().exportKey(), key.exportKey()
 
 
-def load_async_key(key_def):
-    return RSA.importKey(key_def)
+def load_async_key(key_def, use_pkcs=False):
+    key = RSA.importKey(key_def)
+
+    if use_pkcs:
+        return PKCS1_v1_5.new(key)
+
+    return key
 
 
 def get_hotp_token(secret, intervals_no):
