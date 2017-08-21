@@ -17,6 +17,7 @@ def make_vm_dict(name, ram_gb, vcpus, revert_every, virtual_disk_url,
 
 DEFAULT_SEED = {
     'auth': {
+        'allow_2fa': True,
         'internal': {
             'enabled': True,
             'failure_ttl': 60,
