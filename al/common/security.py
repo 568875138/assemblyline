@@ -19,9 +19,9 @@ NUMBER = r'[0-9]'
 SPECIAL = r'[ !#$@%&\'()*+,-./[\\\]^_`{|}~"]'
 
 
-def generate_async_keys():
+def generate_async_keys(key_size=2048):
     random_generator = Random.new().read
-    key = RSA.generate(2048, random_generator)
+    key = RSA.generate(key_size, random_generator)
     return key.publickey().exportKey(), key.exportKey()
 
 

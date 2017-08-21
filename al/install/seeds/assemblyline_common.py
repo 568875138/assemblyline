@@ -722,6 +722,7 @@ DEFAULT_SEED = {
         'enforce_quota': False,
         'fqdn': 'assemblyline.localhost',  # import if you are using SSL/certs
         'install_path': '/opt/al/pkg',
+        'rsa_key_size': 2048,
         'secret_key': '<put your own key here!>',
         'session_duration': 60 * 60,  # 1 Hour in seconds
         'ssl': {
