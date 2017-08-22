@@ -1,4 +1,6 @@
+
 import importlib
+import sys
 
 
 def apply_overlay(module_name, overlay):
@@ -32,7 +34,9 @@ def construct_overlay(module_name, seed):
 
 def module_attribute_by_name(name):
     module_path, _sep, module_attribute_name = name.rpartition('.')
-    module = importlib.import_module(module_path)
+    module = sys.modules.get(module_path, None)
+    if not module:
+        module = importlib.import_module(module_path)
     return getattr(module, module_attribute_name)
 
 
