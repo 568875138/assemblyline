@@ -2,6 +2,7 @@ import codecs
 import markdown
 import os
 
+
 from flask import request, Markup
 
 from assemblyline.al.common import forge
@@ -13,6 +14,8 @@ APP_NAME = "{app_name}"
 PRIVATE_PREFIX = "private/"
 TEMPLATE_PREFIX.update(
     {{
+        'login': AL_PRIVATE_PREFIX,
+        'logout': AL_PRIVATE_PREFIX,
         'base': PRIVATE_PREFIX,
         'submit': PRIVATE_PREFIX
     }}
@@ -38,7 +41,7 @@ def encode_file(data, file_format, name, password=None):
     return original_encode_file(data, file_format, name, password=password)
 
 
-##########################
+############################
 # New Routes/Blueprints
 def register_site_specific_routes(app):
     # ###### You can load extra APIs here
@@ -56,6 +59,58 @@ def register_site_specific_routes(app):
 
     # End of register_site_specific_routes
     original_register_site_specific_routes(app)
+
+
+############################
+# Alternate DN validator
+def validate_dn(dn, storage):
+    # There are no default way to handle DN, You need to overload this function if you
+    # want DN support to work properly
+    #
+    # This is an example of how you could do DN validation
+    # To use this example, set it as dn handler in the seed
+    #   seed['auth']['dn_handler'] = 'al_private.ui.site_specific.validate_dn'
+    import re
+
+    # Map DN parts to their name
+    part_map = {{
+        "C": "country",
+        "O": "organisation",
+        "OU": "organisational unit",
+        "CN": "name"
+    }}
+
+    # Default user settings
+    user = {{
+        "avatar": None,
+        "classification": Classification.UNRESTRICTED,
+        "is_active": True,
+        "is_admin": False,
+        "groups": ['USERS']
+    }}
+
+    # NGINX has this weird way of displaying DNs, lets fix that
+    parts = dn.split("/")[::-1][:-1]
+    user['dn'] = ",".join(parts)
+
+    # We will save each part of the DN inside the user settings using their name
+    for p in parts:
+        k, v = p.split("=")
+        user[part_map[k]] = v
+        if k != "CN":
+            user['groups'].append(v)
+
+    # Try to makeup a username from the name (obvisouly this needs some work from your part)
+    user['uname'] = "%s" % re.sub(r'[\W\d_]+', '', user['name']).lower()
+
+    # Auto-create user account
+    # When you receive a DN from NGINX the DN as already been validated agains the CA and the CRL
+    # therefor you can safely auto-create user base on this DN
+    if not storage.get_user(user['uname']):
+        storage.save_user(user['uname'], user)
+
+    return user['uname'], ["R", "W", "E"]
+
 
 context = {{
     'TEMPLATE_PREFIX': TEMPLATE_PREFIX,
