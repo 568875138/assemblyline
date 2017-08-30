@@ -18,8 +18,10 @@ def make_vm_dict(name, ram_gb, vcpus, revert_every, virtual_disk_url,
 DEFAULT_SEED = {
     'auth': {
         'allow_2fa': True,
+        'allow_apikeys': True,
         'apikey_handler': 'al_ui.site_specific.validate_apikey',
         'dn_handler': 'al_ui.site_specific.validate_dn',
+        'encrypted_login': True,
         'internal': {
             'enabled': True,
             'failure_ttl': 60,

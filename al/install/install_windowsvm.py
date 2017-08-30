@@ -119,12 +119,12 @@ alsi.pip_install(local_path)
 # Install assemblyline_client deps
 alsi.pip_install_all([
     'socketio-client==0.5.6',
-    'requests[security]'
-
+    'requests[security]',
+    'pycrypto==2.6.1'
 ])
 
 alsi.info("Download and install assemblyline_client")
-al_pkg = 'assemblyline_client-1.9.1.tar.gz'
+al_pkg = 'assemblyline_client-3.0.5.tar.gz'
 remote_path = 'python/assemblyline_client/' + al_pkg
 local_path = '/tmp/' + al_pkg
 alsi.fetch_package(remote_path, local_path)

@@ -127,17 +127,17 @@ def get_service_queue(service_name):
 
 def get_site_specific_apikey_handler():
     config = get_config()
-    return _dynamic_import(config.auth.apikey_handler)
+    return _dynamic_import(config.auth.get('apikey_handler', 'al_ui.site_specific.validate_apikey'))
 
 
 def get_site_specific_dn_handler():
     config = get_config()
-    return _dynamic_import(config.auth.dn_handler)
+    return _dynamic_import(config.auth.get('dn_handler', 'al_ui.site_specific.validate_dn'))
 
 
 def get_site_specific_userpass_handler():
     config = get_config()
-    return _dynamic_import(config.auth.userpass_handler)
+    return _dynamic_import(config.auth.get('userpass_handler', 'al_ui.site_specific.validate_userpass'))
 
 
 def get_submit_client(datastore=None):
