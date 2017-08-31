@@ -3,11 +3,13 @@
         <!--  AL user fields  -->
         <!-- User keys -->
         <field name="api_quota" type="int" indexed="true" stored="true"/>
+        <field name="dn" type="string" indexed="true" stored="false"/>
         <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="is_active" type="boolean" indexed="true" stored="true"/>
         <field name="is_admin" type="boolean" indexed="true" stored="true"/>
         <field name="name" type="text_ws" indexed="true" stored="true"/>
         <field name="uname" type="string" indexed="true" stored="true"/>
+
         <!-- User settings keys -->
         <field name="deep_scan" type="boolean" indexed="true" stored="false"/>
         <field name="description" type="text_ws" indexed="true" stored="false"/>

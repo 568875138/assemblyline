@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 # Suppress all warnings
 import warnings
@@ -23,6 +24,7 @@ from assemblyline.al.common import forge, log as al_log
 from assemblyline.al.common.backupmanager import DistributedBackup
 from assemblyline.al.common.message import send_rpc
 from assemblyline.al.common.queue import reply_queue_name, NamedQueue
+from assemblyline.al.common.security import get_totp_token
 from assemblyline.al.common.task import Task
 from assemblyline.al.core.agents import AgentRequest, ServiceAgentClient, VmmAgentClient
 from assemblyline.al.core.controller import ControllerClient
@@ -889,6 +891,8 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
                  set_admin   <uname>
                  unset_admin <uname>
                  remove      <uname>
+                 unset_otp   <uname>
+                 show_otp    <uname>
 
         Actions:
             list         List all the users
@@ -898,6 +902,8 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             set_admin    Make a user admin
             unset_admin  Remove admin priviledges to a user
             remove       Remove a user
+            unset_otp    Remove OTP Secret Token
+            show_otp     Show current OTP Token
 
         Parameters:
             <uname>      Username of the user to perform the action on
@@ -907,7 +913,8 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
             # Disable user 'user'
             user disable user
         """
-        valid_actions = ['list', 'show', 'disable', 'enable', 'remove', 'set_admin', 'unset_admin']
+        valid_actions = ['list', 'show', 'disable', 'enable', 'remove',
+                         'set_admin', 'unset_admin', 'unset_otp', 'show_otp']
         args = self._parse_args(args)
 
         if len(args) == 1:
@@ -963,6 +970,30 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         elif action_type == 'remove' and item_id:
             self.datastore.delete_user(item_id)
             print "User '%s' removed."
+        elif action_type == 'unset_otp' and item_id:
+            item = self.datastore.get_user(item_id)
+            if item:
+                item.pop('otp_sk', None)
+                self.datastore.save_user(item_id, item)
+                print "%s OTP secret key was removed" % item_id
+            else:
+                print "%s does not exist" % item_id
+        elif action_type == 'show_otp' and item_id:
+            item = self.datastore.get_user(item_id)
+            if item:
+                secret_key = item.get('otp_sk', None)
+                if secret_key:
+                    while True:
+                        print '\r%s OTP Token:   %06d   %s%s' % (item_id, get_totp_token(secret_key),
+                                                                 "█" * int(time.time() % 30),
+                                                                 "░" * (29 - int(time.time() % 30))),
+                        sys.__stdout__.flush()
+
+                        time.sleep(1)
+                else:
+                    print "2FA not enabled for user %s" % item_id
+            else:
+                print "%s does not exist" % item_id
         else:
             self._print_error("Invalid command parameters")
 

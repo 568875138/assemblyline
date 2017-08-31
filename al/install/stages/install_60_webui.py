@@ -38,7 +38,8 @@ def install(alsi):
         'pymssql',
         'psycopg2',
         'MySQL-python',
-        'requests_toolbelt==0.3.1'
+        'requests_toolbelt==0.3.1',
+        'pyqrcode==1.2.1'
     ])
 
     www_dir = os.path.join(alsi.alroot, 'var/www')
@@ -150,7 +151,6 @@ def install(alsi):
     if os.path.exists('/etc/nginx/sites-enabled/default'):
         alsi.runcmd('sudo rm /etc/nginx/sites-enabled/default')
 
-
     alsi.append_line_if_doesnt_exist('/etc/security/limits.conf', "*                soft    nofile          16384")
     alsi.append_line_if_doesnt_exist('/etc/security/limits.conf', "*                hard    nofile          16384")
 
@@ -177,7 +177,7 @@ def create_install_selfsigned_certs(alsi):
         '-batch',
         '-nodes',
         '-days 3650',
-        '-newkey rsa:2048',
+        '-newkey rsa:%s' % alsi.config['ui'].get('rsa_key_size', 2048),
         '-keyout ' + key_location,
         '-out ' + cert_location,
     ]

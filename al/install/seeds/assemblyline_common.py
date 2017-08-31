@@ -17,6 +17,11 @@ def make_vm_dict(name, ram_gb, vcpus, revert_every, virtual_disk_url,
 
 DEFAULT_SEED = {
     'auth': {
+        'allow_2fa': True,
+        'allow_apikeys': True,
+        'apikey_handler': 'al_ui.site_specific.validate_apikey',
+        'dn_handler': 'al_ui.site_specific.validate_dn',
+        'encrypted_login': True,
         'internal': {
             'enabled': True,
             'failure_ttl': 60,
@@ -41,7 +46,7 @@ DEFAULT_SEED = {
                 }
             },
         },
-        'login_method': 'al_ui.site_specific.internal_authenticator',
+        'userpass_handler': 'al_ui.site_specific.validate_userpass'
     },
 
     'core': {
@@ -722,7 +727,9 @@ DEFAULT_SEED = {
         'enforce_quota': False,
         'fqdn': 'assemblyline.localhost',  # import if you are using SSL/certs
         'install_path': '/opt/al/pkg',
+        'rsa_key_size': 2048,
         'secret_key': '<put your own key here!>',
+        'session_duration': 60 * 60,  # 1 Hour in seconds
         'ssl': {
             'enabled': True,
             'certs': {
