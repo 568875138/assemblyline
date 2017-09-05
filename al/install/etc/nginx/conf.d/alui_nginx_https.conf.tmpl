@@ -63,7 +63,6 @@ server {
 
     location @alweb {
         add_header            X-Frame-Options              SAMEORIGIN;
-        proxy_set_header      X-Forward-For                $proxy_add_x_forwarded_for;
 
         proxy_set_header      Host                         $http_host;
         proxy_set_header      Scheme                       $scheme;
@@ -75,6 +74,7 @@ server {
         uwsgi_param           UWSGI_CHDIR                  /opt/al/pkg/al_ui/;
         uwsgi_param           HTTP_X_REMOTE_CERT_VERIFIED  $ssl_client_verify;
         uwsgi_param           HTTP_X_REMOTE_DN             $ssl_client_s_dn;
+        uwsgi_param           HTTP_X_FORWARD_FOR           $proxy_add_x_forwarded_for;
 
         uwsgi_intercept_errors on;
         error_page 502 = @alweb_dbg;
