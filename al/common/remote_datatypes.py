@@ -209,6 +209,9 @@ class Hash(object):
     def exists(self, key):
         return retry_call(self.c.hexists, self.name, key)
 
+    def get(self, key):
+        return retry_call(self.c.hget, self.name, key)
+
     def keys(self):
         return retry_call(self.c.hkeys, self.name)
 
