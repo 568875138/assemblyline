@@ -40,7 +40,7 @@ log = logging.getLogger('assemblyline.submission')
 
 config = forge.get_config()
 
-SUBMISSION_AUTH = (config.submissions.user, config.submissions.password)
+SUBMISSION_AUTH = (safe_str(config.submissions.user), safe_str(config.submissions.password))
 SHARDS = config.core.dispatcher.shards
 
 
