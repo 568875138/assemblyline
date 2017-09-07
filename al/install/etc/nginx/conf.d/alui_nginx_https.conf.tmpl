@@ -11,11 +11,11 @@ server {
     ssl_protocols             TLSv1 TLSv1.1 TLSv1.2;
 
     ssl_certificate           /etc/ssl/al_certs/al.crt;
-    ssl_certificate_key       /etc/ssl/al_certs/al.key;
-    {% if seed['ui']['ssl']['certs']['tc'] %}ssl_trusted_certificate   /etc/ssl/al_certs/tc.crt;{% endif %}
-    {% if seed['ui']['ssl']['certs']['ca'] %}ssl_client_certificate    /etc/ssl/al_certs/ca.crt;{% endif %}
-    {% if seed['ui']['ssl']['certs']['crl'] %}ssl_crl                   /etc/ssl/al_certs/crl.crt;{% endif %}
-    {% if seed['ui']['ssl']['certs']['ca'] %}ssl_verify_client         optional;
+    ssl_certificate_key       /etc/ssl/al_certs/al.key;{% if seed['ui']['ssl']['certs']['tc'] %}
+    ssl_trusted_certificate   /etc/ssl/al_certs/tc.crt;{% endif %}{% if seed['ui']['ssl']['certs']['ca'] %}
+    ssl_client_certificate    /etc/ssl/al_certs/ca.crt;{% endif %}{% if seed['ui']['ssl']['certs']['crl'] %}
+    ssl_crl                   /etc/ssl/al_certs/crl.crt;{% endif %}{% if seed['ui']['ssl']['certs']['ca'] %}
+    ssl_verify_client         optional;
     ssl_verify_depth          3;{% endif %}
 
     location /static {
@@ -28,6 +28,8 @@ server {
     }
     {% endif %}
     location /socket.io/ {
+        add_header            Strict-Transport-Security    "max-age=31536000; includeSubDomains";
+
         proxy_set_header      X-Remote-User   $remote_user;
         proxy_set_header      X-Forward-For   $proxy_add_x_forwarded_for;
         proxy_set_header      Host            $http_host;
@@ -44,6 +46,8 @@ server {
     }
 
     location @socketio_dbg {
+        add_header            Strict-Transport-Security    "max-age=31536000; includeSubDomains";
+
         proxy_set_header      X-Remote-User   $remote_user;
         proxy_set_header      X-Forward-For   $proxy_add_x_forwarded_for;
         proxy_set_header      Host            $http_host;
@@ -63,11 +67,11 @@ server {
 
     location @alweb {
         add_header            X-Frame-Options              SAMEORIGIN;
+        add_header            Strict-Transport-Security    "max-age=31536000; includeSubDomains";
 
         proxy_set_header      Host                         $http_host;
         proxy_set_header      Scheme                       $scheme;
         proxy_set_header      Server-Port                  $server_port;
-        proxy_pass_header     Authorization;
         include               uwsgi_params;
         uwsgi_buffering       off;
         uwsgi_pass            unix:/opt/al/var/www/alui_uwsgi.sock;
@@ -81,14 +85,15 @@ server {
 
     }
     location @alweb_dbg {
-        add_header            X-Frame-Options         SAMEORIGIN;
-        proxy_set_header      X-Forward-For           $proxy_add_x_forwarded_for;
-        proxy_set_header      X-Remote-Cert-Verified  $ssl_client_verify;
-        proxy_set_header      X-Remote-DN             $ssl_client_s_dn;
-        proxy_set_header      Host                    $http_host;
-        proxy_set_header      Scheme                  $scheme;
-        proxy_set_header      Server-Port             $server_port;
-        proxy_pass_header     Autorization;
+        add_header            X-Frame-Options            SAMEORIGIN;
+        add_header            Strict-Transport-Security  "max-age=31536000; includeSubDomains";
+
+        proxy_set_header      X-Forward-For              $proxy_add_x_forwarded_for;
+        proxy_set_header      X-Remote-Cert-Verified     $ssl_client_verify;
+        proxy_set_header      X-Remote-DN                $ssl_client_s_dn;
+        proxy_set_header      Host                       $http_host;
+        proxy_set_header      Scheme                     $scheme;
+        proxy_set_header      Server-Port                $server_port;
 
         proxy_pass            http://localhost:5000;
     }
