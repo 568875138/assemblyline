@@ -19,6 +19,7 @@ DEFAULT_SEED = {
     'auth': {
         'allow_2fa': True,
         'allow_apikeys': True,
+        'allow_u2f': True,
         'apikey_handler': 'al_ui.site_specific.validate_apikey',
         'dn_handler': 'al_ui.site_specific.validate_dn',
         'encrypted_login': True,
