@@ -100,7 +100,7 @@ class Counters(object):
     def ready(self):
         try:
             self.c.ping()
-        except: # pylint: disable=W0702
+        except Exception:  # pylint: disable=W0702
             return False
 
         return True
@@ -136,6 +136,7 @@ local waiting_release_names = redis.call('lrange', waiting_queue, 0, -1)
 redis.call('del', waiting_queue)
 return waiting_release_names
 """
+
 
 # noinspection PyProtectedMember pylint: disable=W0212
 class ExclusionWindow(object):
@@ -188,6 +189,7 @@ class ExpiringSet(object):
 
     def delete(self):
         retry_call(self.c.delete, self.name)
+
 
 h_pop_script = """
 local result = redis.call('hget', ARGV[1], ARGV[2])
@@ -247,5 +249,10 @@ class ExpiringHash(Hash):
 
     def add(self, key, value):
         rval = super(ExpiringHash, self).add(key, value)
+        retry_call(self.c.expire, self.name, self.ttl)
+        return rval
+
+    def set(self, key, value):
+        rval = super(ExpiringHash, self).set(key, value)
         retry_call(self.c.expire, self.name, self.ttl)
         return rval
