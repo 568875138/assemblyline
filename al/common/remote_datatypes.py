@@ -195,6 +195,11 @@ if result then redis.call('hdel', ARGV[1], ARGV[2]) end
 return result
 """
 
+h_replace_script = """
+redis.call('hdel', ARGV[1], ARGV[2])
+redis.call('hsetnx', ARGV[1], ARGV[2], ARGV[3])
+"""
+
 
 # noinspection PyProtectedMember pylint: disable=W0212
 class Hash(object):
@@ -202,6 +207,7 @@ class Hash(object):
         self.c = get_client(host, port, db, False)
         self.name = name
         self._pop = self.c.register_script(h_pop_script)
+        self._replace = self.c.register_script(h_replace_script)
 
     def add(self, key, value):
         return retry_call(self.c.hsetnx, self.name, key, json.dumps(value))
@@ -231,6 +237,9 @@ class Hash(object):
         if not item:
             return item
         return json.loads(item)
+
+    def set(self, key, value):
+        return retry_call(self._replace, args=[self.name, key, json.dumps(value)])
 
     def delete(self):
         retry_call(self.c.delete, self.name)
