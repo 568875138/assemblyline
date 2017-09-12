@@ -34,7 +34,9 @@ ACCOUNT_DEFAULT = {
     "agrees_with_tos": False,  # Date at which user agrees with Terms of Service
     "dn": None,  # Client Certificate DN
     "password": None,  # User's hashed password for default authenticator
-    "otp_sk": None  # One Time Password secret key
+    "otp_sk": None,  # One Time Password secret key
+    "apikeys": [],  # List of APIKeys enabled on this account
+    "u2f_devices": []  # List of registered u2f_devices
 }
 
 ACCOUNT_USER_MODIFIABLE = ["name", "avatar", "groups", "password"]
