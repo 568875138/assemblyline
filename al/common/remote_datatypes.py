@@ -232,6 +232,9 @@ class Hash(object):
             return item
         return json.loads(item)
 
+    def set(self, key, value):
+        return retry_call(self.c.hset, self.name, key, json.dumps(value))
+
     def delete(self):
         retry_call(self.c.delete, self.name)
 
