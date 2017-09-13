@@ -24,7 +24,8 @@ from assemblyline.al.common import forge, log as al_log
 from assemblyline.al.common.backupmanager import DistributedBackup
 from assemblyline.al.common.message import send_rpc
 from assemblyline.al.common.queue import reply_queue_name, NamedQueue
-from assemblyline.al.common.security import get_totp_token
+from assemblyline.al.common.remote_datatypes import Hash
+from assemblyline.al.common.security import get_totp_token, generate_async_keys
 from assemblyline.al.common.task import Task
 from assemblyline.al.core.agents import AgentRequest, ServiceAgentClient, VmmAgentClient
 from assemblyline.al.core.controller import ControllerClient
@@ -1368,6 +1369,78 @@ class ALCommandLineInterface(cmd.Cmd):  # pylint:disable=R0904
         self.datastore.save_blob('seed', seed)
         self.do_restore(backup_file)
         shutil.rmtree(backup_file)
+
+    def do_ui(self, args):
+        """
+        Perform UI related operations
+
+        Usage:
+            ui clear_sessions [username]
+               rekey          [length]
+
+        Parameters:
+            clear_sessions     Removes all active sessions
+            username           User to clear the sessions for
+                               [optional, only use in clear_sessions]
+            rekey              Create a new password encryption public/private key
+            length             Length of the new public/private key
+                               [optional, only use in rekey]
+
+        Examples:
+            # Clear sessions for user bob
+            ui clear_sessions bob
+
+            # Create a new key pair for encrypting passwords
+            ui rekey
+        """
+        valid_func = ['clear_sessions', 'rekey']
+        args = self._parse_args(args)
+
+        if len(args) not in [1, 2]:
+            self._print_error("Wrong number of arguments for restore command.")
+            return
+
+        func = args[0]
+        if func not in valid_func:
+            self._print_error("Invalid action '%s' for ui command." % func)
+            return
+
+        if func == 'clear_sessions':
+            username = None
+            if len(args) == 2:
+                username = args[1]
+
+            flsk_sess = Hash(
+                "flask_sessions",
+                host=config.core.redis.nonpersistent.host,
+                port=config.core.redis.nonpersistent.port,
+                db=config.core.redis.nonpersistent.db
+            )
+
+            if not username:
+                flsk_sess.delete()
+                print "All sessions where cleared."
+            else:
+                for k, v in flsk_sess.items().iteritems():
+                    if v.get('username', None) == username:
+                        print "Removing session: %s" % k
+                        flsk_sess.pop(k)
+
+                print "All sessions for user '%s' removed." % username
+
+        elif func == 'rekey':
+            length = None
+            if len(args) == 2:
+                try:
+                    length = int(args[1])
+                except ValueError:
+                    self._print_error("Not a valid length: %s" % args[1])
+                    return
+
+            public_key, private_key = generate_async_keys(key_size=length or config.ui.get('rsa_key_size', 2048))
+            self.datastore.save_blob('id_rsa.pub', public_key)
+            self.datastore.save_blob('id_rsa', private_key)
+            print "Rekeyed server. New public key:\n%s" % public_key
 
 
 def print_banner():
