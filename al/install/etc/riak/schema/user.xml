@@ -3,7 +3,7 @@
         <!--  AL user fields  -->
         <!-- User keys -->
         <field name="api_quota" type="int" indexed="true" stored="true"/>
-        <field name="dn" type="string" indexed="true" stored="false"/>
+        <field name="dn" type="string_ci" indexed="true" stored="false"/>
         <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="is_active" type="boolean" indexed="true" stored="true"/>
         <field name="is_admin" type="boolean" indexed="true" stored="true"/>
@@ -61,6 +61,13 @@
         <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
 
         <!-- A text field that only splits on whitespace for exact matching of words -->
+        <fieldType name="string_ci" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+            <analyzer>
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
+
         <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
             <analyzer>
                 <tokenizer class="solr.WhitespaceTokenizerFactory"/>
