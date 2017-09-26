@@ -69,6 +69,26 @@ That said, in some cases this makes a lot of sense and is the right way to go.
     3.1 Installation documentation: In the case of the API wrapper services, installation documentation of the external component is required
 4. If needed, think about your updating strategy. (e.g: AV signatures updates, Yara rules updates...)
 
+### Few rules for a good service
+
+#### If you have nothing to say, don't say anything
+There is no point on creating a result section if you have nothing to say about the file and creating a result section with something like "Nothing to report" in it just adds more stress to the system.
+
+#### Explain why you give a score to a file
+If your service is creating a result section and give the section a score, either the body of the section or the title of the section should make it clear why this section modified the score of the file.
+
+#### Use the tags wisely
+Tags are type/value entities that are related to a given file. They are meant to be concise and predictable. You should not put reasoning in a service tag. Also be mindful about the number of tags you generate for one file as the put strain in the system.
+
+Example of a tag:
+
+FILENAME: file.exe
+
+#### A service needs to be easily installable
+During the install phase of your service, the installer should be able to pull the necessary files from our amazon S3 bucket. We do not want to rely on external sources because they might not always be around yet the service should still work.
+
+For this reason, you should send us all necessary files for installation when you add your service to the default service list so we can drop all install files in our Amazon S3 bucket.
+
 ### Example of failures
 
 These is a few examples of what not to do when creating a service because it strains the system too much or is unecessarily complex.
