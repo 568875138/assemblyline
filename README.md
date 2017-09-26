@@ -181,13 +181,3 @@ Still in the settings page:
 To create a new service, follow the create service tutorial.
 
 [Create service tutorial](docs/create_new_service.md)
-
-#### License (or lack thereof) and Conditions of use
-
-As is fairly evident, we haven't selected a license for this project as of yet. As discussed when members were first granted read access to the repository, dissemination is based on the premise of originator controlled. If you feel there are other partners that would benefit from an early view and would be able to contribute, please contact the project leads and we should be able to sort it out.
-
-We will soon be splitting the platform and services into two separate repo's, so please treat the services as slightly more sensitive than the platform itself, ie: release it and perish!!! ... but seriously, we do not grant anyone the right to do anything other than deploy the platform and use it. No sharing, presenting, etc without our knowledge. 
-
-We hope to have a clear release plan soon.
-
-
