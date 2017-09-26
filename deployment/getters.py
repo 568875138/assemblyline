@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import os
-import random
 import shutil
 from getpass import getpass
 
@@ -13,7 +12,7 @@ PASS_BASIC = [chr(x + 65) for x in xrange(26)] + \
 
 def get_int(msg, min_val=None, max_val=None, default=None):
     while True:
-        input_val = raw_input("%s%s: " % (msg, {True: "", False:" [%s]" % default}[default is None]))
+        input_val = raw_input("%s%s: " % (msg, {True: "", False: " [%s]" % default}[default is None]))
         if input_val:
             try:
                 int_input = int(input_val)
@@ -119,7 +118,15 @@ def get_bool(msg, default=True):
 
 
 def get_random_password(alphabet=PASS_BASIC, length=24):
-    return "".join([random.choice(alphabet) for _ in xrange(length)])
+    r_bytes = bytearray(os.urandom(length))
+    a_list = []
+
+    for byte in r_bytes:
+        while byte >= (256 - (256 % len(alphabet))):
+            byte = ord(os.urandom(1))
+        a_list.append(alphabet[byte % len(alphabet)])
+
+    return "".join(a_list)
 
 
 def pick_from_list(msg, items):
