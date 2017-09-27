@@ -77,7 +77,7 @@ def install(alsi=None):
     ])
 
     alsi.info("Dowload and install assemblyline_client")
-    assemblyline_client_pkg = 'assemblyline_client-3.0.7.tar.gz'
+    assemblyline_client_pkg = 'assemblyline_client-3.1.0.tar.gz'
     remote_path = 'python/assemblyline_client/' + assemblyline_client_pkg
     local_path = '/tmp/' + assemblyline_client_pkg
     alsi.fetch_package(remote_path, local_path)
@@ -89,9 +89,9 @@ def install(alsi=None):
 
     alsi.info("Completed core deps installation.")
 
+
 # DEFERRED:
 # Removed libxml2-dev, libxslt1-dev and libvirt-dev until I know we need them this early.
-
 if __name__ == '__main__':
     from assemblyline.al.install import SiteInstaller
     installer = SiteInstaller()
