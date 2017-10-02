@@ -7,21 +7,57 @@ import time
 from assemblyline.al.common import forge, log as al_log, queue
 from al_ui.helper.user import add_access_control
 
-DATABASE_NUM = 4
-
 config = forge.get_config()
 al_log.init_logging('alert_actions')
 log = logging.getLogger('assemblyline.alert_actions')
-EXTENDED_SCAN_QUEUE_PRIORITY = 0
+
+DATABASE_NUM = 4
 DEFAULT_QUEUE_PRIORITY = -2
+EXTENDED_SCAN_QUEUE_PRIORITY = 0
+TASKER_COUNT = config.core.alert_actions.tasker_count
+WORKER_COUNT = config.core.alert_actions.worker_count
+
+
+def determine_worker_id(event_id):
+    n = reduce(lambda x, y: x ^ y, [int(e, 16) for e in event_id])
+    return n % WORKER_COUNT
+
+
+class AlertAction(object):
+    def __init__(self):
+        self.worker_threads = {
+            x: Thread(target=run_worker_thread, args=(x,), name="worker-%s" % x) for x in range(WORKER_COUNT)
+        }
+        self.tasker_threads = {
+            x: Thread(target=run_tasker_thread, args=(x,), name="tasker-%s" % x) for x in range(TASKER_COUNT)
+        }
+
+    def run(self):
+        # Start worker threads
+        for x in self.worker_threads:
+            self.worker_threads[x].start()
+
+        # Start tasker threads
+        for x in self.tasker_threads:
+            self.tasker_threads[x].start()
+
+        # Wait for worker threads to finish
+        for x in self.worker_threads:
+            self.worker_threads[x].join()
+
+        # Wait for tasker threads to finish
+        for x in self.tasker_threads:
+            self.tasker_threads[x].join()
 
 
 class AlertActionWorker(object):
     def __init__(self, worker_id_p):
         self.action_queue = queue.PriorityQueue('alert-actions-worker-%s' % worker_id_p, db=DATABASE_NUM)
         self.datastore = forge.get_datastore()
+        self.worker_id = worker_id_p
 
     def run(self):
+        log.info("Starting alert_actions worker thread %s" % self.worker_id)
         while True:
             msgs = self.action_queue.pop(num=1)
             for msg in msgs:
@@ -37,7 +73,7 @@ class AlertActionWorker(object):
                     else:
                         log.warning("Unknown action '%s'. Skipping..." % action)
 
-                except:  # pylint: disable=W0702
+                except Exception:  # pylint: disable=W0702
                     log.exception("Exception occured while processing message: %s", str(msg))
             if not msgs:
                 time.sleep(0.1)
@@ -52,7 +88,7 @@ class AlertActionWorker(object):
                 log.info("Alert %s now owned by %s.", alert['event_id'], alert['owner'])
             else:
                 log.warning("Alert %s already owned by %s.", alert['event_id'], alert['owner'])
-        except:  # pylint: disable=W0702
+        except Exception:  # pylint: disable=W0702
             log.exception("Exception occured while trying take ownership of alert %s.", search_item['event_id'])
 
     def _execute_update_action(self, msg):
@@ -115,34 +151,29 @@ class AlertActionWorker(object):
                 log.info("Alert {id} already had all proper "
                          "workflow settings. Skipping...".format(id=search_item['event_id']))
 
-        except:  # pylint: disable=W0702
+        except Exception:  # pylint: disable=W0702
             log.exception("Exception occured while trying take workflow action on alert %s.", search_item['event_id'])
 
 
 class AlertActionTasker(object):
-    WORKER_IDS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-
-    def __init__(self):
+    def __init__(self, tasker_id_p):
         self.action_queue = queue.PriorityQueue('alert-actions', db=DATABASE_NUM)
         self.worker_queues_map = {
-            x: queue.PriorityQueue('alert-actions-worker-%s' % x, db=DATABASE_NUM) for x in self.WORKER_IDS
-        }
-        self.worker_threads = {
-            x: Thread(target=run_worker_thread, args=(x,), name="worker-%s" % x) for x in self.WORKER_IDS
+            x: queue.PriorityQueue('alert-actions-worker-%s' % x, db=DATABASE_NUM) for x in range(WORKER_COUNT)
         }
         self.datastore = forge.get_datastore()
+        self.tasker_id = tasker_id_p
 
     def run(self):
-        # Start worker threads
-        for x in self.worker_threads:
-            self.worker_threads[x].start()
+        log.info("Starting alert_actions tasker thread %s" % self.tasker_id)
 
         while True:
             msgs = self.action_queue.pop(num=1)
             for msg in msgs:
                 if not self.valid_msg(msg):
                     continue
-
+                action = msg.get("action", "unknown")
+                log.info("New action received: %s [%s]" % (action, self.tasker_id))
                 # noinspection PyBroadException
                 try:
                     {
@@ -151,8 +182,8 @@ class AlertActionTasker(object):
                         "ownership": self.process_ownership_action,
                         "unknown": self.process_unknown_action,
                         "update": self.process_update_action,
-                    }[msg.get("action", "unknown")](msg)
-                except:  # pylint: disable=W0702
+                    }[action](msg)
+                except Exception:  # pylint: disable=W0702
                     log.exception("Exception occured while processing message: %s", str(msg))
             if not msgs:
                 time.sleep(0.1)
@@ -216,9 +247,10 @@ class AlertActionTasker(object):
                     if count % 100 == 0:
                         queue_priority -= 1
 
-                worker_id = event_id[0]
-                self.worker_queues_map[worker_id].push(queue_priority,
-                                                       {"action": "ownership", "search_item": item, "user": user})
+                self.worker_queues_map[determine_worker_id(event_id)].push(queue_priority,
+                                                                           {"action": "ownership",
+                                                                            "search_item": item,
+                                                                            "user": user})
             else:
                 log.error("Could not find the alert's event_id so we could not "
                           "dispatch it to the proper worker. [%s]" % str(item))
@@ -230,9 +262,9 @@ class AlertActionTasker(object):
     def process_update_action(self, msg):
         event_id = msg.get('alert', {}).get('event_id', None)
         if event_id:
-            worker_id = event_id[0]
-            self.worker_queues_map[worker_id].push(EXTENDED_SCAN_QUEUE_PRIORITY,
-                                                   {"action": "update", "original_msg": msg})
+            self.worker_queues_map[determine_worker_id(event_id)].push(EXTENDED_SCAN_QUEUE_PRIORITY,
+                                                                       {"action": "update",
+                                                                        "original_msg": msg})
         else:
             log.error("Could not find the alert's event_id so we could not "
                       "dispatch it to the proper worker. [%s]" % str(msg))
@@ -241,11 +273,10 @@ class AlertActionTasker(object):
         event_id = message.get('event_id', None)
         queue_priority = message.pop("queue_priority", DEFAULT_QUEUE_PRIORITY)
         if event_id:
-            worker_id = event_id[0]
-            self.worker_queues_map[worker_id].push(queue_priority,
-                                                   {"action": "workflow",
-                                                    "search_item": message,
-                                                    "original_msg": message})
+            self.worker_queues_map[determine_worker_id(event_id)].push(queue_priority,
+                                                                       {"action": "workflow",
+                                                                        "search_item": message,
+                                                                        "original_msg": message})
         else:
             log.error("Could not find the alert's event_id so we could not "
                       "dispatch it to the proper worker. [%s]" % str(message))
@@ -263,11 +294,10 @@ class AlertActionTasker(object):
                     if count % 100 == 0:
                         queue_priority -= 1
 
-                worker_id = event_id[0]
-                self.worker_queues_map[worker_id].push(queue_priority,
-                                                       {"action": "workflow",
-                                                        "search_item": item,
-                                                        "original_msg": message})
+                self.worker_queues_map[determine_worker_id(event_id)].push(queue_priority,
+                                                                           {"action": "workflow",
+                                                                            "search_item": item,
+                                                                            "original_msg": message})
             else:
                 log.error("Could not find the alert's event_id so we could not "
                           "dispatch it to the proper worker. [%s]" % str(item))
@@ -277,6 +307,10 @@ def run_worker_thread(worker_id):
     AlertActionWorker(worker_id).run()
 
 
+def run_tasker_thread(tasker_id):
+    AlertActionTasker(tasker_id).run()
+
+
 if __name__ == '__main__':
     log.info("AL Alert actions starting...")
-    AlertActionTasker().run()
+    AlertAction().run()

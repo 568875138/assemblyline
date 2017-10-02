@@ -52,6 +52,10 @@ DEFAULT_SEED = {
 
     'core': {
         'nodes': ['localhost'],
+        'alert_actions': {
+            'worker_count': 16,
+            'tasker_count': 4
+        },
         'alerter': {
             'create_alert': 'assemblyline.al.common.alerting.create_alert',
             "constant_alert_fields": ["event_id", "filename", "md5", "sha1", "sha256", "size", "ts"],
