@@ -173,7 +173,7 @@ class AlertActionTasker(object):
                 if not self.valid_msg(msg):
                     continue
                 action = msg.get("action", "unknown")
-                log.info("New action received: %s [%]" % (action, self.tasker_id))
+                log.info("New action received: %s [%s]" % (action, self.tasker_id))
                 # noinspection PyBroadException
                 try:
                     {
