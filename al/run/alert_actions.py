@@ -172,7 +172,8 @@ class AlertActionTasker(object):
             for msg in msgs:
                 if not self.valid_msg(msg):
                     continue
-
+                action = msg.get("action", "unknown")
+                log.info("New action received: %s [%]" % (action, self.tasker_id))
                 # noinspection PyBroadException
                 try:
                     {
@@ -181,7 +182,7 @@ class AlertActionTasker(object):
                         "ownership": self.process_ownership_action,
                         "unknown": self.process_unknown_action,
                         "update": self.process_update_action,
-                    }[msg.get("action", "unknown")](msg)
+                    }[action](msg)
                 except Exception:  # pylint: disable=W0702
                     log.exception("Exception occured while processing message: %s", str(msg))
             if not msgs:
