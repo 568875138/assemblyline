@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import logging
-from threading import Thread
-
 import time
+
+from threading import Thread
 
 from assemblyline.al.common import forge, log as al_log, queue
 from al_ui.helper.user import add_access_control
@@ -19,8 +19,7 @@ WORKER_COUNT = config.core.alert_actions.worker_count
 
 
 def determine_worker_id(event_id):
-    n = reduce(lambda x, y: x ^ y, [int(e, 16) for e in event_id])
-    return n % WORKER_COUNT
+    return int(event_id, 16) % WORKER_COUNT
 
 
 class AlertAction(object):
