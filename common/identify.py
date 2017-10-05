@@ -5,6 +5,7 @@ import re
 import subprocess
 import struct
 import sys
+import os
 import threading
 import uuid
 import zipfile
@@ -83,8 +84,15 @@ STRONG_INDICATORS = {
     ],
     'text/markdown': [
         re.compile(r'\*[ \t]*`[^`]+`[ \t]*-[ \t]*\w+'),
+    ],
+    'document/email': [
+        re.compile(r'^Content-Type: ', re.MULTILINE),
+        re.compile(r'^Subject: ', re.MULTILINE),
+        re.compile(r'^MIME-Version: ', re.MULTILINE),
+        re.compile(r'^Message-ID: ', re.MULTILINE),
+        re.compile(r'^To: ', re.MULTILINE),
+        re.compile(r'^From: ', re.MULTILINE),
     ]
-
 }
 STRONG_SCORE = 15
 MINIMUM_GUESS_SCORE = 20
@@ -479,12 +487,14 @@ def _differentiate(lang, scores_map):
 
 # Pass a filepath and this will return the guessed language in the AL tag format.
 def guess_language(path):
+    file_length = os.path.getsize(path)
     with open(path, 'r') as fh:
-        file_data = fh.read()
-        if file_data > 131070:
-            buf = file_data[:65535] + file_data[-65535:]
+        if file_length > 131070:
+            buf = fh.read(65535)
+            fh.seek(file_length - 65535)
+            buf += fh.read(65535)
         else:
-            buf = file_data
+            buf = fh.read()
 
     scores = defaultdict(int)
     shebang_lang = re.match(SHEBANG, buf)
