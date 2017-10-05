@@ -84,8 +84,15 @@ STRONG_INDICATORS = {
     ],
     'text/markdown': [
         re.compile(r'\*[ \t]*`[^`]+`[ \t]*-[ \t]*\w+'),
+    ],
+    'document/email': [
+        re.compile(r'^Content-Type: ', re.MULTILINE),
+        re.compile(r'^Subject: ', re.MULTILINE),
+        re.compile(r'^MIME-Version: ', re.MULTILINE),
+        re.compile(r'^Message-ID: ', re.MULTILINE),
+        re.compile(r'^To: ', re.MULTILINE),
+        re.compile(r'^From: ', re.MULTILINE),
     ]
-
 }
 STRONG_SCORE = 15
 MINIMUM_GUESS_SCORE = 20
