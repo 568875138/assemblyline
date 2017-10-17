@@ -44,7 +44,7 @@ We recommend using clusterssh when performing operations on multiple computers t
     chmod 700 $PYTHONPATH/../.ssh/
 
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.2
 
 ### Create cluster deployment
 **IMPORTANT**
