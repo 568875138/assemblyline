@@ -72,7 +72,7 @@ def hostagent_bootstrap_stage0():
             for repo_name in repo_list:
                 try:
                     _git_clone(os.path.join(AL_ROOT, 'pkg', repo_name), repo_cfg['url'] + repo_name,
-                               os.environ.get("AL_BRANCH", repo_cfg.get('branch', 'prod_3.1')))
+                               os.environ.get("AL_BRANCH", repo_cfg.get('branch', 'prod_3.2')))
                 except:
                     # If cloning fails and system user password is enabled, we will try to SSH copy the source instead.
                     if bstrap_cfg['system']['password']:

@@ -224,7 +224,7 @@ DEFAULT_SEED = {
                 #        realm and write the key to a file
                 'bitbucket': {
                     'url': 'git@bitbucket.org:cse-assemblyline/',
-                    'branch': 'prod_3.1',
+                    'branch': 'prod_3.2',
                     'user': None,
                     'password': None,
                     'key': None
@@ -698,7 +698,7 @@ DEFAULT_SEED = {
         'country_code_map': 'assemblyline.common.null.CountryCodeMap',
         'internal_repository': {
             'url': 'http://localhost/git/',
-            'branch': 'prod_3.1'
+            'branch': 'prod_3.2'
         },
         'load_config_from_riak': True,
         'name': 'default',
