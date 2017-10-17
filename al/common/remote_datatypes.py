@@ -100,7 +100,7 @@ class Counters(object):
     def ready(self):
         try:
             self.c.ping()
-        except: # pylint: disable=W0702
+        except Exception:  # pylint: disable=W0702
             return False
 
         return True
@@ -136,6 +136,7 @@ local waiting_release_names = redis.call('lrange', waiting_queue, 0, -1)
 redis.call('del', waiting_queue)
 return waiting_release_names
 """
+
 
 # noinspection PyProtectedMember pylint: disable=W0212
 class ExclusionWindow(object):
@@ -189,6 +190,7 @@ class ExpiringSet(object):
     def delete(self):
         retry_call(self.c.delete, self.name)
 
+
 h_pop_script = """
 local result = redis.call('hget', ARGV[1], ARGV[2])
 if result then redis.call('hdel', ARGV[1], ARGV[2]) end
@@ -208,6 +210,9 @@ class Hash(object):
 
     def exists(self, key):
         return retry_call(self.c.hexists, self.name, key)
+
+    def get(self, key):
+        return retry_call(self.c.hget, self.name, key)
 
     def keys(self):
         return retry_call(self.c.hkeys, self.name)
@@ -229,6 +234,9 @@ class Hash(object):
             return item
         return json.loads(item)
 
+    def set(self, key, value):
+        return retry_call(self.c.hset, self.name, key, json.dumps(value))
+
     def delete(self):
         retry_call(self.c.delete, self.name)
 
@@ -241,5 +249,10 @@ class ExpiringHash(Hash):
 
     def add(self, key, value):
         rval = super(ExpiringHash, self).add(key, value)
+        retry_call(self.c.expire, self.name, self.ttl)
+        return rval
+
+    def set(self, key, value):
+        rval = super(ExpiringHash, self).set(key, value)
         retry_call(self.c.expire, self.name, self.ttl)
         return rval

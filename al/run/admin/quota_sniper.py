@@ -26,6 +26,7 @@ time_diff = 60 * 5  # Anything older than 5 minutes...
 quota_time_diff = 60 * 60  # Anything older than 1 hour...
 
 while True:
+    # API Quota tracking
     data = client.hgetall('c-tracker-quota')
     if data:
         for key, value in data.iteritems():
@@ -40,7 +41,7 @@ while True:
             else:
                 logger.debug("{key} is ok. [{now} - {value} < {time_diff}]".format(key=key, now=now, value=epoch,
                                                                                    time_diff=time_diff))
-
+    # Submission Quota tracking
     for key in persist.keys('submissions-*'):
         data = persist.hgetall(key)
         for sid, t in data.iteritems():
@@ -52,5 +53,18 @@ while True:
                     'Quota item "{sid}" for user "{user}" was removed'.format(sid=sid, user=user)
                 )
                 persist.hdel(key, sid)
+
+    # Web sessions tracking
+    sessions = client.hgetall('flask_sessions')
+    if sessions:
+        for k, v in sessions.iteritems():
+            v = json.loads(v)
+            now = time.time()
+            expire_at = v.get('expire_at', 0)
+            if expire_at < now:
+                client.hdel('flask_sessions', k)
+                logger.warning("Sesssion ID '{session_id}' of {user} was removed from "
+                               "the system because it timed out.".format(session_id=k,
+                                                                         user=v.get('username', 'unknown')))
 
     time.sleep(5)
