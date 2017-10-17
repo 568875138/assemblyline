@@ -60,7 +60,7 @@ def install(alsi):
         'boto3==1.4.4',
         'botocore==1.5.62',
         'setuptools==24.0.2',
-        'cryptography',
+        'cryptography==2.0.3',
         'riak-pb',
         'pyOpenSSL',
         'six==1.9.0',
