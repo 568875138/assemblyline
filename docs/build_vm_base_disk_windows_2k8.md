@@ -246,8 +246,8 @@ Boot the machine, then:
 
           set BB_USER=<your_bb_user>
 
-          git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.1
-          git clone https://bitbucket.org/%BB_USER%/al_private.git -b prod_3.1
+          git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
+          git clone https://bitbucket.org/%BB_USER%/al_private.git -b prod_3.2
 
           set AL_SEED=al_private.seeds.deployment.seed
           set PYTHONPATH=\opt\al\pkg

@@ -61,7 +61,7 @@ seed['submissions']['url'] = "https://%s:443" % IP_CORE
 seed['system']['name'] = 'production'
 seed['system']['internal_repository'] = {
     'url': 'http://{core}/git/'.format(core=IP_CORE),
-    'branch': 'prod_3.1'
+    'branch': 'prod_3.2'
 }
 seed['system']['user'] = SYS_USER
 

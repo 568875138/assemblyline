@@ -42,7 +42,7 @@ seed['submissions']['url'] = "https://%s:443" % appliance_ip
 seed['system']['password'] = SYS_PASS
 seed['system']['internal_repository'] = {
     'url': 'http://{appliance_ip}/git/'.format(appliance_ip=appliance_ip),
-    'branch': 'prod_3.1'
+    'branch': 'prod_3.2'
 }
 seed['system']['user'] = SYS_USER
 
