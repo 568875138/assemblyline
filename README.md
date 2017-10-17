@@ -3,6 +3,7 @@
 Prod 3.1 branch is deprecated, you are strongly advised to move to prod_3.2 for future support. There are no official easy step by step guide to upgrade your cluster but one may be created in the future if needs be. Ask in our official community for support on this: https://groups.google.com/forum/#!forum/assemblyline-cse-cst
 
 In the meantime, for those confortable with the system, you can update your cluster following these steps:
+
 * Make sure all your seed changes are reflected in the seed source file
 * pull source and switch all nodes to prod_3.2 branch: al_git_pull && al_switch_branch prod_3.2
 * patch nginx config to reflect the new nginx conf templates and restart nginx
