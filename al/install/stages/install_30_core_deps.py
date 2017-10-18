@@ -77,7 +77,7 @@ def install(alsi=None):
     ])
 
     alsi.info("Dowload and install assemblyline_client")
-    assemblyline_client_pkg = 'assemblyline_client-3.1.0.tar.gz'
+    assemblyline_client_pkg = 'assemblyline_client-3.2.0.tar.gz'
     remote_path = 'python/assemblyline_client/' + assemblyline_client_pkg
     local_path = '/tmp/' + assemblyline_client_pkg
     alsi.fetch_package(remote_path, local_path)
