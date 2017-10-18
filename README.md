@@ -181,3 +181,190 @@ Still in the settings page:
 To create a new service, follow the create service tutorial.
 
 [Create service tutorial](docs/create_new_service.md)
+
+-------------------------------------------------------------------------------------------
+
+# Assemblyline
+
+Assemblyline est un *__cadre d’analyse de fichiers distribué__*. Bien qu’il soit conçu pour traiter des millions de fichiers par jour, il est également possible de l’installer sur une seule machine.
+
+Une grappe Assemblyline se compose de trois modules : Core, Datastore et Worker.
+
+## Composantes
+
+### Assemblyline Core
+
+Le serveur Assemblyline Core exécute toutes les composantes requises pour recevoir et assigner les tâches aux différents workers. Il héberge les processus suivants :
+
+* Redis (file d’attente/messagerie)
+* FTP (proftpd: transfert de fichiers)
+* Dispatcher (attribution et exécution des tâches)
+* Ingester (ingestion d’un grand volume de tâches)
+* Expiry (suppression de données)
+* Alerter (création d’alertes lorsqu’un seuil donné est atteint)
+* UI/API (NGINX, UWSGI, Flask, AngularJS)
+* Websocket (NGINX, Gunicorn, GEvent)
+
+### Assemblyline Datastore
+
+Assemblyline utilise Riak pour le stockage permanent des données. Riak est une banque de données de paires clé-valeur permettant l’intégration SOLR aux fins de recherche. Elle est entièrement distribuée et offre une évolutivité horizontale.
+
+### Assemblyline Workers
+
+Les workers sont responsables du traitement des fichiers.
+Chaque worker comporte un processus d’agent hôte qui lance les différents services à exécuter sur le worker en cours et veille au bon fonctionnement de ces services.
+L’agent hôte est également responsable du téléchargement et de l’exécution des machines virtuelles pour les services qu’il faut exécuter sur une machine virtuelle ou qui ne s’exécutent que sur Windows.
+
+### Manuel de référence d’Assemblyline
+
+Pour en savoir plus sur Assemblyline, vous pouvez consulter le manuel de référence dans son intégralité (en anglais)(https://bitbucket.org/cse-assemblyline/assemblyline/src/master/manuals/). Vous le trouverez également dans le répertoire `assemblyline/manuals` de votre installation.
+
+## Mise en route
+
+### Utilisation d’une appliance
+
+Une appliance est un déploiement complet et autonome effectué sur une machine virtuelle. Vous pouvez facilement déployer une appliance Assemblyline en suivant les directives fournies dans la documentation sur la création d’appliances (en anglais).
+
+[Install Appliance Documentation](docs/install_appliance.md)
+
+### Déploiement d’une grappe de production
+
+Pour analyser une quantité considérable de fichiers, vous pouvez déployer Assemblyline en tant que grappe de production. Pour ce faire, suivez les directives fournies dans la documentation sur le déploiement de grappes (en anglais) :
+
+[Install Cluster Documentation](docs/install_cluster.md)
+
+### Développement
+
+Vous pouvez nous aider à créer de nouveaux services, à ajouter des fonctionnalités à l’infrastructure ou à corriger les bogues dans le système actuel.
+
+Pour commencer le développement, vous pouvez suivre les directives fournies dans le présent document.
+
+#### Configuration de votre poste de développement
+
+Il est possible de configurer votre poste de développement en deux étapes faciles :
+
+* Cloner le dépôt d’Assemblyline
+* Exécuter le script de configuration
+
+##### Clonage du dépôt
+
+Créez d’abord votre répertoire de travail Assemblyline :
+
+    export ASSEMBLYLINE_DIR=~/git/al
+    mkdir -p ${ASSEMBLYLINE_DIR}
+
+Clonez ensuite le dépôt d’Assemblyline au moyen d’une des deux techniques suivantes :
+
+###### Clés SSH
+
+    ssh-keygen -t rsa -b 4096 -C "votre_courriel@exemple.com"
+    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys
+
+    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
+    chmod 600 ~/.ssh/id_rs*
+    chmod 600 ~/.ssh/config
+    ssh -T git@bitbucket.org
+
+    cd $ASSEMBLYLINE_DIR
+    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
+
+###### Mot de passe d’application
+
+Vous devez d’abord créer un mot de passe d’application pour votre utilisateur dans Bitbucket, puis faire comme suit :
+
+    export GIT_USER=<your git user>
+    export GIT_PASS=<your app password>
+    cd $ASSEMBLYLINE_DIR
+    git clone https://${GIT_USER}:${GIT_PASS}@bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.1
+
+##### Clonage d’autres dépôts
+
+    ${ASSEMBLYLINE_DIR}/assemblyline/al/run/setup_dev_environment.py
+
+**REMARQUE** : Le script de configuration utilisera la même commande git remote utilisée pour cloner le dépôt d’Assemblyline.
+
+#### Configuration de votre VM
+
+Après avoir configuré votre poste de travail, vous pouvez configurer la machine virtuelle sur laquelle s’exécutera votre instance d’Assemblyline.
+
+##### VM locale
+
+Pour utiliser une VM locale, vous devez vous assurer que votre poste de travail est suffisamment puissant pour exécuter une VM bicœur avec 8 Go de mémoire.
+
+Vous pouvez installer le SE en consultant le document suivant (en anglais) : [Install Ubuntu Server](docs/install_ubuntu_server.md)
+
+##### (Facultatif) Amazon AWS et autres fournisseurs de services d’infonuagique
+
+Il est également possible d’utiliser un fournisseur de services d’infonuagique comme Amazon AWS. La configuration recommandée pour votre VM de développement est 2 cœurs et 8 Go de mémoire RAM. AWS, notamment, est l’équivalent d’un nœud EC2 m4.large.
+
+Quels que soient votre fournisseur et la taille de votre VM, vous devez vous assurer qu’Ubuntu 14.04.3 est installé sur votre VM.
+
+##### Installation du code d’Assemblyline sur la VM de développement
+
+Une fois le SE installé sur votre VM, vous devez installer toutes les composantes d’Assemblyline sur cette VM.
+
+Pour ce faire, consultez le document suivant (en anglais) : [Install a Development VM](docs/install_development_vm.md)
+
+#### Finalisation de la configuration
+
+Maintenant que le code est synchronisé sur votre poste de travail et que votre VM de développement est installée, vous devez configurer votre IU de développement. Assurez-vous d’apporter les modifications mineures sur votre VM de développement pour supprimer les clés id_rsa de manière à ce que votre poste de travail exécute le code sur votre VM plutôt que dans les dépôts Git.
+
+Si vous disposez d’une copie de PyCharm Pro, vous pouvez utiliser l’interpréteur Python distant et les fonctionnalités de déploiement à distance pour synchroniser automatiquement le code sur votre VM de développement. Sinon, vous pouvez synchroniser manuellement votre code sur votre VM de développement chaque fois qu’il est nécessaire de tester les modifications que vous apportez.
+
+##### Configuration de pycharm
+
+Ouvrez PyCharm et votre projet : ~/git/al (ou ASSEMBLYLINE_DIR si vous changez le répertoire)
+
+Pycharm signalera la présence de dépôts Git non enregistrés. Cliquez sur le bouton add roots, puis ajoutez les dépôts non enregistrés.
+
+###### Interpréteur distant (version pro uniquement)
+
+Si vous disposez de la version professionnelle de PyCharm, vous pouvez configurer l’interpréteur distant :
+
+    file -> settings
+    Project: al -> Project Interpreter
+
+    Cog -> Add Remote
+
+    Justificateurs d’identité SSH
+    host: ip/domaine de votre VM
+    user: al
+    authtype: pass ou keypair (avec AWS)
+    password: n’importe quel mot de passe sélectionné à l’exécution du script create_deployment
+
+    Cliquez sur OK
+
+**REMARQUE** : Laissez la page de configuration ouverte pour les déploiements à distance. À ce stade, vous devriez avoir terminé la configuration de votre interpréteur distant. Le code s’exécutera sur votre VM de développement distante au moment où vous cliquerez sur le bouton Play ou Debug.
+
+###### Déploiement à distance (PyCharm Pro uniquement)
+
+Dans la page des paramètres :
+
+    Build, Execution, Deployment - > Deployment
+
+    Bouton Plus
+    Name: assemblyline dev_vm
+    Type: SFTP
+
+    Cliquez sur OK
+
+    # Dans l’onglet Connection
+    SFTP host: ip/domaine de votre VM
+    User name: al
+    authtype: pass ou keypair (avec AWS)
+    password: n’importe quel mot de passe sélectionné à l’exécution du script create_deployment
+
+    Cliquez sur le bouton Autodetect
+
+    Passez à la page Mappings
+    Cliquez sur « ... » près du chemin d’accès Deployment du serveur
+    Sélectionnez pkg
+    Cliquez sur OK
+
+**REMARQUE** : À ce stade, vous devriez avoir terminé la configuration de votre déploiement à distance. Lorsque vous apportez des modifications à votre code, vous pouvez le synchroniser sur la VM de développement distante. Vous devez, pour ce faire, ouvrir l’onglet Version Control au bas de l’interface, effectuer un clic droit sur Default, puis téléverser dans assemblyline dev_vm.
+
+#### Création d’un nouveau service
+
+Pour créer un nouveau service, suivez les directives mentionnées dans le tutoriel de création de service (en anglais) :
+
+[Create service tutorial](docs/create_new_service.md)
