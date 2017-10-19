@@ -99,7 +99,7 @@ Run the following:
     sudo chown -R `whoami` /opt/al/
     mkdir -p /opt/al/pkg/al_services
     touch /opt/al/pkg/al_services/__init__.py
-    (cd /opt/al/pkg/al_services && git clone git@bitbucket.org:cse-assemblyline/${SERVICE_REPO}.git -b prod_3.2)
+    (cd /opt/al/pkg/al_services && git clone https://bitbucket.org/cse-assemblyline/${SERVICE_REPO}.git -b prod_3.2)
     sudo su -c "PYTHONPATH=/opt/al/pkg AL_SEED=${AL_SEED} AL_SEED_STATIC=${AL_SEED} python /opt/al/pkg/al_services/${SERVICE_REPO}/installer.py"
     sudo chown -R al /opt/al/
 
@@ -111,7 +111,7 @@ Run the following:
     mkdir al_services
     cd al_services
     copy NUL __init__.py
-    git clone git@bitbucket.org:cse-assemblyline/%SERVICE_REPO%.git -b prod_3.2
+    git clone https://bitbucket.org/cse-assemblyline/%SERVICE_REPO%.git -b prod_3.2
     cd %SERVICE_REPO%
     python installer.py
 

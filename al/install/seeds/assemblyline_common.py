@@ -229,7 +229,7 @@ DEFAULT_SEED = {
                 #    When public key is used, we will create an .ssh/config file for the
                 #        realm and write the key to a file
                 'bitbucket': {
-                    'url': 'git@bitbucket.org:cse-assemblyline/',
+                    'url': 'https://bitbucket.org/cse-assemblyline/',
                     'branch': 'prod_3.2',
                     'user': None,
                     'password': None,

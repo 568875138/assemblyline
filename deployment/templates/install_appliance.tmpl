@@ -35,26 +35,11 @@ This will install your self contained deployment on a given machine. All actions
 
 ### Clone/create main repos
 
-    # Preferred bitbucket way (ssh keys)
-    export BB_USER=<your_bitbucket_username>
-    export BB_EMAIL=<your_email_address>
-
-    cd
-    ssh-keygen -t rsa -b 4096 -C "$BB_EMAIL"
-    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
-
-    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
-    chmod 600 ~/.ssh/id_rs*
-    chmod 600 ~/.ssh/config
-    ssh -T git@bitbucket.org
-
-    mkdir $PYTHONPATH/../.ssh/
-    cp ~/.ssh/* $PYTHONPATH/../.ssh/
-    chmod 700 $PYTHONPATH/../.ssh/
+    export BB_USER=<your bitbucket user>
 
     cd $PYTHONPATH
-    git clone git@bitbucket.org:$BB_USER/al_private.git -b prod_3.2
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.2
+    git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
+    git clone https://bitbucket.org/$BB_USER/al_private.git -b prod_3.2
 
 ## Install Riak
 
