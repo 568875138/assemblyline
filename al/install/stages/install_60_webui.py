@@ -39,7 +39,8 @@ def install(alsi):
         'psycopg2',
         'MySQL-python',
         'requests_toolbelt==0.3.1',
-        'pyqrcode==1.2.1'
+        'pyqrcode==1.2.1',
+        'python_u2flib_server==5.0.0'
     ])
 
     www_dir = os.path.join(alsi.alroot, 'var/www')
