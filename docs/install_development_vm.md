@@ -76,7 +76,6 @@ This will install Assemblyline in a self contained virtual machine. All actions 
 
 This tweak enables you to code on your desktop and sync your code to the VM via SSH or PyCharm's remote deployment interface rather than the git repository. The tweak will prevent the VM from pulling the code when the hostagent is restarted.
 
-Remove the id_rsa files with the following command:
+#### Sinkhole bitbucket.org:
 
-    sudo rm ~/.ssh/id_rsa*
-    sudo rm /opt/al/.ssh/id_rsa*
+    sudo su -c 'echo "127.0.0.1    bitbucket.org" >> /etc/hosts'
