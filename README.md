@@ -8,12 +8,12 @@ An Assemblyline cluster consists of 3 types of boxes: Core, Datastore and Worker
 
 ### Assemblyline Core
 
-The Assemblyline Core server runs all the required components to receive/dispatch tasks to the different workers. It hosts to following processes:
+The Assemblyline Core server runs all the required components to receive/dispatch tasks to the different workers. It hosts the following processes:
 
 * Redis (Queue/Messaging)
 * FTP (proftpd: File transfer)
 * Dispatcher (Worker tasking and job completion)
-* Ingester (High volume task insgestion)
+* Ingester (High volume task ingestion)
 * Expiry (Data deletion)
 * Alerter (Creates alerts when score threshold is met)
 * UI/API (NGINX, UWSGI, Flask, AngularJS)
@@ -67,30 +67,11 @@ First, create your Assemblyline working directory:
     export ASSEMBLYLINE_DIR=~/git/al
     mkdir -p ${ASSEMBLYLINE_DIR}
 
-Then clone the Assemblyline repo with one of those two techniques:
-
-###### SSH Keys
-
-    ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys
-
-    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
-    chmod 600 ~/.ssh/id_rs*
-    chmod 600 ~/.ssh/config
-    ssh -T git@bitbucket.org
+Then clone the main Assemblyline repo:
 
     cd $ASSEMBLYLINE_DIR
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.2
-
-###### App password
-
-First you need to create an app password for your user on bitbucket, then:
-
-    export GIT_USER=<your git user>
-    export GIT_PASS=<your app password>
-    cd $ASSEMBLYLINE_DIR
-    git clone https://${GIT_USER}:${GIT_PASS}@bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
-
+    git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
+    
 ##### Clone other repos
 
     ${ASSEMBLYLINE_DIR}/assemblyline/al/run/setup_dev_environment.py
@@ -253,31 +234,12 @@ Créez d’abord votre répertoire de travail Assemblyline :
     export ASSEMBLYLINE_DIR=~/git/al
     mkdir -p ${ASSEMBLYLINE_DIR}
 
-Clonez ensuite le dépôt d’Assemblyline au moyen d’une des deux techniques suivantes :
-
-###### Clés SSH
-
-    ssh-keygen -t rsa -b 4096 -C "votre_courriel@exemple.com"
-    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys
-
-    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
-    chmod 600 ~/.ssh/id_rs*
-    chmod 600 ~/.ssh/config
-    ssh -T git@bitbucket.org
+Clonez ensuite le dépôt d’Assemblyline:
 
     cd $ASSEMBLYLINE_DIR
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.1
+    git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
 
-###### Mot de passe d’application
-
-Vous devez d’abord créer un mot de passe d’application pour votre utilisateur dans Bitbucket, puis faire comme suit :
-
-    export GIT_USER=<your git user>
-    export GIT_PASS=<your app password>
-    cd $ASSEMBLYLINE_DIR
-    git clone https://${GIT_USER}:${GIT_PASS}@bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.1
-
-##### Clonage d’autres dépôts
+##### Clonage des autres dépôts
 
     ${ASSEMBLYLINE_DIR}/assemblyline/al/run/setup_dev_environment.py
 
