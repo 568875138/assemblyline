@@ -29,23 +29,9 @@ This will install Assemblyline on a bare-metal machine. All actions need to be p
 
 ### Clone/create main repos
 
-    # Clone repos using ssh keys
-    cd
-    ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
-
-    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
-    chmod 600 ~/.ssh/id_rs*
-    chmod 600 ~/.ssh/config
-    ssh -T git@bitbucket.org
-
-    mkdir $PYTHONPATH/../.ssh/
-    cp ~/.ssh/* $PYTHONPATH/../.ssh/
-    chmod 700 $PYTHONPATH/../.ssh/
-
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.2
-
+    git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
+    
 ### Create Appliance Deployment
 
     /opt/al/pkg/assemblyline/deployment/create_deployment.py

@@ -32,25 +32,11 @@ This will install the bootstrap code for an assemblyline base VM image. All acti
 
 ### Clone/create main repos
 
-    # Clone repos using ssh keys
     export BB_USER=<your bitbucket user>
 
-    cd
-    ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-    cat ~/.ssh/id_rsa.pub  # Add this output to your bitbucket trusted keys (read-only)
-
-    printf "Host bitbucket.org\n\tHostName bitbucket.org\n\tUser git\n\tIdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
-    chmod 600 ~/.ssh/id_rs*
-    chmod 600 ~/.ssh/config
-    ssh -T git@bitbucket.org
-
-    mkdir $PYTHONPATH/../.ssh/
-    cp ~/.ssh/* $PYTHONPATH/../.ssh/
-    chmod 700 $PYTHONPATH/../.ssh/
-
     cd $PYTHONPATH
-    git clone git@bitbucket.org:cse-assemblyline/assemblyline.git -b prod_3.2
-    git clone git@bitbucket.org:${BB_USER}/al_private.git -b prod_3.2
+    git clone https://bitbucket.org/cse-assemblyline/assemblyline.git -b prod_3.2
+    git clone https://bitbucket.org/${BB_USER}/al_private.git -b prod_3.2
 
 ### Install bootstrap code
     
